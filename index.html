@@ -18,6 +18,36 @@ html,body{height:100%;overflow:hidden;background:#0a0c10;color:var(--txt);
 #game canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 body.playing #game canvas{cursor:none}
 .hidden{display:none!important}
+#mplobby .mpl{width:min(560px,100%);text-align:left}
+.mpl h2,.mpl > p,.mpl .badge{text-align:center}
+.mpl .badge{display:flex;justify-content:center}
+.nkrow{display:flex;gap:10px;align-items:center;margin:4px 0 12px}
+.nkrow label{font-weight:800;font-size:13px;color:var(--mut);white-space:nowrap}
+.nkrow input{flex:1;min-width:0;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--txt);font-size:16px;font-weight:700;outline:none;font-family:inherit}
+.nkrow input:focus{border-color:var(--acc)}
+.mpmaps{margin-bottom:4px}
+.mpmaps .mode b{font-size:16px}
+#mpNote a{color:var(--acc);font-weight:800}
+.mode.coop b i.new{background:#2a6bff}
+.mode.coop{border-color:rgba(79,182,255,.45)}
+#board{position:absolute;top:72px;left:50%;transform:translateX(-50%);width:min(600px,92vw);background:rgba(10,12,16,.88);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px 18px;z-index:6}
+#board .bh{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-bottom:8px;flex-wrap:wrap}
+#board .bh b{font-size:16px}
+#board .bh span{color:var(--mut);font-size:12.5px;font-weight:700}
+#board table{width:100%;border-collapse:collapse;font-size:14px}
+#board th{color:var(--mut);font-size:11.5px;font-weight:800;text-align:center;padding:4px 6px;border-bottom:1px solid rgba(255,255,255,.1)}
+#board th:first-child,#board td:first-child{text-align:left}
+#board td{text-align:center;padding:6px;border-bottom:1px solid rgba(255,255,255,.05);font-weight:700}
+#board tr.me td{color:#7fd6ff}
+#board td i{font-style:normal;font-size:10.5px;background:var(--acc);color:#111;padding:1px 6px;border-radius:999px;margin-left:4px}
+#board td i.aw{background:#555;color:#ddd}
+#board p{color:var(--mut);font-size:11.5px;margin-top:8px;text-align:center}
+.kf.sys{color:#cfe3ff}
+#mpPause{margin:0 0 14px}
+#mpPause p{margin-bottom:10px}
+#mpInvite{width:100%}
+#prep.mp .opt,#prep.mp #prepNote,#prep.mp .cmd{display:none}
+
 button{font-family:inherit;cursor:pointer}
 
 /* ---------- Overlays ---------- */
@@ -262,7 +292,7 @@ body.bodycam #xhair{display:none}
   <div id="popups"></div>
   <div id="topbar">
     <div id="tA"><small id="tAl">점수</small><b id="tAv">0</b></div>
-    <div id="tTimer"><small>남은 시간</small><b id="timer">1:00</b></div>
+    <div id="tTimer"><small id="tTl">남은 시간</small><b id="timer">1:00</b></div>
     <div id="tB"><small id="tBl">명중률</small><b id="tBv">-</b></div>
   </div>
   <div id="mini" class="hidden"><canvas id="miniCv" width="196" height="182"></canvas><div class="mrow"><span id="zone">—</span><span id="drone">T 드론 정찰 가능</span></div></div>
@@ -277,6 +307,7 @@ body.bodycam #xhair{display:none}
     <div id="slots"><span data-i="0">1 · HK416</span><span data-i="1">2 · G17</span><span data-i="2">3 · TZ</span></div>
     <div id="gear"></div>
   </div>
+  <div id="board" class="hidden"></div>
   <div id="death"><b id="deathTitle">쓰러졌어요</b><span id="deathTxt"></span></div>
   <div id="hint">WASD 이동 · Shift 달리기 · 우클릭 조준 · R 재장전 · 1/2/3 무기 · N 조정간 · ESC 일시정지</div>
   <div id="tip" class="hidden"></div>
@@ -290,11 +321,12 @@ body.bodycam #xhair{display:none}
       <h1 class="logo">WELEV<span> ARENA</span></h1>
       <p class="sub">설치 없이 브라우저에서 바로 하는 총싸움.<br>지금은 혼자서 사격감과 손맛을 다듬는 단계예요.</p>
       <div class="modes">
+        <button class="mode coop" data-mode="coop"><b>같이하기 · 무한 작전<i class="new">NEW</i></b><span>친구와 동시 접속 · 들어오는 대로 바로 합류 · 시간이 갈수록 강도단이 늘어나요</span><em id="coopCnt">친구와 함께</em></button>
         <button class="mode sel" data-mode="training"><b>훈련장</b><span>60초 동안 튀어나오는 타깃 맞히기 · 머리 250점</span><em id="bestLabel">최고 0점</em></button>
         <button class="mode" data-mode="bots"><b>봇전</b><span>봇 5명과 대결 · 먼저 20킬 · 5분</span><em>1 vs 5</em></button>
         <button class="mode" data-mode="alley"><b>골목 작전</b><span>익선동 느낌 한옥마을 · 강도 8명 + 두목 · 시민을 쏘면 −500점</span><em id="bestAlley">최고 0점</em></button>
         <button class="mode" data-mode="cityhall"><b>서울시청 작전</b><span>실제 서울광장·세종대로·대한문 배치 · 서울도서관 인질 구출</span><em id="bestCity">최고 0점</em></button>
-        <button class="mode" data-mode="yeongtong"><b>영통 작전<i class="new">NEW</i></b><span>수원 영통역 중심상가 · 구름광장 시계탑 · 은행 인질 구출</span><em id="bestYt">최고 0점</em></button>
+        <button class="mode" data-mode="yeongtong"><b>영통 작전</b><span>수원 영통역 중심상가 · 구름광장 시계탑 · 은행 인질 구출</span><em id="bestYt">최고 0점</em></button>
       </div>
       
       <div class="row" id="diffRow" style="opacity:.45">
@@ -393,11 +425,29 @@ body.bodycam #xhair{display:none}
   </div>
 </div>
 
+<!-- 같이하기 로비 -->
+<div id="mplobby" class="overlay hidden">
+  <div class="small-panel panel mpl">
+    <span class="badge"><i></i>같이하기 · 무한 작전</span>
+    <h2>함께 출동</h2>
+    <p>들어오는 대로 바로 합류해요. 시간이 갈수록, 대원이 많을수록 강도단이 늘어나요.<br>쓰러져도 3초 뒤 그 자리에서 다시 일어나요. 시민을 쏘면 팀 점수 −500.</p>
+    <div class="nkrow"><label for="mpNick">내 이름</label><input id="mpNick" type="text" maxlength="10" autocomplete="off" enterkeyhint="go" placeholder="예: 알파팀 승태"></div>
+    <div class="modes mpmaps" id="mpMaps">
+      <button class="mode" data-map="yeongtong"><b>영통 중심상가</b><span>수원 영통역 · 구름광장 시계탑 · 청명은행</span><em>—</em></button>
+      <button class="mode" data-map="cityhall"><b>서울시청</b><span>서울광장 · 세종대로 · 서울도서관</span><em>—</em></button>
+      <button class="mode" data-map="alley"><b>한옥골목</b><span>익선동 느낌 한옥마을 골목</span><em>—</em></button>
+    </div>
+    <p class="note" id="mpNote"></p>
+    <div class="btns"><button class="btn2 pri" id="mpGo">출동</button><button class="btn2" id="mpGear">장비</button><button class="btn2" id="mpBack">뒤로</button></div>
+  </div>
+</div>
+
 <!-- Pause -->
 <div id="pause" class="overlay hidden">
   <div class="small-panel panel">
     <h2>일시정지</h2>
     <p id="pauseMsg">화면을 다시 누르면 이어서 할 수 있어요.</p>
+    <div id="mpPause" class="hidden"><p id="mpRoomTxt"></p><button class="btn2" id="mpInvite">초대 링크 복사</button></div>
     <div class="slider"><span>마우스 감도</span><input id="sens2" type="range" min="0.3" max="3" step="0.05"><output id="sensOut2"></output></div>
     <div class="slider"><span>소리 크기</span><input id="vol2" type="range" min="0" max="1" step="0.05"><output id="volOut2"></output></div>
     <div class="row tog"><label>바디캠 화면</label><div class="seg bcSeg"><button data-v="1">켜기</button><button data-v="0">끄기</button></div></div>
@@ -446,6 +496,32 @@ const ease = (t) => t * t * (3 - 2 * t);
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const angDiff = (a, b) => { let d = b - a; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; };
 const fmtTime = (s) => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+/* ---- 같이하기(무한 작전) 공용 상태: 아래 게임 코드 여기저기서 쓰므로 맨 앞에 둔다 ---- */
+const MP_CFG = {
+  url: 'https://tozyoprymcvznkeqmrqp.supabase.co', key: 'sb_publishable_7FGPTjvPHWj-oF_EiiSjcg_MI63-mqE',
+  lib: 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm', pre: 'fps1', roomMax: 16, site: 'https://welev-arena.vercel.app/',
+  ice: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }, { urls: 'stun:stun.cloudflare.com:3478' }],
+};
+const MP_Q = new URLSearchParams(location.search);
+const MP_LOCAL = MP_Q.get('net') === 'local', MP_NODC = MP_Q.get('nodc') === '1', MP_NORENDER = MP_Q.get('norender') === '1';
+// 같이하기는 내 사이트(Vercel)에서만: Claude 미리보기 안에서는 외부 연결이 막혀 있다
+const MP_OK = MP_LOCAL || (/^https?:$/.test(location.protocol) && !/(^|\.)(claude\.ai|claudeusercontent\.com|claude\.site)$/.test(location.hostname));
+const mpHex = (n) => { try { return [...crypto.getRandomValues(new Uint8Array(n))].map((b) => b.toString(16).padStart(2, '0')).join(''); } catch (e) { let s = ''; for (let i = 0; i < n * 2; i++) s += Math.floor(Math.random() * 16).toString(16); return s; } };
+const mpNick = (s) => String(s == null ? '' : s).replace(/[^0-9A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ _.\-]/g, '').replace(/\s+/g, ' ').trim().slice(0, 10);
+const fnum = (v, d = 0) => (typeof v === 'number' && isFinite(v) ? v : d);
+const rd1 = (v) => Math.round(v * 10) / 10, rd2 = (v) => Math.round(v * 100) / 100, rd3 = (v) => Math.round(v * 1000) / 1000;
+const NET = {
+  on: false, id: mpHex(8), nick: '', map: 'yeongtong', num: 1, room: '', pres: null, inbox: null, lobby: null, lobbyTry: false,
+  host: false, hostId: '', hostClaim: 0, joinT: 0, joinedAt: 0, inGame: false, joining: false, peers: new Map(),
+  sendT: 0, snapT: 0, civT: 0, doorT: 0, tickT: 0, trackT: 0, lastTick: 0, lastYaw: 0, shot: 0, shotEnd: null, arrests: 0,
+  counts: {}, invite: '', prevDiff: null, boardT: 0, sqMsgT: 0, prepMp: false,
+};
+// 방장이 다른 대원의 사격·체포를 처리하는 동안: 누가 했는지 / 어디서 쐈는지 (화면 효과는 그 대원 쪽에서만)
+let HIT_BY = null, HIT_POS = null;
+// 무한 작전 진행 상태 (방장이 돌리고 스냅샷으로 모두에게 나눈다)
+const EN = { lv: 1, lvT: 0, el: 0, spawnCd: 5, civT: 20, lastShot: -99, d: null, pool: null };
+const EN_LVL = 75; // 위협 단계가 오르는 간격(초)
+const isEndless = () => NET.on && MS.type === 'endless';
 
 const LO_DEF = { p: 0, nl: 4, sp: 'flash', opt: 'dot', sup: false, grip: false };
 const settings = { sens: 1, vol: 0.7, bodycam: false, vfx: 2, mtype: 'hostage', tod: 'base', weather: 'clear', mates: 2, loadout: Object.assign({}, LO_DEF) };
@@ -3295,6 +3371,7 @@ function startGame(m) {
   document.querySelectorAll('.kf').forEach((n) => n.remove());
   for (const m of mates) { m.active = false; m.root.visible = false; m.tagS.visible = false; }
   tacticalReset();
+  $('tTl').textContent = '남은 시간';
   if (mode === 'training') {
     timeLeft = 60; training.spawnCd = 0.6; training.recent = [];
     resetPlayer(0, 27, 0);
@@ -3306,6 +3383,15 @@ function startGame(m) {
     const pool = [...LEVEL.botSpawns].sort(() => Math.random() - 0.5);
     bots.slice(0, 5).forEach((b, i) => { b.active = true; b.name = BOT_NAMES[i]; spawnBot(b, pool[i]); });
     $('tAl').textContent = '처치'; $('tBl').textContent = '사망';
+  } else if (NET.on) {
+    // 같이하기: 맵의 시민 배치만 빌려 오고 강도는 무한 작전 지휘(방장)가 계속 보낸다
+    const MI = MISSIONS[mode], mt = settings.mtype;
+    timeLeft = Infinity;
+    resetPlayer(MI.spawn[0], MI.spawn[1], MI.spawn[2]);
+    settings.mtype = 'hostage'; MI.setup(); settings.mtype = mt; setupEndless();
+    let sx = MI.spawn[0] + rand(-2, 2), sz = MI.spawn[1] + rand(-2, 2); if (blocked2D(sx, sz, 0.5)) { sx = MI.spawn[0]; sz = MI.spawn[1]; }
+    resetPlayer(sx, sz, MI.spawn[2]); P.protect = 3;
+    $('tAl').textContent = '위협'; $('tBl').textContent = '팀 점수'; $('tTl').textContent = '진행 시간';
   } else {
     const MI = MISSIONS[mode];
     timeLeft = settings.mtype === 'defend' ? 600 : MI.time;
@@ -3313,8 +3399,8 @@ function startGame(m) {
     MI.setup();
     $('tAl').textContent = '강도'; $('tBl').textContent = '시민 부상';
   }
-  resolveConditions(); applyConditions();
-  if (isMission()) { spawnMates(); missionIntro(); }
+  resolveConditions(); if (NET.on) { COND.night = false; COND.weather = 'clear'; } applyConditions();
+  if (isMission()) { if (NET.on) enIntro(); else { spawnMates(); missionIntro(); } }
   updateGearHUD();
   $('death').classList.remove('on');
   $('menu').classList.add('hidden'); $('results').classList.add('hidden'); $('pause').classList.add('hidden');
@@ -3322,7 +3408,8 @@ function startGame(m) {
   $('hud').classList.remove('hidden');
   $('mini').classList.toggle('hidden', mode === 'training');
   if (mode === 'bots') { mini.pings.length = 0; mini.droneT = 0; mini.droneCd = 0; }
-  $('hint').textContent = isMission()
+  $('hint').textContent = NET.on ? 'V 투항 → E 체포 · G 섬광탄 · 문 앞 E 길게: 폭약 · T 드론 · Tab 대원 목록 · ESC 메뉴(게임은 계속돼요)'
+    : isMission()
     ? TYPE_HINTS[MS.type] || MISSIONS[mode].hint
     : 'WASD 이동 · Shift 달리기 · 우클릭 조준 · R 재장전 · 1/2/3 무기 · N 조정간 · ESC 일시정지';
   $('hint').style.opacity = 1; setTimeout(() => { $('hint').style.opacity = 0; }, 8000);
@@ -3452,7 +3539,7 @@ function taserBot(b) {
 }
 function beanbagBot(b, part, point, dir) {
   if (!b.alive || b.surrender) return;
-  stats.hits++; b.alertT = 3; b.hearPos.copy(P.pos);
+  stats.hits++; b.alertT = 3; b.hearPos.copy(HIT_POS || P.pos);
   emit(point, 7, { dir: V3(-dir.x, -dir.y, -dir.z), speed: [1, 2.5], spread: 1, life: [0.15, 0.4], grav: 6, color: [0.95, 0.55, 0.2] });
   if (part === 'head') {
     damageBot(b, 45, true, point, dir, false);
@@ -3627,6 +3714,7 @@ function endGame() {
   updateBestLabel();
 }
 function toMenu() {
+  if (NET.on) mpLeave();
   state = 'menu'; document.body.classList.remove('playing');
   if (document.pointerLockElement) document.exitPointerLock();
   $('hud').classList.add('hidden'); $('pause').classList.add('hidden'); $('results').classList.add('hidden'); $('menu').classList.remove('hidden');
@@ -3643,7 +3731,7 @@ function pause(msg) {
   state = 'paused'; document.body.classList.remove('playing'); mouseL = mouseR = false;
   if (document.pointerLockElement) document.exitPointerLock();
   for (const k in keys) keys[k] = false;
-  $('pauseMsg').textContent = msg || '계속하기를 누르면 이어서 할 수 있어요.';
+  $('pauseMsg').textContent = msg || (NET.on ? '계속하기를 누르면 돌아가요.' : '계속하기를 누르면 이어서 할 수 있어요.'); mpPauseInfo();
   $('pause').classList.remove('hidden');
 }
 function resume() {
@@ -3890,6 +3978,7 @@ function fire() {
       if (u.bot && (!u.bot.active || !u.bot.alive)) continue;
       if (u.part === 'shield' && !(u.bot && u.bot.shieldOn)) continue;
       if (u.mate && (!u.mate.active || !u.mate.alive)) continue;
+      if (u.remote && (!u.remote.active || !u.remote.alive)) continue;
       if (u.tire && !escapeVan.visible) continue;
       if (u.target && (u.target.state === 'hidden' || u.target.state === 'falling')) continue;
       if (u.civ && (!u.civ.active || u.civ.hurt || u.civ.state === 'gone')) continue;
@@ -3900,9 +3989,11 @@ function fire() {
       const u = hit.object.userData;
       if (u.part === 'shield') { impact(hit.point, _n.copy(_dir).negate(), 'metal'); if (pi === 0) sfx.ric(); u.bot.alertT = 3; u.bot.hearPos.copy(P.pos); }
       else if (u.mate) { if (pi === 0) friendlyFire(u.mate); }
+      else if (u.remote) { if (pi === 0) { centerMsg('아군 사격 주의!', 'civ', 0.9); hitmarker('civ'); } }
       else if (u.tire) hitTire(u.tire);
       else if (u.bot) {
-        if (w.type === 'taser') taserBot(u.bot);
+        if (NET.on && !NET.host) { mpClientHit(u.bot, w, u.part, hit, _dir); anyHit = true; }
+        else if (w.type === 'taser') taserBot(u.bot);
         else if (w.lessLethal) beanbagBot(u.bot, u.part, hit.point, _dir);
         else {
           const dist = hit.distance, fo = w.fall;
@@ -3910,9 +4001,10 @@ function fire() {
           damageBot(u.bot, w.dmg[u.part] * fall, u.part === 'head', hit.point, _dir, false); anyHit = true;
         }
       } else if (u.target) hitTarget(u.target, u.part, hit.point, hit.distance);
-      else if (u.civ) { if (w.type === 'taser' || w.lessLethal) taserCiv(u.civ); else hitCiv(u.civ, hit.point); }
+      else if (u.civ) { if (NET.on && !NET.host) mpClientCiv(u.civ, w); else if (w.type === 'taser' || w.lessLethal) taserCiv(u.civ); else hitCiv(u.civ, hit.point); }
     } else if (wh) { _end.copy(wh.point); impact(wh.point, wh.normal, wh.surface); }
     else _end.copy(_o).addScaledVector(_dir, range);
+    if (pi === 0 && NET.on) { NET.shot = (NET.shot + 1) % 1000; NET.shotEnd = _end.clone(); NET.sendT = Math.min(NET.sendT, 0.03); }
     if (pi < 3) {
       if (w.type === 'taser') spawnTracer(_mz, _end, 0xfff27a, 0.35, 0.006);
       else if (w.lessLethal) spawnTracer(_mz, _end, 0xff8a3a, 0.12, 0.022);
@@ -3929,6 +4021,7 @@ function fire() {
   if (w.type === 'taser') sfx.zap(); else sfx.shot(w.snd);
   const hearR = w.quiet ? 13 : 42;
   if (w.type !== 'taser') for (const b of bots) if (b.active && b.alive && b.pos.distanceTo(P.pos) < hearR) { b.alertT = 2.5; b.hearPos.copy(P.pos); }
+  if (w.type !== 'taser') EN.lastShot = gameTime;
   if (isMission() && w.type !== 'taser' && !w.quiet) panic();
   if (w.type === 'bolt') { P.boltT = 0.95; P.boltSnd = 0; }
   if (w.type === 'pump') { P.boltT = 0.6; P.boltSnd = 0; }
@@ -3978,13 +4071,14 @@ function updateWeapon(dt) {
 function damageBot(b, dmg, head, point, dir, count = true) {
   if (b.boss && !head) dmg *= 0.55; // body armour
   b.hp -= dmg; if (count) stats.hits++; b.flinch = b.boss ? 0.35 : 1;
-  b.alertT = 3; b.hearPos.copy(P.pos);
+  b.alertT = 3; b.hearPos.copy(HIT_POS || P.pos);
   emit(point, head ? 14 : 9, { dir: V3(-dir.x, -dir.y, -dir.z), speed: [1, 3], spread: 0.9, life: [0.2, 0.5], grav: 9, color: [0.72, 0.08, 0.06] });
   if (isMission() && b.boss && !MS.bossFled && b.hp > 0 && b.hp <= b.maxHp * 0.5 && !b.surrender && LEVEL.pickup) bossFlee();
   if (b.hp <= 0) { killBot(b, head); hitmarker('kill'); }
   else { hitmarker(head ? 'head' : 'body'); head ? sfx.head() : sfx.hit(); }
 }
 function killBot(b, head) {
+  if (isEndless()) return enKill(b, head);
   b.alive = false; b.deadT = 0;
   stats.kills++; stats.streak++; stats.bestStreak = Math.max(stats.bestStreak, stats.streak);
   if (head) stats.heads++;
@@ -4010,6 +4104,7 @@ function killBot(b, head) {
 }
 function hitCiv(c, point) {
   if (c.hurt) return;
+  if (isEndless()) return enCivHit(c, point);
   c.hurt = true; c.state = 'hurt'; c.cross.visible = true;
   MS.civHit++; MS.score -= 500;
   emit(point, 10, { speed: [1, 2.5], spread: 1, life: [0.3, 0.6], grav: 4, color: [0.35, 0.72, 1] });
@@ -4046,6 +4141,10 @@ function playerDie(b) {
   P.alive = false; P.hp = 0; P.respawnT = 3.2; stats.deaths++; stats.streak = 0;
   mouseL = mouseR = false; P.reloading = false;
   addFeed(b.name, '나', 'AR', false, true);
+  if (isEndless()) {
+    P.respawnT = 3; $('deathTitle').textContent = '쓰러졌어요'; $('deathTxt').textContent = `${b.name}에게 당했어요 · 3초 뒤 그 자리에서 다시 일어나요`; $('death').classList.add('on');
+    mpAll({ t: 'dn', by: String(b.name || '강도').slice(0, 16) }); return;
+  }
   if (isMission() && difficulty === 'real') {
     MS.deaths++; P.respawnT = 999;
     $('deathTitle').textContent = '대원 쓰러짐'; $('deathTxt').textContent = `${b.name}에게 당했어요 · 실전 난이도는 다시 일어날 수 없어요`; $('death').classList.add('on');
@@ -4110,6 +4209,7 @@ function botCanSee(b) {
   // teammates and an escorted VIP are targets too
   const others = [];
   for (const m of mates) if (m.active && m.alive) others.push(m);
+  if (NET.on) for (const r of remotes) if (r.active && r.alive && !r.away) others.push(r);
   if (MS.vip && MS.vip.active && MS.vip.state === 'follow') others.push(MS.vip);
   for (const o of others) {
     const d = Math.hypot(o.pos.x - _be.x, o.pos.z - _be.z);
@@ -4121,7 +4221,7 @@ function botCanSee(b) {
   b.tgt = best === 0 ? null : best; b.tgtPos = best === 0 ? P.pos : best.pos;
   return true;
 }
-function tgtAlive(b) { return b.tgt ? (b.tgt.mate ? b.tgt.alive && b.tgt.active : b.tgt.active && b.tgt.state === 'follow') : P.alive; }
+function tgtAlive(b) { return b.tgt ? (b.tgt.mate || b.tgt.remote ? b.tgt.alive && b.tgt.active : b.tgt.active && b.tgt.state === 'follow') : P.alive; }
 function setPath(b, tx, tz) {
   const si = nearestNode(b.pos.x, b.pos.z), gi = nearestNode(tx, tz);
   b.path = findPath(si, gi); b.pathIdx = 0;
@@ -4135,7 +4235,8 @@ function randomPatrol(b, d) {
     if (near.length) { const n = pick(near); setPath(b, n.x, n.z); } else b.path = [];
     return;
   }
-  if (P.alive && Math.random() < d.hunt) setPath(b, P.pos.x + rand(-5, 5), P.pos.z + rand(-5, 5));
+  const hp = enHuntPos();
+  if (hp && Math.random() < d.hunt) setPath(b, hp.x + rand(-5, 5), hp.z + rand(-5, 5));
   else { const n = pick(nodes); setPath(b, n.x, n.z); }
 }
 function botFire(b, d) {
@@ -4155,7 +4256,7 @@ function botFire(b, d) {
   if (Math.random() < chance) {
     end = target.add(V3(rand(-0.12, 0.12), rand(-0.15, 0.15), rand(-0.12, 0.12)));
     const dmg = d.dmg * (LEVEL.dmgMul || 1) * (b.boss ? 1.6 : 1) * dmgMul * rand(0.85, 1.15);
-    if (atPlayer) damagePlayer(dmg, b); else if (b.tgt.mate) mateDamage(b.tgt, dmg, b); else vipHit(b.tgt, b);
+    if (atPlayer) damagePlayer(dmg, b); else if (b.tgt.remote) mpHitRemote(b.tgt, dmg, b); else if (b.tgt.mate) mateDamage(b.tgt, dmg, b); else vipHit(b.tgt, b);
   } else {
     const dir = target.clone().sub(mz).normalize();
     const side = V3().crossVectors(dir, V3(0, 1, 0)).normalize();
@@ -4166,6 +4267,7 @@ function botFire(b, d) {
     else end = mz.clone().addScaledVector(mdir, 140);
     if (dist < 45 && Math.random() < 0.5) sfx.whiz(-pan);
   }
+  b.netFc = ((b.netFc | 0) + 1) % 1000; b.netAim = end; EN.lastShot = gameTime;
   spawnTracer(mz, end, 0xffa36a, 0.07, 0.02);
   if (gameTime - b.lastPing > 0.6) { b.lastPing = gameTime; ping(b.pos.x, b.pos.z, 'fire'); }
   b.flashT = 0.05; b.flash.material.rotation = rand(0, 6);
@@ -4173,12 +4275,13 @@ function botFire(b, d) {
   if (isMission()) panic();
 }
 function updateBot(b, dt) {
-  const d = DIFF[difficulty];
-  if (b.arrested) { b.flash.visible = false; return; }
+  const d = botDiff();
+  if (b.arrested) { b.flash.visible = false; if (isEndless()) { b.deadT += dt; if (b.deadT > 7) { b.active = false; b.root.visible = false; } } return; }
   if (!b.alive) {
     b.deadT += dt;
     const k = clamp(b.deadT / 0.45, 0, 1);
     b.root.rotation.x = ease(k) * Math.PI / 2 * 0.96; b.root.position.y = Math.max(-0.3, -0.1 * k);
+    if (isEndless() && b.deadT > 7) { b.root.position.y = -0.3 - (b.deadT - 7) * 0.8; if (b.deadT > 8.4) { b.active = false; b.root.visible = false; b.laser.visible = false; } }
     if (mode === 'bots') {
       if (b.deadT > 2.4) b.root.position.y -= (b.deadT - 2.4) * 0.8;
       if (b.deadT > 3.4) { b.root.visible = false; if (b.deadT > 3.8 && state === 'playing') spawnBot(b); }
@@ -4227,7 +4330,7 @@ function updateBot(b, dt) {
       if (b.canSee && dist < 1.9 && tgtAlive(b) && b.meleeCd <= 0) {
         b.meleeCd = 1.0; b.flinch = 0.6;
         const md = d.dmg * 1.9 * (LEVEL.dmgMul || 1) * rand(0.85, 1.15);
-        if (!b.tgt) damagePlayer(md, b); else if (b.tgt.mate) mateDamage(b.tgt, md, b); else vipHit(b.tgt, b);
+        if (!b.tgt) damagePlayer(md, b); else if (b.tgt.remote) mpHitRemote(b.tgt, md, b); else if (b.tgt.mate) mateDamage(b.tgt, md, b); else vipHit(b.tgt, b);
         sfx.hit(); if (isMission()) panic();
       }
       return;
@@ -4381,6 +4484,7 @@ function plantCharge(d) {
   chargeMesh.position.set(clamp(P.pos.x, Math.min(d.x0, d.x1) + 0.3, Math.max(d.x0, d.x1) - 0.3) * (d.alongX ? 1 : 0) + (d.alongX ? 0 : d.cx + sx), 1.15, d.alongX ? d.cz + sz : clamp(P.pos.z, d.z0 + 0.3, d.z1 - 0.3));
   chargeMesh.rotation.y = d.alongX ? 0 : Math.PI / 2; chargeMesh.visible = true;
   centerMsg('폭약 설치! 물러나세요', 'kill', 1.4); updateGearHUD();
+  if (NET.on) mpAll({ t: 'bc', i: LEVEL.doors.indexOf(d), x: rd2(chargeMesh.position.x), y: rd2(chargeMesh.position.y), z: rd2(chargeMesh.position.z), ry: rd3(chargeMesh.rotation.y) });
 }
 function breachExplode(d) {
   d.charge = 0; chargeMesh.visible = false; d.broken = true;
@@ -4393,13 +4497,13 @@ function breachExplode(d) {
   const pd = Math.hypot(P.pos.x - d.cx, P.pos.z - d.cz);
   P.shake = Math.max(P.shake, clamp(1.3 - pd * 0.06, 0.3, 1.3));
   if (pd < 2.6 && P.alive) { const fake = { name: '폭약', pos: c }; damagePlayer(28, fake); }
-  for (const b of bots) {
+  for (const b of (!NET.on || NET.host ? bots : [])) {
     if (!b.active || !b.alive) continue;
     const bd = Math.hypot(b.pos.x - d.cx, b.pos.z - d.cz);
     if (bd < 8.5) { b.stunT = Math.max(b.stunT, (b.boss ? 1.8 : 3.4) - bd * 0.12); }
     if (bd < 32) { b.alertT = 3; b.hearPos.set(d.cx, 0, d.cz); }
   }
-  for (const c2 of civs) if (c2.active && !c2.hurt && Math.hypot(c2.pos.x - d.cx, c2.pos.z - d.cz) < 9 && ['eat', 'idle', 'walk', 'flee'].includes(c2.state)) c2.state = 'duck';
+  for (const c2 of (!NET.on || NET.host ? civs : [])) if (c2.active && !c2.hurt && Math.hypot(c2.pos.x - d.cx, c2.pos.z - d.cz) < 9 && ['eat', 'idle', 'walk', 'flee'].includes(c2.state)) c2.state = 'duck';
   if (isMission()) panic();
 }
 // ---- flashbangs
@@ -4416,6 +4520,7 @@ function throwFlash() {
   const pos = camera.position.clone().addScaledVector(fwd, 0.5); pos.y -= 0.15;
   const vel = fwd.clone().multiplyScalar(14).add(V3(P.vel.x * 0.5, 2.6, P.vel.z * 0.5));
   nades.push({ m, pos, vel, t: 0 });
+  if (NET.on) mpAll({ t: 'fl', x: rd2(pos.x), y: rd2(pos.y), z: rd2(pos.z), vx: rd2(vel.x), vy: rd2(vel.y), vz: rd2(vel.z) });
   centerMsg('섬광탄!', 'info', 0.7);
 }
 const _nd = V3();
@@ -4439,18 +4544,18 @@ function updateNades(dt) {
       if (n.pos.y < 0.06) { n.pos.y = 0.06; if (n.vel.y < 0) n.vel.y = -n.vel.y * 0.3; n.vel.x *= 0.9; n.vel.z *= 0.9; }
     }
     n.t += dt; n.m.position.copy(n.pos); n.m.rotation.x += dt * 9; n.m.rotation.z += dt * 5;
-    if (n.t > 1.5) { detonateFlash(n.pos); scene.remove(n.m); nades.splice(i, 1); }
+    if (n.t > 1.5) { detonateFlash(n.pos, n.remote); scene.remove(n.m); nades.splice(i, 1); }
   }
 }
 const _fb = V3();
-function detonateFlash(pos) {
+function detonateFlash(pos, remote) {
   const c = pos.clone(); c.y = Math.max(c.y, 0.3);
   flashSprite.position.copy(c); flashSprite.scale.setScalar(7); flashSprite.material.opacity = 1; flashSprite.visible = true;
   muzzleLight.position.copy(c); muzzleLight.intensity = 900;
   emit(c, 18, { speed: [2, 6], spread: 1.5, life: [0.15, 0.4], grav: 2, color: [1, 1, 0.95] });
   sfx.bang();
   let stunned = 0;
-  for (const b of bots) {
+  for (const b of (!NET.on || NET.host ? bots : [])) {
     if (!b.active || !b.alive) continue;
     const head = V3(b.pos.x, b.pos.y + 1.6, b.pos.z), d = head.distanceTo(c);
     // the flash fills a room: full effect with a clear line, half effect when close but behind furniture
@@ -4458,7 +4563,7 @@ function detonateFlash(pos) {
     if (!seen && !near) { if (d < 30) { b.alertT = 3; b.hearPos.copy(c); } continue; }
     b.stunT = Math.max(b.stunT, clamp(4.4 - d * 0.22, 1.4, 4.2) * (b.boss ? 0.6 : 1) * (near ? 0.5 : 1)); b.alertT = 3; b.hearPos.copy(c); stunned++;
   }
-  for (const cv of civs) if (cv.active && !cv.hurt && cv.pos.distanceTo(c) < 12 && ['eat', 'idle', 'walk', 'flee'].includes(cv.state)) cv.state = 'duck';
+  for (const cv of (!NET.on || NET.host ? civs : [])) if (cv.active && !cv.hurt && cv.pos.distanceTo(c) < 12 && ['eat', 'idle', 'walk', 'flee'].includes(cv.state)) cv.state = 'duck';
   // the player gets it too if close and facing it
   if (P.alive) {
     const eye = camera.position, d = eye.distanceTo(c);
@@ -4469,7 +4574,7 @@ function detonateFlash(pos) {
     }
   }
   if (isMission()) panic();
-  if (stunned) popup(`기절 ${stunned}명`, 'head');
+  if (stunned && !remote) popup(`기절 ${stunned}명`, 'head');
 }
 // ---- compliance shout
 let shoutCd = 0;
@@ -4486,7 +4591,12 @@ function shout() {
   shoutCd = 1.1;
   const line = pick(SHOUTS); centerMsg(line, 'info', 1.1); sfx.shout(); speak(line);
   const eye = camera.position, fwd = V3(0, 0, -1).applyQuaternion(camera.quaternion);
-  const d = DIFF[difficulty], left = bots.filter((b) => b.active && b.alive && !b.surrender).length;
+  if (NET.on && !NET.host) { mpToHost({ t: 'sh', x: rd2(eye.x), y: rd2(eye.y), z: rd2(eye.z), fx: rd3(fwd.x), fy: rd3(fwd.y), fz: rd3(fwd.z) }); return; }
+  shoutAt(eye, fwd, P.pos, null);
+}
+// eye·fwd에서 외친 명령 (q: 다른 대원이 외쳤을 때 그 대원)
+function shoutAt(eye, fwd, pos, q) {
+  const d = botDiff(), left = bots.filter((b) => b.active && b.alive && !b.surrender).length;
   let gave = 0, refused = 0, ducked = 0;
   for (const b of bots) {
     if (!b.active || !b.alive || b.surrender || b.flee && !b.atPickup) continue;
@@ -4494,18 +4604,19 @@ function shout() {
     if (dist > 17) continue;
     const to = head.clone().sub(eye).normalize();
     if (fwd.dot(to) < 0.55 || !losClear(eye, head)) continue;
-    let ch = 0.1 + (b.stunT > 0 ? 0.62 : 0) + (b.hp < b.maxHp * 0.5 ? 0.22 : 0) + 0.3 * (MS.down / Math.max(1, MS.total)) + (!b.canSee ? 0.15 : 0) + (left <= 2 ? 0.12 : 0);
+    let ch = 0.1 + (b.stunT > 0 ? 0.62 : 0) + (b.hp < b.maxHp * 0.5 ? 0.22 : 0) + (isEndless() ? 0.15 : 0.3 * (MS.down / Math.max(1, MS.total))) + (!b.canSee ? 0.15 : 0) + (left <= 2 ? 0.12 : 0);
     if (b.boss) ch = b.stunT > 0 && b.hp < b.maxHp * 0.5 ? 0.4 : 0.02;
     if (b.hostage) ch *= 0.6;
     if (b.static) ch *= 0.75;
     ch *= { easy: 1.2, normal: 1, hard: 0.8, real: 0.7 }[difficulty];
     if (Math.random() < Math.min(0.92, ch)) { surrender(b); gave++; }
-    else { refused++; b.alertT = 3; b.hearPos.copy(P.pos); if (b.stunT <= 0) b.seeT = Math.max(b.seeT, d.react * 0.6); }
+    else { refused++; b.alertT = 3; b.hearPos.copy(pos); if (b.stunT <= 0) b.seeT = Math.max(b.seeT, d.react * 0.6); }
   }
   for (const c of civs) {
     if (!c.active || c.hurt || c.kind === 'hostage' || c.state === 'gone' || c.state === 'duck') continue;
-    if (c.pos.distanceTo(P.pos) < 15) { c.state = 'duck'; c.path = []; ducked++; }
+    if (c.pos.distanceTo(pos) < 15) { c.state = 'duck'; c.path = []; ducked++; }
   }
+  if (q) { mpSendTo(q, { t: 'ev', k: 'shout', by: q.id, g: gave, r: refused, du: ducked }); return; }
   if (gave) setTimeout(() => centerMsg(gave > 1 ? `${gave}명 투항! E로 체포하세요` : '투항! 다가가서 E로 체포하세요', 'head', 1.6), 450);
   else if (refused) setTimeout(() => centerMsg('투항 거부!', 'kill', 1), 450);
   else if (ducked) setTimeout(() => popup(`시민 ${ducked}명 엎드림`, 'civ'), 300);
@@ -4516,7 +4627,7 @@ function surrender(b) {
   b.fakeT = !b.boss && !b.faked && Math.random() < FAKE[difficulty] ? rand(3, 7) : -1;
   if (b.hostage) freeHostage(b);
   if (b.boss) MS.escapeT = 0;
-  addFeed(b.name, '투항', '', false);
+  if (isEndless()) mpHostEvent({ k: 'surr', e: bots.indexOf(b), by: HIT_BY || NET.id }); else addFeed(b.name, '투항', '', false);
 }
 function updateSurrendered(b, dt) {
   kneelPose(b, false);
@@ -4538,6 +4649,7 @@ function updateSurrendered(b, dt) {
   b.root.updateMatrixWorld(true);
 }
 function arrest(b) {
+  if (isEndless()) { if (NET.host) return enArrest(b); mpToHost({ t: 'ar', e: bots.indexOf(b), x: rd2(P.pos.x), z: rd2(P.pos.z) }); b.surrender = false; b.arrested = true; b.alive = false; b.deadT = 0; b.predT = gameTime; kneelPose(b, true); return; }
   b.surrender = false; b.arrested = true; b.alive = false; b.deadT = 0; kneelPose(b, true);
   MS.arrests++; const pts = b.boss ? 2000 : 500;
   MS.score += pts; popup('+' + pts + ' 체포', 'head'); sfx.cuff();
@@ -4569,7 +4681,7 @@ for (let i = 0; i < 14; i++) {
   evPool.push({ g, sp, active: false });
 }
 function dropEvidence(b) {
-  if (!isMission() || b.evDropped) return;
+  if (!isMission() || b.evDropped || isEndless()) return;
   b.evDropped = true;
   const e = evPool.find((x) => !x.active); if (!e) return;
   const fx = -Math.sin(b.yaw), fz = -Math.cos(b.yaw);
@@ -4621,7 +4733,7 @@ function updateInteract(dt) {
         }
       }
     } else {
-      if (ia.target && ia.target.type === 'door' && !ia.done && ia.t < 0.85 && !ia.target.d.open && ia.target.d.charge <= 0) doorOpen(ia.target.d, 0.55);
+      if (ia.target && ia.target.type === 'door' && !ia.done && ia.t < 0.85 && !ia.target.d.open && ia.target.d.charge <= 0) { doorOpen(ia.target.d, 0.55); if (NET.on) mpAll({ t: 'dr', i: LEVEL.doors.indexOf(ia.target.d) }); }
       ia.target = null; ia.done = false; ia.t = 0;
       const f = findInteract();
       if (f && f.type === 'arrest') show = `<b>E</b> 길게 눌러 체포 · ${f.b.name}`;
@@ -4831,6 +4943,28 @@ for (let i = 0; i < 3; i++) {
 // teammates and getaway-van tyres are hit-tested like everyone else (friendly fire / tyre shots)
 for (const m of mates) dynList.push(...m.parts);
 dynList.push(...tireMeshes);
+// 같이하기: 다른 대원들의 몸 (경찰특공대 모델 · 이름표). 맞히면 아군 사격 경고만 뜬다
+const remotes = [];
+for (let i = 0; i < 15; i++) {
+  const r = makeBot(BM_SWAT); r.remote = true; r.pid = ''; r.idx = i; r.name = '대원';
+  for (const pt of r.parts) { pt.userData.bot = null; pt.userData.remote = r; }
+  const cv = document.createElement('canvas'); cv.width = 320; cv.height = 72;
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true, opacity: 0.9 }));
+  sp.scale.set(1.1, 0.25, 1); sp.position.y = 2.25; sp.renderOrder = 6; sp.visible = false; r.root.add(sp);
+  Object.assign(r, { tagS: sp, tagC: cv, tagT: tex, flashT: 0, away: true, crouch: false });
+  remotes.push(r); dynList.push(...r.parts);
+}
+function mpDrawTag(r, nick) {
+  const g = r.tagC.getContext('2d'), w = r.tagC.width, h = r.tagC.height;
+  g.clearRect(0, 0, w, h); g.font = `900 38px ${FONT}`;
+  const tw = Math.min(w - 8, g.measureText(nick).width + 40);
+  g.fillStyle = 'rgba(20,70,170,.88)'; g.beginPath(); if (g.roundRect) g.roundRect((w - tw) / 2, 6, tw, h - 12, 18); else g.rect((w - tw) / 2, 6, tw, h - 12); g.fill();
+  g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(nick, w / 2, h / 2 + 2);
+  r.tagT.needsUpdate = true; r.tagNick = nick;
+}
+// 방장이 다른 대원의 사격을 처리할 때는 맞힘 소리를 내지 않는다(그 대원 화면에서 난다)
+for (const k of ['hit', 'head', 'kill']) { const f = sfx[k]; if (typeof f === 'function') sfx[k] = (...a) => { if (!HIT_BY) return f.apply(sfx, a); }; }
 const MATE_ACC = { easy: 0.36, normal: 0.3, hard: 0.26, real: 0.24 };
 function spawnMates() {
   const n = settings.mates | 0;
@@ -5056,6 +5190,7 @@ function missionIntro() {
    ========================================================= */
 function alleyDirector(dt) {
   if (MS.ended) return;
+  if (isEndless()) { if (NET.host) enDirector(dt); return; }
   const alive = bots.filter((b) => b.active && b.alive && !b.surrender);
   if (MS.type === 'defend') updateDefend(dt);
   if (!MS.reinf && MS.down >= 3 && alive.length <= 3 && LEVEL.reinf) callReinforcements();
@@ -5141,6 +5276,7 @@ function drawMini(dt) {
   }
   if (isMission()) {
     for (const m of mates) if (m.active) { g.fillStyle = m.alive ? '#4fb6ff' : '#506070'; g.beginPath(); g.arc(tx(m.pos.x), tz(m.pos.z), 3.2, 0, 7); g.fill(); }
+    if (NET.on) for (const r of remotes) if (r.active && !r.away) { g.fillStyle = r.alive ? '#4fb6ff' : '#506070'; g.strokeStyle = '#0b1830'; g.lineWidth = 1; g.beginPath(); g.arc(tx(r.pos.x), tz(r.pos.z), 3.8, 0, 7); g.fill(); g.stroke(); }
     for (const c of civs) if (c.active && c.kind === 'hostage' && c.state === 'held') { g.fillStyle = '#4fb6ff'; g.fillRect(tx(c.pos.x) - 3, tz(c.pos.z) - 3, 6, 6); }
     for (const b of bots) if (b.active && b.alive && b.surrender) { g.fillStyle = '#ffd23f'; g.strokeStyle = '#111'; g.lineWidth = 1; g.fillRect(tx(b.pos.x) - 3.5, tz(b.pos.z) - 3.5, 7, 7); g.strokeRect(tx(b.pos.x) - 3.5, tz(b.pos.z) - 3.5, 7, 7); }
     if (MS.vip && MS.vip.active && !MS.vip.hurt) { g.fillStyle = '#31d07a'; g.beginPath(); g.arc(tx(MS.vip.pos.x), tz(MS.vip.pos.z), 4.2, 0, 7); g.fill(); g.strokeStyle = '#31d07a'; g.lineWidth = 2; g.beginPath(); g.arc(tx(LEVEL.extract[0]), tz(LEVEL.extract[1]), 7, 0, 7); g.stroke(); }
@@ -5285,9 +5421,10 @@ function hitTarget(t, part, point, dist) {
 const hudCache = {};
 const setTxt = (id, v) => { if (hudCache[id] !== v) { hudCache[id] = v; $(id).textContent = v; } };
 let hitT = 0, centerT = 0;
-function hitmarker(kind) { const h = $('hitmk'); h.className = kind; hitT = kind === 'kill' || kind === 'civ' ? 0.4 : 0.2; h.style.opacity = 1; }
-function centerMsg(text, cls, dur = 1.2) { const c = $('center'); c.textContent = text; c.className = cls; centerT = dur; c.style.opacity = 1; }
+function hitmarker(kind) { if (HIT_BY) return; const h = $('hitmk'); h.className = kind; hitT = kind === 'kill' || kind === 'civ' ? 0.4 : 0.2; h.style.opacity = 1; }
+function centerMsg(text, cls, dur = 1.2) { if (HIT_BY) return; const c = $('center'); c.textContent = text; c.className = cls; centerT = dur; c.style.opacity = 1; }
 function popup(text, cls) {
+  if (HIT_BY) return;
   const el = document.createElement('div'); el.className = 'pop ' + (cls || ''); el.textContent = text;
   $('popups').appendChild(el); setTimeout(() => el.remove(), 950);
 }
@@ -5316,12 +5453,13 @@ function updateHUD(dt) {
   $('hpfill').style.width = hp + '%'; $('hpfill').classList.toggle('low', hp <= 35);
   $('vignette').style.opacity = mode !== 'training' ? clamp((1 - P.hp / 100) * 1.1 - 0.1, 0, 0.85) : 0;
   for (const id of ['flash', 'civflash']) { const fl = $(id); fl.style.opacity = Math.max(0, (+fl.style.opacity || 0) - dt * (id === 'flash' ? 4 : 1.6)); }
-  setTxt('timer', fmtTime(timeLeft));
-  setTxt('team', isMission() && mateCount() ? '팀 ' + mates.filter((m) => m.active).map((m) => `${m.name} ${m.alive ? '●' : '○'}`).join('  ') + `  · ${mates.find((m) => m.active).order === 'hold' ? '대기' : '따라옴'}` : '');
+  setTxt('timer', isEndless() ? fmtTime(EN.el) : fmtTime(timeLeft));
+  setTxt('team', NET.on ? `대원 ${1 + [...NET.peers.values()].filter((q) => q.g).length}명 · Tab 대원 목록` : isMission() && mateCount() ? '팀 ' + mates.filter((m) => m.active).map((m) => `${m.name} ${m.alive ? '●' : '○'}`).join('  ') + `  · ${mates.find((m) => m.active).order === 'hold' ? '대기' : '따라옴'}` : '');
   if (mode === 'training') {
     setTxt('tAv', stats.score.toLocaleString());
     setTxt('tBv', stats.shots ? Math.round(stats.hits / stats.shots * 100) + '%' : '-');
   } else if (mode === 'bots') { setTxt('tAv', `${stats.kills} / ${KILL_GOAL}`); setTxt('tBv', String(stats.deaths)); }
+  else if (isEndless()) { setTxt('tAv', `${EN.lv}단계`); setTxt('tBv', MS.score.toLocaleString()); }
   else { setTxt('tAv', `${MS.down} / ${MS.total}`); setTxt('tBv', `${MS.civHit} / 3`); }
   const fleeing = isMission() && MS.escapeT > 0;
   const showBoss = isMission() && boss.active && boss.alive && (boss.hp < boss.maxHp || boss.canSee || fleeing);
@@ -5344,6 +5482,7 @@ function updateHUD(dt) {
   if (hitT > 0) { hitT -= dt; $('hitmk').style.opacity = clamp(hitT / 0.12, 0, 1); }
   if (centerT > 0) { centerT -= dt; $('center').style.opacity = clamp(centerT / 0.3, 0, 1); }
   for (const d of ddirs) if (d.t > 0) { d.t -= dt * 1.3; d.el.style.opacity = clamp(d.t, 0, 1); }
+  mpBoard(NET.on && !!keys.Tab);
 }
 
 /* =========================================================
@@ -5535,7 +5674,7 @@ async function loadCharacters() {
     if (!CHR.clips.idle) throw new Error('missing idle clip');
     CHR.hips0 = CHR.src.swat.hipsY;
     bots.forEach((b, i) => attachModel(b, b.boss ? 'robB' : ['robA', 'robC'][i % 2], true));
-    for (const m of mates) attachModel(m, 'swat', true);
+    for (const m of [...mates, ...remotes]) attachModel(m, 'swat', true);
     civs.forEach((c, i) => attachModel(c, ['office', 'woman', 'cook', 'student', 'elder'][i % 5], false));
     CHR.ready = true;
     try { setupFPBody(); } catch (e) { console.warn('first-person body', e); }
@@ -5569,6 +5708,7 @@ function isChildOf(o, p) { for (let x = o.parent; x; x = x.parent) if (x === p) 
 function chrRole(ch) {
   const a = ch.a;
   if (ch.armed) {
+    if (a.remote) return !a.alive ? 'die' : ch.moving ? (ch.running ? 'runGun' : 'walkGun') : a.crouch ? 'kneel' : 'aim';
     if (a.arrested) return 'cuff';
     if (!a.alive) return a.mate || ch.idx % 2 ? 'die' : 'die2';
     if (a.surrender) return 'surr';
@@ -5788,7 +5928,7 @@ function npcGunObj(file) {
 }
 const NPC_GUN_MUZ = {};
 function applyNpcGuns() {
-  const list = [...bots.map((b) => [b, false]), ...mates.map((m) => [m, true])];
+  const list = [...bots.map((b) => [b, false]), ...mates.map((m) => [m, true]), ...remotes.map((r) => [r, true])];
   for (const [b, mate] of list) {
     for (const t of ['rifle', 'smg', 'sniper', 'pistol']) {
       const grp = b.gunV[t]; if (!grp || grp.userData.meshed) continue;
@@ -6003,8 +6143,10 @@ function update(dt) {
     vm.ads = 0; moveVertical(P, dt);
     if (mode === 'bots' || isMission()) { P.respawnT -= dt; if (P.respawnT <= 0) respawnPlayer(); }
   }
-  if (mode !== 'training') { for (const b of bots) if (b.active) updateBot(b, dt); separateBots(); }
-  if (isMission()) { for (const c of civs) updateCiv(c, dt); for (const m of mates) updateMate(m, dt); separateMates(); alleyDirector(dt); updateEvidence(dt); }
+  const sim = !NET.on || NET.host; // 같이하기에서는 방장만 AI를 돌리고, 나머지는 받은 상태를 그린다
+  if (mode !== 'training') { if (sim) { for (const b of bots) if (b.active) updateBot(b, dt); separateBots(); } else mpReplicaBots(dt); }
+  if (isMission()) { if (sim) { for (const c of civs) updateCiv(c, dt); } else mpReplicaCivs(dt); for (const m of mates) updateMate(m, dt); separateMates(); alleyDirector(dt); updateEvidence(dt); }
+  if (NET.on) mpTick();
   updateDoors(dt); updateNades(dt); updateSmoke(dt); updateInteract(dt); updateLasers(); updateWeather(dt); updateMusic(dt);
   if (shoutCd > 0) shoutCd -= dt; if (P.blind > 0) P.blind -= dt;
   updateCharacters(dt);
@@ -6019,7 +6161,7 @@ function frame(now) {
   requestAnimationFrame(frame);
   trackRes(now - last);
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  if (state === 'playing') {
+  if (state === 'playing' || (state === 'paused' && NET.on)) {
     update(dt);
     updateCamera(dt); updateViewmodel(dt); updateFPBody(dt); updateHUD(dt);
     if (mode !== 'training') drawMini(dt);
@@ -6034,6 +6176,7 @@ function frame(now) {
   sky.position.copy(camera.position);
   const so = LEVEL.env.sunOff;
   sun.position.set(camera.position.x + so[0], so[1], camera.position.z + so[2]); sun.target.position.set(camera.position.x, 0, camera.position.z);
+  if (MP_NORENDER) return; // 시험용: 그리지 않고 진행만
   const inGame = state !== 'menu' && state !== 'results';
   const drawGun = inGame && P.alive && !(W().scope && vm.ads > 0.9);
   if (settings.bodycam && inGame) {
@@ -6098,6 +6241,818 @@ window.addEventListener('resize', () => {
 });
 
 /* =========================================================
+   같이하기 — 무한 작전 (들어오는 대로 합류하는 협동 멀티플레이)
+   · 방 입장·퇴장·방장 선출: Supabase Realtime Presence (방마다 채널 하나)
+   · 움직임·사격·강도/시민 상태: 대원끼리 WebRTC로 직접(그물망) 주고받는다 → Supabase 무료 한도(초당 100)를 거의 안 쓴다
+   · 직접 연결이 안 되는 짝만 각자의 받은편지함 채널(REST)로 느리게 중계한다
+   · 방장 1명이 강도·시민 AI·위협 단계·팀 점수를 돌리고 초당 10번 상태를 보낸다
+     방장이 나가거나 탭을 내리면 남은 대원 중 가장 먼저 들어온 사람이 이어받는다(가진 사본에서 그대로 이어감)
+   ========================================================= */
+const MP_MAPS = ['yeongtong', 'cityhall', 'alley'];
+const BT = ['rifle', 'shotgun', 'sniper', 'shield', 'pistol', 'smg', 'knife'];
+const CS = ['eat', 'idle', 'duck', 'walk', 'flee', 'hurt', 'gone', 'held', 'wait', 'freed', 'follow'];
+const CK = ['seat', 'stand', 'walk', 'hostage'];
+const MP_LATEST = { s: 1, w: 1 };
+const _ms = { x: 0, y: 0, z: 0, yaw: 0 }, _bs = V3(), _sa = V3(), _sb = V3();
+const mpSafe = (s, n = 20) => String(s == null ? '' : s).replace(/[<>&"'`]/g, '').slice(0, n);
+
+/* ---------- 연결 통로: Supabase(배포 사이트) 또는 BroadcastChannel(?net=local · 같은 브라우저 탭끼리 시험용) ---------- */
+let mpSB = null;
+async function mpClient() {
+  if (mpSB) return mpSB;
+  const m = await Promise.race([import(MP_CFG.lib), new Promise((_, no) => setTimeout(() => no(new Error('timeout')), 12000))]);
+  mpSB = m.createClient(MP_CFG.url, MP_CFG.key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, realtime: { params: { eventsPerSecond: 10 } } });
+  return mpSB;
+}
+const mpTopic = (room, box) => `${MP_CFG.pre}-${room}${box ? '-' + box : ''}`;
+function mpCleanPres(id, m) { m = m || {}; return { id, n: mpNick(m.n) || '대원', j: fnum(m.j), g: m.g ? 1 : 0, v: m.v ? 1 : 0, h: fnum(m.h), r: typeof m.r === 'string' ? m.r.slice(0, 24) : '' }; }
+function mpSubscribe(ch, onUp) {
+  return new Promise((res) => {
+    let done = false; const fin = (v) => { if (!done) { done = true; clearTimeout(t); res(v); } };
+    const t = setTimeout(() => fin(false), 10000);
+    ch.subscribe((st) => { if (st === 'SUBSCRIBED') { if (onUp) onUp(); fin(true); } else if (st === 'CHANNEL_ERROR' || st === 'TIMED_OUT') fin(false); });
+  });
+}
+// presence 채널: cb(list) — list에는 나도 들어 있다(track 한 뒤)
+async function mpPresence(topic, cb) {
+  if (MP_LOCAL) {
+    const bc = new BroadcastChannel(topic), seen = new Map(); let mine = null, closed = false;
+    const emit = () => { if (!closed) cb([...seen.values()].map((s) => s.p).concat(mine ? [mpCleanPres(NET.id, mine)] : [])); };
+    const say = (ask) => { if (mine && !closed) bc.postMessage({ k: 'p', id: NET.id, p: mine, ask }); };
+    bc.onmessage = (e) => {
+      const d = e.data || {}; if (typeof d.id !== 'string' || d.id === NET.id) return;
+      if (d.k === 'p') { const prev = seen.get(d.id), p = mpCleanPres(d.id, d.p), ch = !prev || JSON.stringify(prev.p) !== JSON.stringify(p); seen.set(d.id, { p, t: performance.now() }); if (ch) emit(); if (d.ask) say(false); }
+      else if (d.k === 'bye') { if (seen.delete(d.id)) emit(); } else if (d.k === 'q') say(false);
+    };
+    const hb = setInterval(() => { say(false); const now = performance.now(); let ch = false; for (const [k, s] of seen) if (now - s.t > 3500) { seen.delete(k); ch = true; } if (ch) emit(); }, 1000);
+    bc.postMessage({ k: 'q', id: NET.id });
+    return { track(o) { mine = o; say(true); emit(); }, leave() { closed = true; clearInterval(hb); try { bc.postMessage({ k: 'bye', id: NET.id }); bc.close(); } catch (e) {} } };
+  }
+  const sb = await mpClient();
+  const ch = sb.channel(topic, { config: { presence: { key: NET.id } } }); let mine = null, closed = false;
+  const list = () => {
+    let st = {}; try { st = ch.presenceState() || {}; } catch (e) {}
+    const out = []; for (const [k, metas] of Object.entries(st)) { if (!/^[0-9a-f]{16}$/.test(k)) continue; const m = Array.isArray(metas) && metas.length ? metas[metas.length - 1] : {}; out.push(mpCleanPres(k, m)); }
+    return out;
+  };
+  ch.on('presence', { event: 'sync' }, () => { if (!closed) cb(list()); });
+  // 다시 연결되면(SUBSCRIBED가 또 오면) 내 정보를 다시 올린다
+  const ok = await mpSubscribe(ch, () => { if (mine && !closed) ch.track(mine).catch(() => {}); });
+  if (!ok) { try { sb.removeChannel(ch); } catch (e) {} return null; }
+  return { track(o) { mine = o; ch.track(o).catch(() => {}); }, leave() { closed = true; try { ch.untrack(); } catch (e) {} try { sb.removeChannel(ch); } catch (e) {} } };
+}
+// 받은편지함: 연결 신호(WebRTC)와, 직접 연결이 안 된 짝의 중계 메시지가 온다. 보낼 때는 상대 편지함에 REST로 넣는다(구독 안 함)
+async function mpInbox(room, cb) {
+  const myTopic = mpTopic(room, NET.id), outs = new Map();
+  const onMsg = (p) => { if (p && typeof p.f === 'string' && /^[0-9a-f]{16}$/.test(p.f) && Array.isArray(p.m)) cb(p.f, p.m.slice(0, 60)); };
+  if (MP_LOCAL) {
+    const bc = new BroadcastChannel(myTopic); bc.onmessage = (e) => onMsg(e.data);
+    return {
+      to(id, payload) { let o = outs.get(id); if (!o) { o = new BroadcastChannel(mpTopic(room, id)); outs.set(id, o); } try { o.postMessage(payload); } catch (e) {} },
+      leave() { try { bc.close(); } catch (e) {} for (const o of outs.values()) try { o.close(); } catch (e) {} },
+    };
+  }
+  const sb = await mpClient();
+  const ch = sb.channel(myTopic, { config: { broadcast: { self: false, ack: false } } });
+  ch.on('broadcast', { event: 'm' }, (msg) => onMsg(msg && msg.payload));
+  if (!(await mpSubscribe(ch))) { try { sb.removeChannel(ch); } catch (e) {} return null; }
+  return {
+    to(id, payload) {
+      let o = outs.get(id); if (!o) { o = sb.channel(mpTopic(room, id), { config: { broadcast: { self: false, ack: false } } }); outs.set(id, o); }
+      try { const r = typeof o.httpSend === 'function' ? o.httpSend('m', payload) : o.send({ type: 'broadcast', event: 'm', payload }); if (r && r.catch) r.catch(() => {}); } catch (e) {}
+    },
+    leave() { try { sb.removeChannel(ch); } catch (e) {} for (const o of outs.values()) try { sb.removeChannel(o); } catch (e) {} },
+  };
+}
+
+/* ---------- 대원 목록 · 방장 선출 ---------- */
+function mpPeer(id) {
+  let q = NET.peers.get(id);
+  if (!q) { q = { id, n: '대원', j: 0, g: 0, v: 1, h: 0, heard: 0, first: performance.now(), seenP: false, av: null, buf: [], off: undefined, sh: -1, k: 0, a: 0, d: 0, al: 1, c: 0, w: 0, hp: 100, L: null, rq: null, lastS: 0, lastW: 0 }; NET.peers.set(id, q); }
+  return q;
+}
+function mpTrack() {
+  if (!NET.pres) return;
+  NET.pres.track({ n: NET.nick, j: NET.joinT, g: NET.inGame ? 1 : 0, v: document.hidden ? 0 : 1, h: NET.hostClaim });
+}
+function mpOnPresence(list) {
+  if (!NET.on) return;
+  const ids = new Set(), quiet = performance.now() - NET.joinedAt < 4000;
+  for (const p of list) {
+    if (p.id === NET.id) continue;
+    ids.add(p.id); const q = mpPeer(p.id);
+    if (p.g && !q.g && !quiet && NET.inGame) mpNotice(`${p.n} 대원 합류`);
+    Object.assign(q, { seenP: true, n: p.n, j: p.j, g: p.g, v: p.v, h: p.h });
+    if (q.av && q.av.tagNick !== q.n) mpDrawTag(q.av, q.n);
+  }
+  for (const q of [...NET.peers.values()]) if (q.seenP && !ids.has(q.id)) mpDropPeer(q, true);
+  mpElect();
+}
+function mpDropPeer(q, notice) {
+  mpCloseLink(q.L);
+  if (q.av) { q.av.active = false; q.av.root.visible = false; q.av.tagS.visible = false; q.av.pid = ''; q.av = null; }
+  NET.peers.delete(q.id);
+  if (notice && q.g) mpNotice(`${q.n} 대원 퇴장`);
+  if (q.id === NET.hostId) mpElect();
+}
+const mpStale = (q, now) => now - Math.max(q.first, q.heard) > 8000;
+// 가장 먼저 방장을 맡은(가장 오래된 표시) 대원이 방장. 아무도 없으면 가장 먼저 들어온 대원이 맡는다
+function mpElect() {
+  if (!NET.on) return;
+  const now = performance.now(), cand = [];
+  if (NET.inGame && !document.hidden) cand.push({ id: NET.id, j: NET.joinT, h: NET.hostClaim });
+  for (const q of NET.peers.values()) if (q.seenP && q.g && q.v && !mpStale(q, now)) cand.push({ id: q.id, j: q.j, h: q.h });
+  const claim = cand.filter((p) => p.h > 0).sort((a, b) => a.h - b.h || (a.id < b.id ? -1 : 1))[0];
+  let host = claim ? claim.id : '';
+  if (!host) {
+    const first = cand.slice().sort((a, b) => a.j - b.j || (a.id < b.id ? -1 : 1))[0];
+    if (first && first.id === NET.id && (cand.length === 1 || now - NET.joinedAt > 2500)) { NET.hostClaim = Date.now(); mpTrack(); host = NET.id; }
+    else host = first ? first.id : '';
+  }
+  if (NET.hostClaim && host !== NET.id) { NET.hostClaim = 0; mpTrack(); }
+  const was = NET.host; NET.hostId = host; NET.host = host === NET.id && host !== '';
+  if (NET.host && !was) mpBecomeHost(); else if (!NET.host && was) mpLoseHost();
+}
+function mpBecomeHost() {
+  // 받아 둔 사본에서 그대로 이어서 AI를 돌린다
+  enScaleDiff(); EN.pool = bots.filter((b) => !b.boss);
+  MS.stuckT = 2; MS.seenT = 0; MS.bossFled = true; MS.reinf = true;
+  for (const b of bots) {
+    b.netBuf = null; if (!b.active) continue;
+    Object.assign(b, { path: [], pathIdx: 0, losT: 0, burst: 0, fireCd: 0.6, idleT: 0, guard: null, goal: null, static: false, flee: false, atPickup: false, hostage: null, stuckT: 0, fakeT: -1, faked: true });
+    b.vel.set(0, 0, 0); b.stuckRef.copy(b.pos);
+    if (b.alive && !b.surrender) { b.stunT = 0; b.state = 'hunt'; b.alertT = 2.5; const t = enHuntPos(); if (t) { b.hearPos.set(t.x, 0, t.z); setPath(b, t.x + rand(-4, 4), t.z + rand(-4, 4)); } }
+  }
+  for (const c of civs) { c.netBuf = null; if (!c.active) continue; c.path = []; c.pathIdx = 0; c.vel.set(0, 0, 0); c.stuckRef.copy(c.pos); if (c.state === 'flee') fleePath(c); }
+}
+function mpLoseHost() { for (const b of bots) b.netBuf = []; for (const c of civs) c.netBuf = []; }
+
+/* ---------- WebRTC 직접 연결 (그물망: 아이디가 작은 쪽이 먼저 건다) ---------- */
+function mpLink(q) { return q.L || (q.L = { pc: null, dc: null, open: false, state: 'idle', tries: 0, next: 0, t0: 0, sid: '' }); }
+function mpCloseLink(L) {
+  if (!L) return; L.open = false;
+  const dc = L.dc, pc = L.pc; L.dc = L.pc = null;
+  try { if (dc) dc.close(); } catch (e) {} try { if (pc) pc.close(); } catch (e) {}
+}
+function mpLinkFail(L) {
+  if (L.state === 'failed') return;
+  mpCloseLink(L); L.state = 'failed'; L.next = performance.now() + Math.min(60000, 4000 * 2 ** Math.min(L.tries, 4));
+}
+function mpIceDone(pc, ms) {
+  return new Promise((res) => {
+    if (pc.iceGatheringState === 'complete') return res();
+    const t = setTimeout(res, ms);
+    pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete') { clearTimeout(t); res(); } });
+  });
+}
+function mpNewPC(L) {
+  mpCloseLink(L);
+  const pc = new RTCPeerConnection({ iceServers: MP_CFG.ice }); L.pc = pc; L.state = 'connecting'; L.t0 = performance.now();
+  pc.onconnectionstatechange = () => { if (L.pc === pc && (pc.connectionState === 'failed' || pc.connectionState === 'closed')) mpLinkFail(L); };
+  return pc;
+}
+function mpBindDC(q, L, dc) {
+  L.dc = dc;
+  dc.onopen = () => { if (L.dc === dc) { L.open = true; L.state = 'open'; L.tries = 0; } };
+  dc.onclose = () => { if (L.dc === dc) mpLinkFail(L); };
+  dc.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch (er) { return; } mpRecv(q.id, m); };
+}
+function mpSig(id, m) { if (NET.inbox) NET.inbox.to(id, { f: NET.id, m: [m] }); }
+async function mpOffer(q) {
+  const L = mpLink(q); L.tries++; L.sid = mpHex(4); const sid = L.sid;
+  try {
+    const pc = mpNewPC(L);
+    mpBindDC(q, L, pc.createDataChannel('g', { ordered: false }));
+    await pc.setLocalDescription(await pc.createOffer());
+    await mpIceDone(pc, 2500);
+    if (L.pc !== pc || L.sid !== sid) return;
+    mpSig(q.id, { t: 'sig', k: 'o', s: sid, sdp: pc.localDescription.sdp });
+  } catch (e) { mpLinkFail(L); }
+}
+async function mpOnSig(q, m) {
+  if (MP_NODC || typeof RTCPeerConnection === 'undefined' || typeof m.sdp !== 'string' || m.sdp.length > 20000) return;
+  const L = mpLink(q);
+  try {
+    if (m.k === 'o') {
+      const pc = mpNewPC(L); L.sid = String(m.s || '').slice(0, 16);
+      pc.ondatachannel = (e) => mpBindDC(q, L, e.channel);
+      await pc.setRemoteDescription({ type: 'offer', sdp: m.sdp });
+      await pc.setLocalDescription(await pc.createAnswer());
+      await mpIceDone(pc, 2500);
+      if (L.pc !== pc) return;
+      mpSig(q.id, { t: 'sig', k: 'a', s: L.sid, sdp: pc.localDescription.sdp });
+    } else if (m.k === 'a' && L.pc && L.sid === m.s && L.pc.signalingState === 'have-local-offer') await L.pc.setRemoteDescription({ type: 'answer', sdp: m.sdp });
+  } catch (e) { mpLinkFail(L); }
+}
+function mpLinks() {
+  if (MP_NODC || typeof RTCPeerConnection === 'undefined') return;
+  const now = performance.now();
+  for (const q of NET.peers.values()) {
+    if (!q.seenP || !q.g) continue;
+    const L = mpLink(q);
+    if (L.state === 'connecting' && now - L.t0 > 12000) mpLinkFail(L);
+    if (NET.id < q.id && (L.state === 'idle' || L.state === 'failed') && now >= L.next && L.tries < 6) mpOffer(q);
+  }
+}
+
+/* ---------- 보내기 · 받기 (직접 연결이 없으면 받은편지함 중계: 방장 짝 0.5초, 나머지 1초에 한 번 묶어서) ---------- */
+function mpSendTo(q, m) {
+  const L = q.L;
+  if (L && L.open && L.dc && L.dc.readyState === 'open') {
+    if (MP_LATEST[m.t] && L.dc.bufferedAmount > 262144) return;
+    try { L.dc.send(JSON.stringify(m)); return; } catch (e) {}
+  }
+  const R = q.rq || (q.rq = { st: {}, ev: [], t: 0 });
+  if (MP_LATEST[m.t]) R.st[m.t] = m; else if (R.ev.length < 40) R.ev.push(m);
+}
+function mpAll(m) { for (const q of NET.peers.values()) if (q.seenP && q.g) mpSendTo(q, m); }
+function mpToHost(m) { const q = NET.peers.get(NET.hostId); if (q) mpSendTo(q, m); }
+function mpFlushRelay(dt) {
+  if (!NET.inbox) return;
+  for (const q of NET.peers.values()) {
+    const R = q.rq; if (!R) continue;
+    R.t -= dt;
+    const hasEv = R.ev.length > 0, hasSt = !!(R.st.s || R.st.w);
+    if (!hasEv && !hasSt) continue;
+    const cad = NET.host || q.id === NET.hostId ? 0.5 : 1.0;
+    if (R.t > 0 && !(hasEv && R.t <= cad - 0.3)) continue;
+    const m = R.ev.splice(0); if (R.st.s) m.push(R.st.s); if (R.st.w) m.push(R.st.w); R.st = {};
+    NET.inbox.to(q.id, { f: NET.id, m }); R.t = cad;
+  }
+}
+function mpRecv(from, m) {
+  if (!NET.on || !m || typeof m !== 'object' || typeof m.t !== 'string' || from === NET.id) return;
+  const q = mpPeer(from); q.heard = performance.now();
+  switch (m.t) {
+    case 'sig': mpOnSig(q, m); break;
+    case 's': mpOnState(q, m); break;
+    case 'w': mpOnWorld(q, m); break;
+    case 'ev': mpEvent(m); break;
+    case 'dmg': mpOnDmg(m); break;
+    case 'dn': addFeed(mpSafe(m.by, 16) || '강도', q.n, '', false, false, false); break;
+    case 'fl': mpOnFlash(m); break;
+    case 'dr': { const d = (LEVEL.doors || [])[m.i | 0]; if (d && !d.open) doorOpen(d, 0.55); break; }
+    case 'bc': { const d = (LEVEL.doors || [])[m.i | 0]; if (d && !d.open && d.charge <= 0) { d.charge = 2.2; chargeMesh.position.set(fnum(m.x), fnum(m.y, 1.15), fnum(m.z)); chargeMesh.rotation.y = fnum(m.ry); chargeMesh.visible = true; } break; }
+    case 'bye': if (q.seenP) mpDropPeer(q, true); else NET.peers.delete(q.id); break;
+    case 'hit': if (NET.host) mpHostHit(q, m); break;
+    case 'hc': if (NET.host) mpHostCiv(q, m); break;
+    case 'sh': if (NET.host) mpHostShout(q, m); break;
+    case 'ar': if (NET.host) mpHostArrest(q, m); break;
+  }
+}
+// 보낸 쪽 시계를 내 시계로: (받은 시각 − 보낸 시각)의 최솟값을 천천히 따라간다
+function mpLocalT(q, tm) {
+  const o = performance.now() / 1000 - tm;
+  if (q.off === undefined || o < q.off) q.off = o; else q.off += (o - q.off) * 0.004;
+  return tm + q.off;
+}
+function mpSample(buf, t, out) {
+  const n = buf ? buf.length : 0; if (!n) return false;
+  const f = buf[0], l = buf[n - 1];
+  if (t <= f.t) { out.x = f.x; out.y = f.y; out.z = f.z; out.yaw = f.yaw; return true; }
+  for (let i = n - 1; i > 0; i--) {
+    const a = buf[i - 1], b = buf[i];
+    if (t >= a.t && t <= b.t) { const k = (t - a.t) / Math.max(1e-4, b.t - a.t); out.x = lerp(a.x, b.x, k); out.y = lerp(a.y, b.y, k); out.z = lerp(a.z, b.z, k); out.yaw = a.yaw + angDiff(a.yaw, b.yaw) * k; return true; }
+  }
+  const a = n > 1 ? buf[n - 2] : l, span = Math.max(1e-3, l.t - a.t), ex = Math.min(t - l.t, 0.25);
+  const jump = Math.hypot(l.x - a.x, l.z - a.z) > 6; // 순간이동(부활 등)은 앞질러 그리지 않는다
+  out.x = jump ? l.x : l.x + (l.x - a.x) / span * ex; out.y = l.y; out.z = jump ? l.z : l.z + (l.z - a.z) / span * ex; out.yaw = l.yaw;
+  return true;
+}
+const mpPush = (buf, s) => { buf.push(s); if (buf.length > 8) buf.shift(); };
+
+/* ---------- 내 상태 · 다른 대원 ---------- */
+function mpMyState() {
+  const m = { t: 's', tm: rd3(performance.now() / 1000), x: rd2(P.pos.x), y: rd2(P.pos.y), z: rd2(P.pos.z), yw: rd3(P.yaw), pt: rd2(P.pitch), al: P.alive ? 1 : 0, hp: Math.max(0, Math.round(P.hp)), c: P.crouch ? 1 : 0, w: P.cur, sh: NET.shot, k: stats.kills, a: NET.arrests, d: stats.deaths };
+  if (NET.shotEnd) { m.ex = rd2(NET.shotEnd.x); m.ey = rd2(NET.shotEnd.y); m.ez = rd2(NET.shotEnd.z); }
+  return m;
+}
+function mpOnState(q, m) {
+  const tm = fnum(m.tm); if (tm <= q.lastS) return; q.lastS = tm;
+  const t = mpLocalT(q, tm);
+  if (!q.av) { q.av = remotes.find((r) => !r.pid) || null; if (q.av) mpAvatarInit(q.av, q, m); }
+  mpPush(q.buf, { t, x: fnum(m.x), y: fnum(m.y), z: fnum(m.z), yaw: fnum(m.yw) });
+  q.al = m.al ? 1 : 0; q.c = m.c ? 1 : 0; q.w = clamp(fnum(m.w) | 0, 0, WEAPONS.length - 1); q.hp = fnum(m.hp, 100);
+  q.k = fnum(m.k) | 0; q.a = fnum(m.a) | 0; q.d = fnum(m.d) | 0;
+  const sh = fnum(m.sh, -1) | 0;
+  if (q.sh >= 0 && sh !== q.sh && q.av && m.ex !== undefined) mpRemoteShot(q, V3(fnum(m.ex), fnum(m.ey), fnum(m.ez)));
+  q.sh = sh;
+}
+function mpAvatarInit(r, q, m) {
+  r.pid = q.id; r.active = true; r.alive = true; r.away = false; r.root.visible = true; r.flashT = 0;
+  r.pos.set(fnum(m.x), fnum(m.y), fnum(m.z)); r.yaw = fnum(m.yw); r.root.rotation.set(0, r.yaw, 0); r.root.scale.setScalar(1);
+  resetPose(r); r.gunG.visible = true; mpDrawTag(r, q.n);
+}
+function mpRemoteShot(q, end) {
+  const r = q.av, w = WEAPONS[q.w] || WEAPONS[0];
+  r.root.updateMatrixWorld(true); r.muzzle.getWorldPosition(_bs);
+  if (w.type === 'taser') spawnTracer(_bs, end, 0xfff27a, 0.3, 0.006);
+  else if (w.lessLethal) spawnTracer(_bs, end, 0xff8a3a, 0.12, 0.022);
+  else { spawnTracer(_bs, end, 0xffdf9e, 0.045, 0.013); r.flashT = 0.05; r.flash.material.rotation = rand(0, 6); }
+  const dist = P.pos.distanceTo(r.pos), pan = clamp(((r.pos.x - P.pos.x) * Math.cos(P.yaw) - (r.pos.z - P.pos.z) * Math.sin(P.yaw)) / (dist || 1), -1, 1) * 0.8;
+  if (w.type === 'taser') sfx.zap(); else sfx.shot(w.snd, dist, -pan);
+  if (NET.host && w.type !== 'taser') {
+    // 방장 쪽 강도들도 총소리를 듣는다
+    const hearR = w.quiet ? 13 : 42;
+    for (const b of bots) if (b.active && b.alive && b.pos.distanceTo(r.pos) < hearR) { b.alertT = 2.5; b.hearPos.copy(r.pos); }
+    if (!w.quiet) panic(); EN.lastShot = gameTime;
+  }
+}
+function mpUpdateAvatars(dt) {
+  const now = performance.now(), rt = now / 1000 - 0.1;
+  for (const q of NET.peers.values()) {
+    const r = q.av; if (!r) continue;
+    const away = !q.v || now - q.heard > 4000;
+    r.away = away; r.active = !away; r.root.visible = !away; r.tagS.visible = !away;
+    if (away) continue;
+    if (mpSample(q.buf, rt, _ms)) { r.pos.set(_ms.x, _ms.y, _ms.z); r.yaw = _ms.yaw; }
+    r.root.rotation.y = r.yaw; r.alive = !!q.al; r.crouch = !!q.c;
+    if (r.flashT > 0) r.flashT -= dt; r.flash.visible = r.flashT > 0;
+    r.tagS.material.opacity = r.alive ? clamp(1.25 - P.pos.distanceTo(r.pos) / 80, 0.3, 0.95) : 0.35;
+    r.root.updateMatrixWorld(true);
+  }
+}
+
+/* ---------- 방장 → 모두: 세계 상태 (초당 10번, 시민은 0.3초마다) ---------- */
+function mpSnapshot() {
+  const b = [];
+  bots.forEach((x, i) => {
+    if (!x.active) return;
+    const fl = (x.alive ? 1 : 0) | (x.surrender ? 2 : 0) | (x.arrested ? 4 : 0) | (x.stunT > 0 ? 8 : 0) | (x.canSee || x.state === 'engage' ? 16 : 0) | (x.shieldOn ? 32 : 0);
+    const e = [i, rd2(x.pos.x), rd2(x.pos.y), rd2(x.pos.z), rd3(x.yaw), fl, Math.max(0, Math.round(x.hp)), Math.round(x.maxHp || 100), Math.max(0, BT.indexOf(x.type)), x.netFc | 0];
+    if (x.netAim) e.push(rd2(x.netAim.x), rd2(x.netAim.y), rd2(x.netAim.z));
+    b.push(e);
+  });
+  const m = { t: 'w', tm: rd3(performance.now() / 1000), hc: NET.hostClaim, lv: EN.lv, lt: rd1(EN.lvT), el: rd1(EN.el), sc: MS.score | 0, kc: MS.kills | 0, ac: MS.arrests | 0, ch: MS.civHit | 0, b };
+  NET.civT -= 0.1;
+  if (NET.civT <= 0) { NET.civT = 0.3; m.c = []; civs.forEach((c, i) => { if (c.active && c.state !== 'gone') m.c.push([i, rd2(c.pos.x), rd2(c.pos.y), rd2(c.pos.z), rd2(c.yaw), Math.max(0, CS.indexOf(c.state)), Math.max(0, CK.indexOf(c.kind)), c.hurt ? 1 : 0]); }); }
+  NET.doorT -= 0.1;
+  if (NET.doorT <= 0) { NET.doorT = 1; m.dr = []; (LEVEL.doors || []).forEach((d, i) => { if (d.open) m.dr.push(i); }); }
+  return m;
+}
+function mpOnWorld(q, m) {
+  const tm = fnum(m.tm); if (tm <= q.lastW) return; q.lastW = tm;
+  const hc = fnum(m.hc);
+  if (NET.host) {
+    // 더 먼저 방장을 맡은 대원이 아직 돌리고 있다 → 넘겨준다
+    if (!(hc > 0 && (!NET.hostClaim || hc < NET.hostClaim))) return;
+    NET.hostClaim = 0; mpTrack(); NET.host = false; NET.hostId = q.id; q.h = hc; mpLoseHost();
+  } else if (q.id !== NET.hostId) {
+    const cur = NET.peers.get(NET.hostId);
+    if (!(hc > 0 && (!cur || !(cur.h > 0) || hc < cur.h))) return;
+    NET.hostId = q.id; q.h = hc;
+  }
+  const t = mpLocalT(q, tm);
+  EN.lv = Math.max(1, fnum(m.lv, 1) | 0); EN.lvT = fnum(m.lt); EN.el = fnum(m.el);
+  MS.score = fnum(m.sc) | 0; MS.kills = fnum(m.kc) | 0; MS.arrests = fnum(m.ac) | 0; MS.civHit = fnum(m.ch) | 0;
+  if (Array.isArray(m.b)) {
+    const seen = new Set();
+    for (const e of m.b) { if (!Array.isArray(e)) continue; const i = e[0] | 0, b = bots[i]; if (!b) continue; seen.add(i); mpApplyBot(b, i, e, t); }
+    for (let i = 0; i < bots.length; i++) if (!seen.has(i) && bots[i].active) mpHideBot(bots[i]);
+  }
+  if (Array.isArray(m.c)) {
+    const seen = new Set();
+    for (const e of m.c) { if (!Array.isArray(e)) continue; const i = e[0] | 0, c = civs[i]; if (!c) continue; seen.add(i); mpApplyCiv(c, e, t); }
+    for (let i = 0; i < civs.length; i++) if (!seen.has(i) && civs[i].active) { civs[i].active = false; civs[i].root.visible = false; civs[i].netBuf = null; }
+  }
+  if (Array.isArray(m.dr) && LEVEL.doors) for (const i of m.dr) { const d = LEVEL.doors[i | 0]; if (d && !d.open) doorOpen(d, 0.4, true); }
+}
+function mpHideBot(b) { b.active = false; b.alive = false; b.root.visible = false; b.laser.visible = false; b.flash.visible = false; b.netBuf = null; }
+function mpApplyBot(b, i, e, t) {
+  const x = fnum(e[1]), y = fnum(e[2]), z = fnum(e[3]), yaw = fnum(e[4]), fl = e[5] | 0, hp = fnum(e[6], 100), mhp = fnum(e[7], 100), ty = e[8] | 0, fc = e[9] | 0;
+  if (!b.active) { placeRobber(b, x, z, yaw, 0, y); b.netBuf = []; b.netFc = fc; b.netType = -1; b.predT = -9; if (b.boss) { b.name = '두목'; b.root.scale.setScalar(1.15); } }
+  if (!b.netBuf) b.netBuf = [];
+  if (ty !== b.netType) { b.netType = ty; if (!b.boss) { b.name = `강도 ${i + 1}`; setType(b, BT[ty] || 'rifle'); } }
+  mpPush(b.netBuf, { t, x, y, z, yaw });
+  const alive = !!(fl & 1), surr = !!(fl & 2), arr = !!(fl & 4), pred = gameTime - (b.predT || -9) < 0.8;
+  if (arr && !b.arrested) { b.arrested = true; b.alive = false; b.surrender = false; b.deadT = 0; b.gunG.visible = false; b.shieldG.visible = false; kneelPose(b, true); }
+  else if (!alive && b.alive && !arr) { b.alive = false; b.deadT = 0; b.surrender = false; b.gunG.visible = false; b.shieldG.visible = false; }
+  else if (!arr && b.arrested && !pred) { b.arrested = false; b.alive = alive; b.deadT = 0; b.root.rotation.x = 0; resetPose(b); b.gunG.visible = alive && !surr; }
+  else if (alive && !b.alive && !b.arrested && !pred) { b.alive = true; b.deadT = 0; b.root.rotation.x = 0; resetPose(b); b.gunG.visible = !surr; }
+  if (b.alive) {
+    if (surr && !b.surrender) { b.surrender = true; b.gunG.visible = false; b.shieldG.visible = false; b.laser.visible = false; kneelPose(b, false); }
+    else if (!surr && b.surrender) { b.surrender = false; resetPose(b); b.gunG.visible = true; }
+    b.stunT = fl & 8 ? 0.5 : 0; b.canSee = !!(fl & 16); b.state = b.canSee ? 'engage' : 'patrol';
+    b.shieldOn = !!(fl & 32) && !b.surrender; b.shieldG.visible = b.shieldOn;
+  }
+  if (!pred || hp < b.hp) b.hp = hp; b.maxHp = mhp;
+  if (fc !== b.netFc) { b.netFc = fc; if (e.length >= 13 && b.alive) mpBotShot(b, fnum(e[10]), fnum(e[11]), fnum(e[12])); }
+}
+function mpBotShot(b, ax, ay, az) {
+  b.root.updateMatrixWorld(true); b.muzzle.getWorldPosition(_bs);
+  const end = V3(ax, ay, az); spawnTracer(_bs, end, 0xffa36a, 0.07, 0.02);
+  b.flashT = 0.05; b.flash.material.rotation = rand(0, 6);
+  const dist = P.pos.distanceTo(b.pos), pan = clamp(((b.pos.x - P.pos.x) * Math.cos(P.yaw) - (b.pos.z - P.pos.z) * Math.sin(P.yaw)) / (dist || 1), -1, 1) * 0.8, T = b.type;
+  sfx.shot(T === 'sniper' ? 'sniper' : T === 'shotgun' ? 'shotgun' : T === 'pistol' || T === 'shield' ? 'pistol' : 'rifle', dist, -pan);
+  if (P.alive && end.distanceTo(camera.position) < 2.2 && dist < 45) sfx.whiz(-pan);
+  if (gameTime - (b.lastPing || -9) > 0.6) { b.lastPing = gameTime; ping(b.pos.x, b.pos.z, 'fire'); }
+}
+function mpApplyCiv(c, e, t) {
+  const x = fnum(e[1]), y = fnum(e[2]), z = fnum(e[3]), yaw = fnum(e[4]), st = CS[e[5] | 0] || 'idle', kind = CK[e[6] | 0] || 'stand', hurt = !!e[7];
+  if (!c.active) { placeCiv(c, x, z, yaw, kind, st); c.netBuf = []; }
+  if (!c.netBuf) c.netBuf = [];
+  c.state = st; c.kind = kind; c.hurt = hurt; c.cross.visible = hurt;
+  mpPush(c.netBuf, { t, x, y, z, yaw });
+}
+// 방장이 아닐 때: 받은 상태를 부드럽게 그린다
+function mpReplicaBots(dt) {
+  const rt = performance.now() / 1000 - 0.15;
+  MS.seenT = (MS.seenT || 0) - dt; const pingSeen = MS.seenT <= 0; if (pingSeen) MS.seenT = 0.35;
+  for (const b of bots) {
+    if (!b.active) continue;
+    if (mpSample(b.netBuf, rt, _ms)) { b.pos.set(_ms.x, _ms.y, _ms.z); b.yaw = _ms.yaw; }
+    b.root.rotation.y = b.yaw;
+    if (!b.alive && !b.arrested) { b.deadT += dt; const k = clamp(b.deadT / 0.45, 0, 1); b.root.rotation.x = ease(k) * Math.PI / 2 * 0.96; b.pos.y += Math.max(-0.3, -0.1 * k); }
+    else b.root.rotation.x = 0;
+    if (b.arrested) kneelPose(b, true); else if (b.surrender) kneelPose(b, false);
+    b.flashT -= dt; b.flash.visible = b.flashT > 0;
+    if (pingSeen && b.alive && b.canSee && !b.surrender) ping(b.pos.x, b.pos.z, 'seen');
+    b.root.updateMatrixWorld(true);
+  }
+}
+function mpReplicaCivs(dt) {
+  const rt = performance.now() / 1000 - 0.35;
+  for (const c of civs) {
+    if (!c.active) continue;
+    if (mpSample(c.netBuf, rt, _ms)) { c.pos.set(_ms.x, _ms.y, _ms.z); c.yaw = _ms.yaw; }
+    c.t += dt; c.root.rotation.y = c.yaw; civPose(c, dt); c.root.updateMatrixWorld(true);
+  }
+}
+
+/* ---------- 대원(방장 아님)의 행동 → 방장에게 ---------- */
+function mpClientHit(b, w, part, hit, dir) {
+  if (!b.alive) return;
+  const kind = w.type === 'taser' ? 'tz' : w.lessLethal ? 'bb' : 'b', head = part === 'head';
+  let dmg = 0;
+  if (kind === 'tz') { hitmarker('body'); emit(V3(b.pos.x, b.pos.y + 1.2, b.pos.z), 10, { speed: [1, 3], spread: 1, life: [0.1, 0.3], grav: 2, color: [1, 0.95, 0.5] }); }
+  else if (kind === 'bb') { hitmarker('body'); sfx.hit(); emit(hit.point, 7, { dir: V3(-dir.x, -dir.y, -dir.z), speed: [1, 2.5], spread: 1, life: [0.15, 0.4], grav: 6, color: [0.95, 0.55, 0.2] }); }
+  else {
+    const dist = hit.distance, fo = w.fall, fall = dist <= fo[0] ? 1 : lerp(1, fo[2], clamp((dist - fo[0]) / (fo[1] - fo[0]), 0, 1));
+    dmg = w.dmg[part] * fall;
+    emit(hit.point, head ? 14 : 9, { dir: V3(-dir.x, -dir.y, -dir.z), speed: [1, 3], spread: 0.9, life: [0.2, 0.5], grav: 9, color: [0.72, 0.08, 0.06] });
+    // 바로 손맛을 주고(예측), 결과는 방장이 정한다
+    b.hp -= b.boss && !head ? dmg * 0.55 : dmg; b.predT = gameTime;
+    if (b.hp <= 0 && !b.surrender) { hitmarker('kill'); sfx.kill(); b.alive = false; b.deadT = 0; b.gunG.visible = false; b.shieldG.visible = false; }
+    else { hitmarker(head ? 'head' : 'body'); head ? sfx.head() : sfx.hit(); }
+  }
+  mpToHost({ t: 'hit', e: bots.indexOf(b), d: rd1(dmg), p: part, k: kind, x: rd2(hit.point.x), y: rd2(hit.point.y), z: rd2(hit.point.z), dx: rd3(dir.x), dy: rd3(dir.y), dz: rd3(dir.z) });
+}
+function mpClientCiv(c, w) { hitmarker('civ'); mpToHost({ t: 'hc', c: civs.indexOf(c), l: w.type === 'taser' || w.lessLethal ? 1 : 0 }); }
+function mpOnDmg(m) {
+  if (!P.alive) return;
+  const b = bots[m.e | 0];
+  damagePlayer(clamp(fnum(m.d), 0, 150), { name: b ? b.name : '강도', pos: V3(fnum(m.x, P.pos.x), 0, fnum(m.z, P.pos.z)) });
+}
+function mpOnFlash(m) {
+  const mesh = new THREE.Mesh(nadeGeo, nadeMat); mesh.castShadow = true; scene.add(mesh);
+  nades.push({ m: mesh, pos: V3(fnum(m.x), fnum(m.y, 1.5), fnum(m.z)), vel: V3(fnum(m.vx), fnum(m.vy), fnum(m.vz)), t: 0, remote: true });
+}
+// 방장 쪽 강도가 다른 대원을 쐈다 → 그 대원에게 피해를 보낸다
+function mpHitRemote(r, dmg, b) {
+  const q = NET.peers.get(r.pid); if (!q) return;
+  r.flinch = 1; mpSendTo(q, { t: 'dmg', d: rd1(dmg), e: bots.indexOf(b), x: rd2(b.pos.x), z: rd2(b.pos.z) });
+}
+
+/* ---------- 방장: 다른 대원의 행동 처리 ---------- */
+function mpHostHit(q, m) {
+  const b = bots[m.e | 0]; if (!b || !b.active || !b.alive) return;
+  const point = V3(fnum(m.x, b.pos.x), fnum(m.y, b.pos.y + 1.2), fnum(m.z, b.pos.z)), dir = V3(fnum(m.dx), fnum(m.dy), fnum(m.dz, -1));
+  if (dir.lengthSq() < 1e-6) dir.set(0, 0, -1); dir.normalize();
+  const part = m.p === 'head' || m.p === 'limb' ? m.p : 'body';
+  HIT_BY = q.id; HIT_POS = q.av ? q.av.pos : null;
+  try { if (m.k === 'tz') taserBot(b); else if (m.k === 'bb') beanbagBot(b, part, point, dir); else damageBot(b, clamp(fnum(m.d), 0, 300), part === 'head', point, dir, false); }
+  finally { HIT_BY = null; HIT_POS = null; }
+  EN.lastShot = gameTime;
+}
+function mpHostCiv(q, m) {
+  const c = civs[m.c | 0]; if (!c || !c.active || c.hurt) return;
+  HIT_BY = q.id; try { if (m.l) taserCiv(c); else hitCiv(c, V3(c.pos.x, 1.2, c.pos.z)); } finally { HIT_BY = null; }
+}
+function mpHostShout(q, m) {
+  if (!q.av) return;
+  const fwd = V3(fnum(m.fx), fnum(m.fy), fnum(m.fz, -1)); if (fwd.lengthSq() < 1e-6) return; fwd.normalize();
+  HIT_BY = q.id; try { shoutAt(V3(fnum(m.x), fnum(m.y), fnum(m.z)), fwd, q.av.pos, q); } finally { HIT_BY = null; }
+}
+function mpHostArrest(q, m) {
+  const b = bots[m.e | 0]; if (!b || !b.active || !b.alive || !b.surrender) return;
+  const px = fnum(m.x, q.av ? q.av.pos.x : b.pos.x), pz = fnum(m.z, q.av ? q.av.pos.z : b.pos.z);
+  if (Math.hypot(px - b.pos.x, pz - b.pos.z) > 4.5) return;
+  HIT_BY = q.id; try { arrest(b); } finally { HIT_BY = null; }
+}
+
+/* ---------- 이벤트 (방장이 정하고 모두에게 알린다) ---------- */
+function mpHostEvent(ev) { ev.t = 'ev'; mpAll(ev); mpEvent(ev); }
+const mpName = (id) => (id === NET.id ? '나' : (NET.peers.get(id) || {}).n || '대원');
+function mpEvent(ev) {
+  const byMe = ev.by === NET.id, nm = mpName(ev.by), b = typeof ev.e === 'number' ? bots[ev.e] : null, bn = b ? b.name : '강도';
+  switch (ev.k) {
+    case 'kill': {
+      addFeed(nm, bn, mpSafe(ev.w, 8), !!ev.h, false, false);
+      if (b && !NET.host && b.alive) { b.alive = false; b.deadT = 0; b.gunG.visible = false; b.shieldG.visible = false; }
+      if (!byMe) break;
+      stats.kills++; stats.streak++; stats.bestStreak = Math.max(stats.bestStreak, stats.streak); if (ev.h) stats.heads++;
+      if (NET.host) { sfx.kill(); if (ev.h) sfx.head(); }
+      WEAPONS.forEach((w, i) => { P.ammo[i].reserve = Math.min(w.reserveMax, P.ammo[i].reserve + (w.type === 'auto' ? 30 : w.type === 'semi' ? Math.ceil(w.magSize / 2) : 5)); });
+      const pts = fnum(ev.p);
+      popup((pts > 0 ? '+' : '') + pts, ev.f ? 'civ' : ev.h ? 'head' : '');
+      if (ev.f) centerMsg('투항한 용의자 사격! 팀 점수 −500', 'civ', 1.6);
+      else if (b && b.boss) centerMsg('두목 제압! +1500', 'head', 1.8);
+      else centerMsg(ev.h ? '헤드샷!' : '강도 제압!', ev.h ? 'head' : 'kill', 0.9);
+      break;
+    }
+    case 'arr':
+      addFeed(nm, bn, '체포', false);
+      if (byMe) { NET.arrests++; sfx.cuff(); popup('+' + fnum(ev.p) + ' 체포', 'head'); centerMsg(b && b.boss ? '두목 체포! +2000' : '체포 완료! +500', 'head', 1.2); }
+      break;
+    case 'surr':
+      addFeed(bn, '투항', '', false);
+      if (byMe) centerMsg('투항! 다가가서 E 길게 눌러 체포', 'head', 1.4);
+      break;
+    case 'shout':
+      if (ev.g) setTimeout(() => centerMsg(ev.g > 1 ? `${ev.g}명 투항! E로 체포하세요` : '투항! 다가가서 E로 체포하세요', 'head', 1.6), 200);
+      else if (ev.r) setTimeout(() => centerMsg('투항 거부!', 'kill', 1), 200);
+      else if (ev.du) setTimeout(() => popup(`시민 ${ev.du | 0}명 엎드림`, 'civ'), 200);
+      break;
+    case 'civ':
+      addFeed(nm, '시민', '오사', false, false, true);
+      if (byMe) { hitmarker('civ'); $('civflash').style.opacity = 1; sfx.warn(); popup('−500', 'civ'); centerMsg('시민 부상! 팀 점수 −500', 'civ', 1.6); }
+      break;
+    case 'lv':
+      EN.lv = Math.max(1, ev.lv | 0);
+      centerMsg(`위협 ${EN.lv}단계 — 강도단이 더 몰려와요`, 'kill', 2.4); sfx.siren();
+      radio(`본부에서 알린다. 위협 ${EN.lv}단계. 강도단 증원 확인.`, false);
+      EQ.flash = Math.min(9, EQ.flash + 1); if (EN.lv % 2 === 0) EQ.charge = Math.min(6, EQ.charge + 1); updateGearHUD();
+      break;
+    case 'boss': centerMsg('두목 출현! 방탄복 — 머리를 노리세요', 'kill', 2.4); sfx.warn(); radio('두목 출현. 방탄복 착용, 집중 사격하라.', false); break;
+    case 'sq':
+      ping(fnum(ev.x), fnum(ev.z), 'radio');
+      if (performance.now() - NET.sqMsgT > 9000) { NET.sqMsgT = performance.now(); const zn = mpSafe(ev.zn, 20); radio(`강도 ${ev.n | 0}명 접근 중${zn ? ' — ' + zn : ''}`, false); }
+      break;
+  }
+}
+function mpNotice(text) {
+  const el = document.createElement('div'); el.className = 'kf sys'; el.textContent = text;
+  const feed = $('feed'); feed.prepend(el); while (feed.children.length > 5) feed.lastChild.remove();
+  setTimeout(() => { el.style.opacity = 0; setTimeout(() => el.remove(), 450); }, 4500);
+}
+
+/* ---------- 무한 작전 (방장이 돌림) ---------- */
+function enScaleDiff() {
+  const k = EN.lv - 1;
+  EN.d = { acc: Math.min(0.42, 0.25 + 0.02 * k), react: Math.max(0.3, 0.55 - 0.03 * k), turn: Math.min(8.5, 5 + 0.4 * k), dmg: Math.min(15, 9 + 0.6 * k), pause: Math.max(0.72, 1 - 0.03 * k), hunt: Math.min(0.75, 0.4 + 0.04 * k) };
+}
+const botDiff = () => (isEndless() && EN.d ? EN.d : DIFF[difficulty]);
+function enPlayers(withDead) {
+  const out = [];
+  if (P.alive || withDead) out.push(P.pos);
+  for (const r of remotes) if (r.active && !r.away && (r.alive || withDead)) out.push(r.pos);
+  return out;
+}
+function enHuntPos() {
+  if (!isEndless()) return P.alive ? P.pos : null;
+  const pl = enPlayers(false); return pl.length ? pl[Math.floor(Math.random() * pl.length)] : null;
+}
+function setupEndless() {
+  for (const b of bots) { b.active = false; b.alive = false; b.root.visible = false; b.hostage = null; b.guard = null; b.laser.visible = false; b.netBuf = null; }
+  for (const c of civs) { c.netBuf = null; if (c.active && (c.state === 'held' || c.kind === 'hostage')) { c.kind = 'stand'; c.state = 'idle'; civPose(c, 1); } }
+  Object.assign(MS, baseMS(), { type: 'endless', total: 0, bossFled: true, reinf: true });
+  Object.assign(EN, { lv: 1, lvT: 0, el: 0, spawnCd: 5, civT: 20, lastShot: -99, pool: bots.filter((b) => !b.boss) }); enScaleDiff();
+  mini.pings.length = 0; mini.droneT = 0; mini.droneCd = 0;
+}
+function enPickType() {
+  const L = EN.lv, w = [['rifle', 4], ['pistol', 2], ['smg', 2]];
+  if (L >= 2) w.push(['shotgun', 2]); if (L >= 3) w.push(['knife', 1], ['shield', 1.2]); if (L >= 5) w.push(['sniper', 0.8]);
+  let r = Math.random() * w.reduce((a, x) => a + x[1], 0);
+  for (const [t, k] of w) if ((r -= k) <= 0) return t;
+  return 'rifle';
+}
+// 대원들에게서 멀고(20m+, 38m 근처가 좋음) 보이지 않는 길목에서 나타난다
+function enSpawnPoint() {
+  const pl = enPlayers(true); let best = null, bs = -1e9;
+  if (!nodes || !nodes.length) return null;
+  for (let k = 0; k < 36; k++) {
+    const nd = nodes[Math.floor(Math.random() * nodes.length)]; if (!nd) continue;
+    let md = 1e9; for (const p of pl) md = Math.min(md, Math.hypot(nd.x - p.x, nd.z - p.z));
+    let s = md < 20 ? -1000 + md : -Math.abs(md - 38);
+    if (md < 70) { _sa.set(nd.x, 1.6, nd.z); for (const p of pl) { _sb.set(p.x, p.y + 1.6, p.z); if (_sa.distanceTo(_sb) < 70 && losClear(_sa, _sb)) { s -= 40; break; } } }
+    if (s > bs) { bs = s; best = nd; }
+  }
+  return best;
+}
+function enZone(x, z) { for (const zz of LEVEL.zones || []) if (x >= zz[0] && x <= zz[1] && z >= zz[2] && z <= zz[3] && !zz[5]) return zz[4]; return ''; }
+function enSpawnSquad(n) {
+  const nd = enSpawnPoint(); if (!nd) return 0;
+  const pl = enPlayers(false); let made = 0;
+  for (let i = 0; i < n; i++) {
+    const b = (EN.pool || []).find((x) => !x.active); if (!b) break;
+    let x = nd.x + rand(-1.4, 1.4), z = nd.z + rand(-1.4, 1.4); if (blocked2D(x, z, 0.45)) { x = nd.x; z = nd.z; }
+    b.name = `강도 ${bots.indexOf(b) + 1}`; placeRobber(b, x, z, 0, 0); setType(b, enPickType());
+    b.hp = b.maxHp = Math.min(180, 100 + 8 * (EN.lv - 1)); b.netFc = 0; b.netAim = null;
+    const t = pl.length ? pl[Math.floor(Math.random() * pl.length)] : null;
+    if (t) { b.yaw = b.targetYaw = Math.atan2(-(t.x - x), -(t.z - z)); b.root.rotation.y = b.yaw; b.state = 'hunt'; b.alertT = 2; b.hearPos.set(t.x, 0, t.z); setPath(b, t.x + rand(-4, 4), t.z + rand(-4, 4)); }
+    made++;
+  }
+  if (made) mpHostEvent({ k: 'sq', n: made, x: rd1(nd.x), z: rd1(nd.z), zn: enZone(nd.x, nd.z) });
+  return made;
+}
+function enSpawnBoss() {
+  if (boss.active && boss.alive) return;
+  const nd = enSpawnPoint(); if (!nd) return;
+  setupBoss(nd.x, nd.z, 0); boss.hp = boss.maxHp = 450 + 150 * Math.max(1, enPlayers(true).length); boss.netFc = 0; boss.netAim = null;
+  const t = enHuntPos(); if (t) { boss.state = 'hunt'; boss.alertT = 3; boss.hearPos.set(t.x, 0, t.z); setPath(boss, t.x, t.z); }
+  mpHostEvent({ k: 'boss' });
+}
+function enDirector(dt) {
+  EN.el += dt; EN.lvT += dt;
+  if (EN.lvT >= EN_LVL) { EN.lvT = 0; EN.lv++; enScaleDiff(); mpHostEvent({ k: 'lv', lv: EN.lv }); if (EN.lv % 4 === 0) enSpawnBoss(); }
+  const pl = Math.max(1, enPlayers(true).length);
+  let alive = 0; for (const b of bots) if (b.active && b.alive && !b.surrender && !b.boss) alive++;
+  const target = Math.min(22, 3 + 2 * pl + EN.lv);
+  EN.spawnCd -= dt;
+  if (EN.spawnCd <= 0) {
+    EN.spawnCd = 2;
+    if (alive < target) { const n = Math.min(target - alive, 2 + Math.floor(Math.random() * 2) + (EN.lv >= 4 ? 1 : 0)); if (enSpawnSquad(n)) EN.spawnCd = Math.max(4, 12 - EN.lv * 0.8) + rand(0, 3); }
+  }
+  // 조용해지면 시민이 다시 거리로 나온다
+  EN.civT -= dt;
+  if (EN.civT <= 0) {
+    EN.civT = 12;
+    const live = civs.filter((c) => c.active && c.state !== 'gone' && !c.hurt).length;
+    if (live < 8 && LEVEL.exits && LEVEL.walk && gameTime - EN.lastShot > 8) {
+      const c = civs.find((x) => !x.active || x.state === 'gone');
+      if (c) { const ex = pick(LEVEL.exits), w = pick(LEVEL.walk); placeCiv(c, ex[0], ex[1], 0, 'walk', 'walk'); setPath(c, w[0], w[1]); }
+    }
+  }
+  for (const c of civs) if (c.active && c.hurt) { c.hurtT = (c.hurtT || 0) + dt; if (c.hurtT > 25) { c.active = false; c.root.visible = false; c.state = 'gone'; c.hurtT = 0; } }
+  if (MS.panic && gameTime - EN.lastShot > 15) MS.panic = false;
+  MS.seenT -= dt;
+  if (MS.seenT <= 0) { MS.seenT = 0.35; for (const b of bots) if (b.active && b.alive && !b.surrender && b.canSee) ping(b.pos.x, b.pos.z, 'seen'); }
+  // 길에서 벗어난 강도는 가까운 길로 돌려놓는다
+  MS.stuckT -= dt;
+  if (MS.stuckT <= 0) {
+    MS.stuckT = 2;
+    for (const b of bots) {
+      if (!b.active || !b.alive || b.surrender || b.static || b.stunT > 0) continue;
+      let bd = 1e9, bn = null; for (const n of nodes) { const d = (n.x - b.pos.x) ** 2 + (n.z - b.pos.z) ** 2; if (d < bd) { bd = d; bn = n; } }
+      if (bn && bd > 2.5 * 2.5) { b.pos.set(bn.x, 0, bn.z); b.path = []; b.pathIdx = 0; }
+    }
+  }
+}
+function enKill(b, head) {
+  const by = HIT_BY || NET.id, foul = b.surrender;
+  b.alive = false; b.deadT = 0; b.surrender = false; b.gunG.visible = false; b.shieldG.visible = false; b.laser.visible = false;
+  let pts = (b.boss ? 1500 : 300) + (head ? 150 : 0); if (foul) { pts = -500; MS.fouls++; }
+  MS.score += pts; MS.kills++; MS.down++;
+  const q = by !== NET.id ? NET.peers.get(by) : null;
+  mpHostEvent({ k: 'kill', e: bots.indexOf(b), by, h: head ? 1 : 0, p: pts, f: foul ? 1 : 0, w: (q ? WEAPONS[q.w] || WEAPONS[0] : W()).short });
+}
+function enArrest(b) {
+  const by = HIT_BY || NET.id;
+  b.surrender = false; b.arrested = true; b.alive = false; b.deadT = 0; kneelPose(b, true);
+  const pts = b.boss ? 2000 : 500; MS.arrests++; MS.down++; MS.score += pts;
+  mpHostEvent({ k: 'arr', e: bots.indexOf(b), by, p: pts });
+}
+function enCivHit(c, point) {
+  if (c.hurt) return;
+  c.hurt = true; c.state = 'hurt'; c.cross.visible = true; c.hurtT = 0; MS.civHit++; MS.score -= 500;
+  emit(point, 10, { speed: [1, 2.5], spread: 1, life: [0.3, 0.6], grav: 4, color: [0.35, 0.72, 1] });
+  mpHostEvent({ k: 'civ', c: civs.indexOf(c), by: HIT_BY || NET.id });
+}
+
+/* ---------- 매 프레임 ---------- */
+function mpTick() {
+  // 네트워크 타이머는 실제 시간으로 돈다(느린 컴퓨터에서 게임 시간이 늦게 가도 연결은 제때)
+  const now = performance.now(), rdt = NET.lastTick ? Math.min(1, (now - NET.lastTick) / 1000) : 0;
+  // 탭이 한참 멈춰 있었으면(절전 등) 그동안 다른 대원이 방장을 맡았을 수 있다 → 내려놓고 다시 뽑는다
+  if (NET.lastTick && now - NET.lastTick > 3000 && NET.hostClaim) { NET.hostClaim = 0; mpTrack(); NET.tickT = 0; }
+  NET.lastTick = now;
+  NET.sendT -= rdt;
+  if (NET.sendT <= 0) {
+    const mv = Math.hypot(P.vel.x, P.vel.z) > 0.3 || Math.abs(angDiff(NET.lastYaw, P.yaw)) > 0.02 || !P.onGround;
+    NET.lastYaw = P.yaw; NET.sendT = mv ? 1 / 15 : 0.2; mpAll(mpMyState());
+  }
+  if (NET.host) { NET.snapT -= rdt; if (NET.snapT <= 0) { NET.snapT = 0.1; mpAll(mpSnapshot()); } }
+  mpUpdateAvatars(rdt);
+  mpFlushRelay(rdt);
+  NET.tickT -= rdt;
+  if (NET.tickT <= 0) mpSlowTick(now);
+}
+function mpSlowTick(now) {
+  NET.tickT = 1; mpLinks(); mpElect();
+  for (const q of [...NET.peers.values()]) if (!q.seenP && now - q.first > 15000) NET.peers.delete(q.id);
+  if (++NET.trackT > 45) { NET.trackT = 0; mpTrack(); }
+}
+// 탭을 내려 화면이 멈춰도 연결 관리와 중계는 1초마다 계속한다
+setInterval(() => { if (NET.on && performance.now() - NET.lastTick > 1500) { mpFlushRelay(1); mpSlowTick(performance.now()); } }, 1000);
+
+/* ---------- 로비 · 입장 · 퇴장 ---------- */
+function mpRoomCount(room) { return NET.counts[room] | 0; }
+function mpMapCount(map) { let n = 0; for (const k in NET.counts) if (k.startsWith(map + '-')) n += NET.counts[k]; return n; }
+function mpPickRoom(map) {
+  if (NET.invite && NET.invite.startsWith(map + '-')) return Math.max(1, parseInt(NET.invite.slice(map.length + 1), 10) || 1);
+  for (let k = 1; k < 100; k++) if (mpRoomCount(`${map}-${k}`) < MP_CFG.roomMax) return k;
+  return 1;
+}
+function mpRenderLobby() {
+  let total = 0; for (const k in NET.counts) total += NET.counts[k];
+  const cc = $('coopCnt'); if (cc) cc.textContent = MP_OK ? (NET.lobby ? `지금 ${total}명 출동 중` : '친구와 함께') : '배포 사이트 전용';
+  const box = $('mpMaps'); if (!box) return;
+  box.querySelectorAll('.mode').forEach((el) => {
+    const m = el.dataset.map, n = mpMapCount(m); el.classList.toggle('sel', m === NET.map);
+    el.querySelector('em').textContent = n ? `${n}명 출동 중` : '비어 있음';
+  });
+}
+async function mpLobbyWatch() {
+  if (!MP_OK || NET.lobby || NET.lobbyTry) return;
+  NET.lobbyTry = true;
+  try {
+    NET.lobby = await mpPresence(mpTopic('lobby'), (list) => { const c = {}; for (const p of list) if (p.r) c[p.r] = (c[p.r] || 0) + 1; NET.counts = c; mpRenderLobby(); });
+    if (NET.lobby && NET.on) NET.lobby.track({ r: NET.room, n: NET.nick });
+  } catch (e) { NET.lobby = null; }
+  NET.lobbyTry = false; mpRenderLobby();
+}
+function mpLobbyNote(t, warn) { const n = $('mpNote'); n.innerHTML = t; n.classList.toggle('warn', !!warn); }
+function mpOpenLobby() {
+  sfx.init(); sfx.ui();
+  $('menu').classList.add('hidden'); $('prep').classList.add('hidden'); $('mplobby').classList.remove('hidden');
+  if (!$('mpNick').value) { let n = ''; try { n = mpNick(localStorage.getItem('welevfps.nick')); } catch (e) {} $('mpNick').value = n || `대원${Math.floor(10 + Math.random() * 90)}`; }
+  if (!MP_OK) mpLobbyNote(`같이하기는 배포된 사이트에서만 돼요 → <a href="${MP_CFG.site}" target="_blank" rel="noopener">${MP_CFG.site.replace(/^https:\/\/|\/$/g, '')}</a>`, true);
+  else mpLobbyNote(NET.invite ? `초대받은 방: <b>${MAP_NAMES[NET.invite.split('-')[0]] || ''} ${NET.invite.split('-')[1] || 1}번 방</b>` : '맵을 고르면 사람이 있는 방에 자동으로 들어가요 (한 방 최대 16명, 차면 다음 방)');
+  useLevel(NET.map); mpRenderLobby(); mpLobbyWatch();
+}
+async function mpJoin(map, nickIn) {
+  if (NET.joining || NET.on) return false;
+  if (!MP_OK) { mpLobbyNote('여기서는 같이하기를 할 수 없어요.', true); return false; }
+  const nick = mpNick(nickIn != null ? nickIn : $('mpNick').value);
+  if (!nick) { mpLobbyNote('이름을 적어 주세요 (한글·영문·숫자 10자까지)', true); return false; }
+  NET.joining = true; NET.nick = nick; try { localStorage.setItem('welevfps.nick', nick); } catch (e) {}
+  NET.map = MP_MAPS.includes(map) ? map : 'yeongtong'; NET.num = mpPickRoom(NET.map); NET.room = `${NET.map}-${NET.num}`;
+  mpLobbyNote('작전 채널에 연결하는 중…');
+  Object.assign(NET, { on: true, inGame: false, host: false, hostId: '', hostClaim: 0, joinT: Date.now(), joinedAt: performance.now(), arrests: 0, shot: 0, shotEnd: null, lastTick: 0, tickT: 0.5, sendT: 0, snapT: 0, civT: 0, doorT: 0, trackT: 0 });
+  NET.peers.clear();
+  try {
+    const [pres, inbox] = await Promise.all([mpPresence(mpTopic(NET.room), mpOnPresence), mpInbox(NET.room, (f, ms) => { for (const m of ms) mpRecv(f, m); })]);
+    NET.pres = pres; NET.inbox = inbox;
+    if (!pres || !inbox) throw new Error('channel');
+  } catch (e) {
+    mpLeave(); NET.joining = false;
+    mpLobbyNote('연결하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.', true); return false;
+  }
+  NET.prevDiff = difficulty; difficulty = 'normal';
+  $('mplobby').classList.add('hidden'); $('prep').classList.add('hidden'); $('prep').classList.remove('mp'); NET.prepMp = false;
+  startGame(NET.map);
+  NET.inGame = true; mpTrack(); mpElect();
+  if (NET.lobby) NET.lobby.track({ r: NET.room, n: NET.nick }); else mpLobbyWatch();
+  try { const u = new URL(location.href); u.searchParams.set('room', NET.room); history.replaceState(null, '', u.toString()); } catch (e) {}
+  NET.invite = ''; NET.joining = false;
+  return true;
+}
+function mpLeave() {
+  if (NET.on) { try { mpAll({ t: 'bye' }); } catch (e) {} }
+  for (const q of NET.peers.values()) mpCloseLink(q.L);
+  NET.peers.clear();
+  try { if (NET.pres) NET.pres.leave(); } catch (e) {} try { if (NET.inbox) NET.inbox.leave(); } catch (e) {}
+  NET.pres = NET.inbox = null;
+  if (NET.lobby) NET.lobby.track({ n: NET.nick });
+  for (const r of remotes) { r.active = false; r.root.visible = false; r.tagS.visible = false; r.pid = ''; }
+  for (const b of bots) b.netBuf = null; for (const c of civs) c.netBuf = null;
+  const was = NET.on;
+  Object.assign(NET, { on: false, inGame: false, host: false, hostId: '', hostClaim: 0 });
+  if (was) { MS.type = ''; if (NET.prevDiff) difficulty = NET.prevDiff; NET.prevDiff = null; }
+  try { const u = new URL(location.href); if (u.searchParams.has('room')) { u.searchParams.delete('room'); history.replaceState(null, '', u.toString()); } } catch (e) {}
+}
+function mpInviteURL() {
+  try { const u = new URL(MP_OK && !MP_LOCAL ? location.href : MP_CFG.site); u.search = ''; if (MP_LOCAL) u.searchParams.set('net', 'local'); u.searchParams.set('room', NET.room); return u.toString(); } catch (e) { return MP_CFG.site + '?room=' + NET.room; }
+}
+async function mpCopyInvite() {
+  const url = mpInviteURL();
+  try { await navigator.clipboard.writeText(url); $('mpInvite').textContent = '복사했어요! 친구에게 보내세요'; }
+  catch (e) { $('mpInvite').textContent = url; }
+  setTimeout(() => { $('mpInvite').textContent = '초대 링크 복사'; }, 2600);
+}
+function mpPauseInfo() {
+  const on = NET.on; $('mpPause').classList.toggle('hidden', !on); if (!on) return;
+  const n = 1 + [...NET.peers.values()].filter((q) => q.g).length;
+  $('mpRoomTxt').innerHTML = `<b>${MAP_NAMES[NET.map]} ${NET.num}번 방</b> · 대원 ${n}명 · 위협 ${EN.lv}단계<br>같이하기 중에는 게임이 멈추지 않아요`;
+}
+function mpBoard(show) {
+  const el = $('board'); el.classList.toggle('hidden', !show); if (!show) return;
+  const now = performance.now(); if (now - NET.boardT < 400) return; NET.boardT = now;
+  const rows = [{ n: NET.nick, k: stats.kills, a: NET.arrests, d: stats.deaths, me: true, host: NET.host }];
+  for (const q of NET.peers.values()) if (q.g) rows.push({ n: q.n, k: q.k, a: q.a, d: q.d, host: q.id === NET.hostId, link: q.L && q.L.open ? '직접' : '중계', away: !q.v || now - q.heard > 4000 });
+  rows.sort((a, b) => b.k + b.a * 2 - (a.k + a.a * 2));
+  el.innerHTML = `<div class="bh"><b>${MAP_NAMES[NET.map]} ${NET.num}번 방 · 대원 ${rows.length}명</b><span>위협 ${EN.lv}단계 · 팀 점수 ${MS.score.toLocaleString()} · ${fmtTime(EN.el)}</span></div>`
+    + `<table><tr><th>대원</th><th>처치</th><th>체포</th><th>쓰러짐</th><th>연결</th></tr>${rows.map((r) => `<tr class="${r.me ? 'me' : ''}"><td>${r.n}${r.host ? ' <i>지휘</i>' : ''}${r.away ? ' <i class="aw">자리 비움</i>' : ''}</td><td>${r.k}</td><td>${r.a}</td><td>${r.d}</td><td>${r.me ? '—' : r.link}</td></tr>`).join('')}</table>`
+    + '<p>ESC 메뉴에서 초대 링크를 복사할 수 있어요 · 지휘 = 강도단 AI를 돌리는 대원</p>';
+}
+function enIntro() {
+  centerMsg('무한 작전 — 강도단이 계속 몰려와요 · 시민을 지키세요', 'info', 3); sfx.siren();
+  radio(`${MAP_NAMES[NET.map]} 일대 강도단 출현. 경찰특공대 전원 출동하라.`, false);
+}
+document.addEventListener('visibilitychange', () => { if (!NET.on) return; if (document.hidden && NET.hostClaim) NET.hostClaim = 0; mpTrack(); mpElect(); });
+addEventListener('pagehide', () => { if (NET.on) mpLeave(); });
+
+/* =========================================================
    Menu wiring
    ========================================================= */
 function updateBestLabel() {
@@ -6110,15 +7065,15 @@ updateBestLabel();
 document.querySelectorAll('.mode').forEach((b) => b.addEventListener('click', () => {
   document.querySelectorAll('.mode').forEach((x) => x.classList.remove('sel')); b.classList.add('sel');
   mode = b.dataset.mode; $('diffRow').style.opacity = mode === 'bots' ? 1 : 0.45;
-
-  useLevel(levelFor(mode));
+  if (mode === 'coop') mpLobbyWatch();
+  useLevel(mode === 'coop' ? NET.map : levelFor(mode));
   sfx.init(); sfx.ui();
 }));
 document.querySelectorAll('#diffSeg button').forEach((b) => b.addEventListener('click', () => {
   document.querySelectorAll('#diffSeg button').forEach((x) => x.classList.remove('sel')); b.classList.add('sel');
   difficulty = b.dataset.d; sfx.init(); sfx.ui();
 }));
-$('startBtn').addEventListener('click', () => { if (MISSIONS[mode]) openPrep(); else startGame(mode); });
+$('startBtn').addEventListener('click', () => { if (mode === 'coop') mpOpenLobby(); else if (MISSIONS[mode]) openPrep(); else startGame(mode); });
 function syncPrep() {
   const val = { mtype: settings.mtype, tod: settings.tod, weather: settings.weather, mates: String(settings.mates), diff: difficulty };
   document.querySelectorAll('#prep .seg[data-k]').forEach((sg) => sg.querySelectorAll('button').forEach((b) => b.classList.toggle('sel', b.dataset.v === val[sg.dataset.k])));
@@ -6128,6 +7083,7 @@ function syncPrep() {
   $('prepBrief').innerHTML = '<b>경찰특공대 출동.</b> ' + PREP_BRIEF[settings.mtype](mode) + '<br>매판 강도 배치가 바뀌고, 체포는 사살보다 점수가 높아요(S등급: 무사고·쓰러짐 0·체포 3명 이상).';
   $('prepNote').textContent = difficulty === 'real' ? '실전: 몇 발에 쓰러지고 다시 일어날 수 없어요. 체력도 회복되지 않아요.' : '쓰러지면 그 자리에서 다시 일어나요(−300점).';
   document.querySelectorAll('#diffSeg button').forEach((x) => x.classList.toggle('sel', x.dataset.d === difficulty));
+  if (NET.prepMp) { $('prepTitle').textContent = '같이하기 · 장비 고르기'; $('prepBrief').innerHTML = '<b>무한 작전.</b> 들어오는 대로 합류하고, 시간이 갈수록·대원이 많을수록 강도단이 늘어나요. 쓰러지면 3초 뒤 그 자리에서 다시 일어나요. 장비를 고르고 출동하세요.'; }
 }
 function openPrep() { sfx.init(); sfx.ui(); syncPrep(); $('menu').classList.add('hidden'); $('prep').classList.remove('hidden'); }
 document.querySelectorAll('#prep .seg[data-k] button').forEach((b) => b.addEventListener('click', () => {
@@ -6140,8 +7096,17 @@ document.querySelectorAll('#prep .cards[data-k] button').forEach((b) => b.addEve
   if (k === 'mods') lo[b.dataset.v] = !lo[b.dataset.v]; else lo[k] = k === 'sp' || k === 'opt' ? b.dataset.v : +b.dataset.v;
   saveSettings(); sfx.ui(); syncPrep();
 }));
-$('goBtn').addEventListener('click', () => { $('prep').classList.add('hidden'); startGame(mode); });
-$('prepBack').addEventListener('click', () => { $('prep').classList.add('hidden'); $('menu').classList.remove('hidden'); sfx.ui(); });
+$('goBtn').addEventListener('click', () => { $('prep').classList.add('hidden'); if (NET.prepMp) { $('mplobby').classList.remove('hidden'); mpJoin(NET.map); return; } startGame(mode); });
+$('prepBack').addEventListener('click', () => { $('prep').classList.add('hidden'); if (NET.prepMp) { NET.prepMp = false; $('prep').classList.remove('mp'); $('mplobby').classList.remove('hidden'); sfx.ui(); return; } $('menu').classList.remove('hidden'); sfx.ui(); });
+$('mpMaps').querySelectorAll('.mode').forEach((el) => el.addEventListener('click', () => { NET.map = el.dataset.map; if (NET.invite && !NET.invite.startsWith(NET.map + '-')) NET.invite = ''; useLevel(NET.map); sfx.ui(); mpRenderLobby(); }));
+$('mpGo').addEventListener('click', () => mpJoin(NET.map));
+$('mpBack').addEventListener('click', () => { $('mplobby').classList.add('hidden'); $('menu').classList.remove('hidden'); sfx.ui(); });
+$('mpGear').addEventListener('click', () => { NET.prepMp = true; $('prep').classList.add('mp'); $('mplobby').classList.add('hidden'); syncPrep(); $('prep').classList.remove('hidden'); sfx.ui(); });
+$('mpNick').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') mpJoin(NET.map); });
+$('mpInvite').addEventListener('click', mpCopyInvite);
+// 초대 링크(?room=영통-2 같은)로 들어오면 바로 같이하기 로비를 연다
+{ const rm = MP_Q.get('room'), mm = rm && /^([a-z]+)-(\d{1,2})$/.exec(rm); if (mm && MP_MAPS.includes(mm[1])) { NET.invite = rm; NET.map = mm[1]; const card = document.querySelector('.mode[data-mode="coop"]'); if (card) card.click(); setTimeout(mpOpenLobby, 200); } }
+
 $('resumeBtn').addEventListener('click', resume);
 $('quitBtn').addEventListener('click', toMenu);
 $('againBtn').addEventListener('click', () => startGame(mode));
@@ -6170,7 +7135,7 @@ window.__fps = {
   get nodes() { return nodes; }, useLevel, mini, damagePlayer, mates, COND, settings, orderMates, escapeVan, tireMeshes, get LEVEL() { return LEVEL; }, EQ, shout, throwFlash, arrest, surrender, doorOpen, bossFlee, callReinforcements, evPool, boss, nades, setDifficulty: (d) => { difficulty = d; },
   look: (yaw, pitch) => { P.yaw = yaw; P.pitch = pitch; }, fire: () => { P.clicked = true; }, setMouse: (l, r) => { mouseL = l; mouseR = r; }, endGame, switchWeapon,
   sim: (sec) => { const n = Math.round(sec * 60); for (let i = 0; i < n && state === 'playing'; i++) { update(1 / 60); updateCamera(1 / 60); } },
-  place: (x, z) => { P.pos.set(x, 0, z); }, WEAPONS, GUNVM, applyLoadout, cycleMode, curMode, beanbagBot, CHR, loadCharacters, setType, GUNS, GUN_MESH, loadGuns, RES, FP, FP_GRIP, vmScene, vmCam, holder, vmTick: (dt) => { updateViewmodel(dt); updateFPBody(dt); }, updateCharacters,
+  place: (x, z) => { P.pos.set(x, 0, z); }, WEAPONS, GUNVM, applyLoadout, cycleMode, curMode, beanbagBot, CHR, loadCharacters, setType, GUNS, GUN_MESH, loadGuns, RES, FP, FP_GRIP, vmScene, vmCam, holder, vmTick: (dt) => { updateViewmodel(dt); updateFPBody(dt); }, updateCharacters, NET, EN, remotes, mpJoin, mpLeave, mpOpenLobby, losClear, V3, get HIT_BY() { return HIT_BY; },
 };
 </script>
 </body>
