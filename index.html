@@ -6257,7 +6257,7 @@ const _ms = { x: 0, y: 0, z: 0, yaw: 0 }, _bs = V3(), _sa = V3(), _sb = V3();
 const mpSafe = (s, n = 20) => String(s == null ? '' : s).replace(/[<>&"'`]/g, '').slice(0, n);
 
 /* ---------- 연결 통로: Supabase(배포 사이트) 또는 BroadcastChannel(?net=local · 같은 브라우저 탭끼리 시험용) ---------- */
-let mpSB = null;
+let mpSB = null, mpHttpBad = false;
 async function mpClient() {
   if (mpSB) return mpSB;
   const m = await Promise.race([import(MP_CFG.lib), new Promise((_, no) => setTimeout(() => no(new Error('timeout')), 12000))]);
@@ -6319,7 +6319,10 @@ async function mpInbox(room, cb) {
   return {
     to(id, payload) {
       let o = outs.get(id); if (!o) { o = sb.channel(mpTopic(room, id), { config: { broadcast: { self: false, ack: false } } }); outs.set(id, o); }
-      try { const r = typeof o.httpSend === 'function' ? o.httpSend('m', payload) : o.send({ type: 'broadcast', event: 'm', payload }); if (r && r.catch) r.catch(() => {}); } catch (e) {}
+      const viaSend = () => { try { const r = o.send({ type: 'broadcast', event: 'm', payload }); if (r && r.catch) r.catch(() => {}); } catch (e) {} };
+      // 새 REST 주소(httpSend)가 안 되는 서버면 예전 방식(send의 REST 대체)으로 바꾼다
+      if (typeof o.httpSend === 'function' && !mpHttpBad) { try { o.httpSend('m', payload).catch(() => { mpHttpBad = true; viaSend(); }); } catch (e) { mpHttpBad = true; viaSend(); } }
+      else viaSend();
     },
     leave() { try { sb.removeChannel(ch); } catch (e) {} for (const o of outs.values()) try { sb.removeChannel(o); } catch (e) {} },
   };
