@@ -342,10 +342,11 @@ body.bodycam #xhair{display:none}
         <kbd>W A S D</kbd><span>이동</span>
         <kbd>마우스</kbd><span>둘러보기 · 좌클릭 사격</span>
         <kbd>우클릭</kbd><span>조준 (누르고 있기) · 저격총은 스코프</span>
-        <kbd>Shift</kbd><span>달리기 (달리는 중엔 사격 불가)</span>
+        <kbd>Shift</kbd><span>달리기 (달리는 중엔 사격 불가) · 두 번 누르면 전술 질주</span>
         <kbd>Space</kbd><span>점프 · 담 넘기/오르기</span>
         <kbd>C</kbd><span>앉기 (반동·탄퍼짐 감소)</span>
-        <kbd>R</kbd><span>재장전</span>
+        <kbd>R</kbd><span>재장전 (빈 탄창이면 노리쇠까지 · 산탄총은 한 발씩, 쏘면 멈춤)</span>
+        <kbd>I</kbd><span>총 살펴보기</span>
         <kbd>1 · 2 · 휠 · Q</kbd><span>무기 교체</span>
         <kbd>G</kbd><span>섬광탄 던지기 (적 3초 기절)</span>
         <kbd>V</kbd><span>투항 명령 "경찰이다! 엎드려!"</span>
@@ -3052,7 +3053,7 @@ function curMode(w) { return w.modes ? w.modes[(P.fm[P.cur] || 0) % w.modes.leng
 function cycleMode() {
   const w = W(); if (!w.modes || !P.alive || state !== 'playing') return;
   P.fm[P.cur] = ((P.fm[P.cur] || 0) + 1) % w.modes.length; P.burstLeft = 0;
-  sfx.click(0, 0.4, 2000); centerMsg('조정간 · ' + MODE_KO[curMode(w)], 'info', 0.7);
+  sfx.click(0, 0.4, 2000); centerMsg('조정간 · ' + MODE_KO[curMode(w)], 'info', 0.7); vmaMode();
 }
 // optics / suppressor / grip from the prep screen apply to the AR, carbine and SMG
 function applyLoadout() {
@@ -3313,7 +3314,7 @@ function resetStats() {
 }
 function resetPlayer(x, z, yaw) {
   P.pos.set(x, 0, z); P.vel.set(0, 0, 0); P.yaw = yaw; P.pitch = 0; P.hp = 100; P.alive = true; P.lastHit = -99;
-  P.onGround = true; P.crouch = false; P.eyeH = STAND_EYE; P.height = 1.75; P.reloading = false; P.switchT = 0; P.boltT = 0;
+  P.onGround = true; P.crouch = false; P.eyeH = STAND_EYE; P.height = 1.75; P.reloading = false; P.switchT = 0; P.boltT = 0; P.reloadDur = 1; vmaCancel();
   P.bloom = 0; P.recoil = 0; P.roll = 0; P.shake = 0; P.respawnT = 0; P.mantle = null;
   // every new round restarts gameTime at 0, so clear all timers that are stored as absolute game times
   P.nextFire = 0; P.lastShot = -9; P.burst = 0; P.protect = 0; P.clicked = false; P.reloadStage = 0; P.boltSnd = 0;
@@ -3774,8 +3775,7 @@ document.addEventListener('mousemove', (e) => {
   P.yaw -= dx * k;
   const dp = -dy * k; P.pitch = clamp(P.pitch + dp, -1.45, 1.45);
   if (dp < 0) P.recoil = Math.max(0, P.recoil + dp);
-  vm.swayTX = clamp(vm.swayTX - dx * 0.00005, -0.03, 0.03);
-  vm.swayTY = clamp(vm.swayTY + dy * 0.00005, -0.03, 0.03);
+  vma.mdx += dx; vma.mdy += dy;
 });
 canvas.addEventListener('mousedown', (e) => {
   if (state !== 'playing') return;
@@ -3795,6 +3795,8 @@ document.addEventListener('keydown', (e) => {
     if (['Space', 'Tab', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) e.preventDefault();
     keys[e.code] = true;
     if (e.code === 'KeyR') startReload();
+    if (e.code === 'KeyI') vmaInspect();
+    if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !e.repeat) { const n = performance.now(); if (n - vma.shiftT < 320) vma.tac = true; vma.shiftT = n; }
     if (e.code === 'Digit1') switchWeapon(P.slots[0]);
     if (e.code === 'Digit2') switchWeapon(P.slots[1]);
     if (e.code === 'Digit3') switchWeapon(P.slots[2]);
@@ -3886,7 +3888,7 @@ function updatePlayer(dt) {
   if (keys.KeyW) f += 1; if (keys.KeyS) f -= 1; if (keys.KeyD) s += 1; if (keys.KeyA) s -= 1;
   P.crouch = !!keys.KeyC;
   P.sprinting = (keys.ShiftLeft || keys.ShiftRight) && f > 0 && !mouseL && !mouseR && !P.crouch;
-  let speed = P.sprinting ? SPRINT : WALK;
+  let speed = P.sprinting ? SPRINT * (vma.tac ? 1.06 : 1) : WALK;
   if (P.crouch) speed = CROUCH_SPD;
   if (vm.ads > 0.5) speed = Math.min(speed, ADS_SPD);
   speed *= W().speed || 1;
@@ -3940,7 +3942,8 @@ function startReload() {
   const w = W(), a = P.ammo[P.cur];
   if (P.reloading || P.switchT > 0 || !P.alive || a.mag >= w.magSize) return;
   if (mode !== 'training' && a.reserve <= 0) { centerMsg('탄약이 없어요 · 처치하면 보충돼요', 'info', 0.9); return; }
-  P.reloading = true; P.reloadT = w.reload; P.reloadStage = 0;
+  P.reloadEmpty = a.mag === 0; P.reloadDur = w.type === 'pump' ? 1e9 : w.reload * (P.reloadEmpty ? EMPTY_K[VMA_CLS[P.cur]] || 1 : 1);
+  P.reloading = true; P.reloadT = P.reloadDur; P.reloadStage = 0; vmaStartReload(P.reloadEmpty);
 }
 function currentSpread() {
   const w = W(), hs = Math.hypot(P.vel.x, P.vel.z);
@@ -4016,7 +4019,7 @@ function fire() {
   P.pitch = clamp(P.pitch + kick, -1.45, 1.45); P.recoil += kick;
   P.yaw += rand(-1, 1) * w.kickYaw + (w.type === 'auto' && P.burst > 6 ? 0.0028 * Math.sin(P.burst * 0.7) : 0);
   P.bloom = Math.min(w.bloomMax, P.bloom + w.bloom * (1 - vm.ads * 0.5));
-  vm.kick = 1; vm.flash = 0.05; P.shake = Math.max(P.shake, w.type === 'bolt' ? 0.5 : 0.18);
+  vm.kick = 1; vm.flash = 0.05; P.shake = Math.max(P.shake, w.type === 'bolt' ? 0.5 : 0.18); vmaFire(w);
   if (w.type !== 'taser') { muzzleLight.position.copy(camera.position).addScaledVector(_dir, 1.2); muzzleLight.intensity = w.quiet ? 4 : w.type === 'bolt' || w.type === 'pump' ? 40 : 22; }
   if (w.type === 'taser') sfx.zap(); else sfx.shot(w.snd);
   const hearR = w.quiet ? 13 : 42;
@@ -4031,12 +4034,7 @@ function updateWeapon(dt) {
   if (P.switchT > 0) P.switchT = Math.max(0, P.switchT - dt);
   if (P.reloading) {
     P.reloadT -= dt;
-    const pr = 1 - P.reloadT / w.reload;
-    if (P.reloadStage === 0 && pr > 0.1) { P.reloadStage = 1; sfx.click(0, 0.3); }
-    if (P.reloadStage === 1 && pr > 0.24) { P.reloadStage = 2; sfx.clack(0, 0.35); }
-    if (P.reloadStage === 2 && pr > 0.62) { P.reloadStage = 3; sfx.clack(0, 0.45); }
-    if (P.reloadStage === 3 && pr > 0.84) { P.reloadStage = 4; sfx.click(0, 0.35, 2400); }
-    if (P.reloadT <= 0) {
+    if (P.reloadT <= 0 && w.type !== 'pump') {
       const need = w.magSize - a.mag, take = mode === 'training' ? need : Math.min(need, a.reserve);
       a.mag += take; if (mode !== 'training') a.reserve -= take; P.reloading = false;
     }
@@ -4046,7 +4044,8 @@ function updateWeapon(dt) {
     if (P.boltSnd === 0 && P.boltT < 0.62) { P.boltSnd = 1; sfx.click(0, 0.32, 2600); }
     if (P.boltSnd === 1 && P.boltT < 0.35) { P.boltSnd = 2; sfx.clack(0, 0.3); }
   }
-  const canFire = P.switchT <= 0 && !P.reloading && vm.sprint < 0.35 && P.boltT <= 0 && gameTime >= P.nextFire;
+  if (P.reloading && w.type === 'pump' && (P.clicked || mouseL) && a.mag > 0) vmaShellStop(); // 산탄총: 쏘면 한 발씩 넣기를 멈춘다
+  const canFire = P.switchT <= 0 && !P.reloading && vm.sprint < 0.35 && P.boltT <= 0 && gameTime >= P.nextFire && !(vma.act && vma.act.kind === 'throw');
   const fmode = curMode(w);
   if (fmode === 'burst' && P.clicked && (P.burstLeft || 0) <= 0) P.burstLeft = 3;
   const trigger = fmode === 'auto' ? mouseL : fmode === 'burst' ? P.burstLeft > 0 : P.clicked;
@@ -4514,7 +4513,9 @@ flashSprite.visible = false; scene.add(flashSprite);
 function throwFlash() {
   if (state !== 'playing' || !P.alive || mode === 'training') return;
   if (EQ.flash <= 0) { centerMsg('섬광탄이 없어요', 'info', 0.8); return; }
-  EQ.flash--; updateGearHUD(); sfx.pin();
+  if (vma.act && vma.act.kind === 'throw') return;
+  EQ.flash--; updateGearHUD();
+  vmaThrow(() => {
   const m = new THREE.Mesh(nadeGeo, nadeMat); m.castShadow = true; scene.add(m);
   const fwd = V3(0, 0, -1).applyQuaternion(camera.quaternion);
   const pos = camera.position.clone().addScaledVector(fwd, 0.5); pos.y -= 0.15;
@@ -4522,6 +4523,7 @@ function throwFlash() {
   nades.push({ m, pos, vel, t: 0 });
   if (NET.on) mpAll({ t: 'fl', x: rd2(pos.x), y: rd2(pos.y), z: rd2(pos.z), vx: rd2(vel.x), vy: rd2(vel.y), vz: rd2(vel.z) });
   centerMsg('섬광탄!', 'info', 0.7);
+  });
 }
 const _nd = V3();
 function updateNades(dt) {
@@ -5448,7 +5450,7 @@ function updateHUD(dt) {
   setTxt('mag', String(a.mag)); $('mag').classList.toggle('empty', a.mag === 0);
   setTxt('res', '/ ' + (mode === 'training' ? '∞' : a.reserve));
   const rb = $('rbar'); rb.style.opacity = P.reloading ? 1 : 0;
-  if (P.reloading) rb.firstChild.style.width = (100 * (1 - P.reloadT / w.reload)).toFixed(1) + '%';
+  if (P.reloading) rb.firstChild.style.width = (w.type === 'pump' ? 100 * a.mag / w.magSize : 100 * (1 - P.reloadT / P.reloadDur)).toFixed(1) + '%';
   const hp = Math.ceil(P.hp); setTxt('hpnum', String(hp));
   $('hpfill').style.width = hp + '%'; $('hpfill').classList.toggle('low', hp <= 35);
   $('vignette').style.opacity = mode !== 'training' ? clamp((1 - P.hp / 100) * 1.1 - 0.1, 0, 0.85) : 0;
@@ -5508,55 +5510,470 @@ function updateCamera(dt) {
     const fx = Math.cos(P.yaw), fz = -Math.sin(P.yaw);
     camera.position.x += fx * bx; camera.position.z += fz * bx; camera.position.y += by;
   }
-  camera.rotation.set(P.pitch + rand(-sh, sh) + scopedBreath + bPitch, P.yaw + rand(-sh, sh) + scopedBreath * 0.6, P.roll + bRoll);
+  camera.rotation.set(P.pitch + rand(-sh, sh) + scopedBreath + bPitch + vma.camOut.x, P.yaw + rand(-sh, sh) + scopedBreath * 0.6 + vma.camOut.y, P.roll + bRoll + vma.camOut.z);
   camera.fov = lerp(settings.bodycam ? BC_FOV : BASE_FOV, w.adsFov, ease(vm.ads)) + vm.sprint * 4;
   camera.updateProjectionMatrix();
   muzzleLight.intensity = Math.max(0, muzzleLight.intensity - dt * 600);
 }
+/* =========================================================
+   1인칭 애니메이션 v2 — 스프링 · 곡선 · 키프레임 (직접 만든 동작)
+   · 스프링: 조준 흔들림(마우스를 돌리면 총이 살짝 늦게 따라옴), 이동 흔들림, 점프·착지, 앉기, 정조준 진입
+   · 곡선: 걸음(발 디딜 때 툭), 질주 / 전술 질주(Shift 두 번), 숨쉬기, 정조준 미세 흔들림
+   · 반동: 총 위치·각도 스프링 + 카메라 흔들림, 탄피 배출
+   · 동작: 장전(탄창을 실제로 빼고 넣음 · 빈 탄창이면 떨어뜨리고 노리쇠/장전손잡이/슬라이드),
+           산탄총 한 발씩, 꺼내기, 살펴보기(I), 조정간(N), 섬광탄 투척(G), 벽에 붙으면 총을 세움
+   ========================================================= */
+function spr(k, c) { return { k, c, x: V3(), v: V3(), t: V3() }; }
+function sprStep(s, dt) {
+  const n = Math.max(1, Math.ceil(dt * 240)), h = dt / n, x = s.x, v = s.v, t = s.t;
+  for (let i = 0; i < n; i++) {
+    v.x += (-s.k * (x.x - t.x) - s.c * v.x) * h; v.y += (-s.k * (x.y - t.y) - s.c * v.y) * h; v.z += (-s.k * (x.z - t.z) - s.c * v.z) * h;
+    x.x += v.x * h; x.y += v.y * h; x.z += v.z * h;
+  }
+}
+const sstep = (a, b, u) => { const x = clamp((u - a) / (b - a), 0, 1); return x * x * (3 - 2 * x); };
+const hump = (a, b, c, d, u) => sstep(a, b, u) * (1 - sstep(c, d, u));
+const easeOutBack = (u) => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(u - 1, 3) + c1 * Math.pow(u - 1, 2); };
+const vma = {
+  sw: spr(160, 15), swR: spr(150, 14),     // 흔들림 (위치 / 각도)
+  rc: spr(620, 30), rcR: spr(520, 25),     // 반동
+  cam: spr(320, 22),                        // 카메라 (pitch, yaw, roll)
+  mdx: 0, mdy: 0, tac: false, tacK: 0, shiftT: -9, wasAds: 0, wasGround: true, wasCrouch: false, airVy: 0, wall: 0,
+  act: null, gp: V3(), gr: V3(), camA: V3(), camOut: V3(),
+  lh: { w: 0, k: V3(), spec: null }, carry: null, carryOn: false,
+};
+// 왼손 동작용 손 모양 (총 기준 방향: +x 오른쪽, +y 위, −z 총구)
+const LH_SPEC = {
+  mag: { k: [0, 0, 0], f: [0.25, 0.9, -0.35], t: [0.05, 0.3, 0.95], curl: [1.3, 1.2, 0.6], idx: [1.05, 1.0, 0.5], ifan: 0, th: [[0.7, 0.45, -0.55], [0.55, 0.55, -0.62], [0.35, 0.6, -0.7]] },
+  palm: { k: [0, 0, 0], f: [0.2, 0.95, -0.25], t: [0, 0.25, 0.97], curl: [0.35, 0.3, 0.2], idx: [0.3, 0.3, 0.2], ifan: 0.1, th: [[0.6, 0.6, -0.5], [0.4, 0.7, -0.6], [0.2, 0.75, -0.6]] },
+  side: { k: [0, 0, 0], f: [0.15, 0.55, -0.82], t: [0, 0.83, 0.55], curl: [0.4, 0.35, 0.25], idx: [0.35, 0.3, 0.2], ifan: 0.05, th: [[0.35, 0.6, -0.7], [0.2, 0.55, -0.8], [0.1, 0.5, -0.86]] },
+  pinch: { k: [0, 0, 0], f: [0.3, 0.85, -0.4], t: [0.05, 0.4, 0.92], curl: [1.5, 1.4, 0.8], idx: [1.3, 1.2, 0.7], ifan: 0, th: [[0.75, 0.35, -0.55], [0.6, 0.45, -0.65], [0.45, 0.5, -0.74]] },
+  rack: { k: [0, 0, 0], f: [1, -0.1, 0.15], t: [0, 0, 1], curl: [1.35, 1.25, 0.6], idx: [1.3, 1.15, 0.5], ifan: 0, th: [[0.2, -0.55, 0.8], [0.1, -0.65, 0.75], [0, -0.7, 0.7]] },
+  hk: { k: [0, 0, 0], f: [0.55, 0.35, -0.75], t: [0, 0.9, 0.42], curl: [1.45, 1.35, 0.7], idx: [1.35, 1.2, 0.6], ifan: 0, th: [[0.4, 0.75, -0.5], [0.25, 0.8, -0.55], [0.1, 0.85, -0.5]] },
+  nade: { k: [0, 0, 0], f: [0.3, 0.9, -0.3], t: [0.1, 0.3, 0.95], curl: [1.45, 1.35, 0.75], idx: [1.35, 1.25, 0.7], ifan: 0, th: [[0.75, 0.4, -0.5], [0.6, 0.5, -0.6], [0.45, 0.55, -0.7]] },
+};
+const VMA_CLS = { 0: 'rifle', 6: 'rifle', 8: 'rifle', 2: 'smg', 7: 'smg', 1: 'bolt', 5: 'pistol', 4: 'taser', 3: 'shells', 9: 'shells', 10: 'shield' };
+const EMPTY_K = { rifle: 1.2, smg: 1.2, bolt: 1.15, pistol: 1.12, taser: 1, shield: 1.12 };
+// 빈 탄창일 때 장전손잡이(HK 슬랩) 위치 · 탄피 배출구 (총 기준)
+const HK_HANDLE = { 2: [-0.036, 0.028, -0.27], 7: [-0.036, 0.03, -0.25] };
+const EJECT = { 5: [0.012, 0.032, -0.02], 10: [0.012, 0.032, -0.02], 4: null };
+const POUCH = V3(-0.17, -0.74, -0.28), BELT = V3(-0.17, -0.42, -0.3);
+const _vsm = V3(), _va = V3(), _vb = V3(), _vc = V3(), _vpo = V3(), _vh = V3(), _vun = V3(), _ve = new THREE.Euler(0, 0, 0, 'YXZ'), _vq = new THREE.Quaternion(), _vq2 = new THREE.Quaternion(), _vm = new THREE.Matrix4(), _vp = V3();
+
+/* ---- 탄창 정보 (총 기준 중심·크기) — 메시 교체 뒤 처음 쓸 때 계산 ---- */
+function vmaMagInfo(g, tgt) {
+  if (g.mi && g.mi.src === g.mag) return g.mi;
+  if (!g.mag) return null;
+  const p0 = g.mag.position.clone(); p0.y = g.magY != null ? g.magY : p0.y;
+  const q0 = g.mag.quaternion.clone();
+  g.mag.position.copy(p0); g.mag.quaternion.copy(q0); g.mag.visible = true;
+  tgt.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(tgt.matrixWorld).invert(), box = new THREE.Box3(), tb = new THREE.Box3();
+  g.mag.traverse((o) => { if (!o.isMesh || !o.geometry) return; if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); tb.copy(o.geometry.boundingBox).applyMatrix4(_vm.multiplyMatrices(inv, o.matrixWorld)); box.union(tb); });
+  if (box.isEmpty()) box.setFromCenterAndSize(V3(0, -0.08, -0.05), V3(0.03, 0.12, 0.05));
+  const c = box.getCenter(V3()), size = box.getSize(V3());
+  const cls = VMA_CLS[GUNVM.indexOf(g)] || 'rifle';
+  const axis = cls === 'taser' ? V3(0, 0, -1) : cls === 'pistol' || cls === 'shield' ? V3(0, -0.95, 0.3).normalize() : cls === 'smg' ? V3(0, -1, -0.28).normalize() : V3(0, -1, -0.12).normalize();
+  const L = cls === 'taser' ? size.z * 1.4 + 0.02 : size.y * 0.95 + 0.02;
+  g.mi = { src: g.mag, p0, q0, c, size, axis, L };
+  return g.mi;
+}
+// 탄창을 (총 기준) 중심 오프셋 off, 회전 r(오일러)만큼 옮긴다: 회전은 탄창 중심을 축으로
+function vmaSetMag(g, mi, off, r) {
+  _ve.set(r.x, r.y, r.z); _vq.setFromEuler(_ve);
+  g.mag.quaternion.copy(_vq).multiply(mi.q0);
+  _vsm.copy(mi.p0).sub(mi.c).applyQuaternion(_vq).add(mi.c).add(off);
+  g.mag.position.copy(_vsm);
+}
+function vmaRestMag(g) { if (g && g.mi) { g.mag.position.copy(g.mi.p0); g.mag.quaternion.copy(g.mi.q0); } }
+
+/* ---- 탄피 · 떨어지는 탄창 ---- */
+const VMA_FX = [];
+const caseMat = new THREE.MeshStandardMaterial({ color: 0xc9a24a, roughness: 0.35, metalness: 0.85 });
+const shellMat = new THREE.MeshStandardMaterial({ color: 0xb3261e, roughness: 0.5 });
+const caseGeo = { rifle: new THREE.CylinderGeometry(0.0034, 0.0034, 0.022, 8), pistol: new THREE.CylinderGeometry(0.0038, 0.0038, 0.013, 8), shell: new THREE.CylinderGeometry(0.0085, 0.0085, 0.05, 10) };
+const vmaGrav = V3();
+function vmaFX(mesh, pos, vel, spin, life, world) {
+  mesh.position.copy(pos); (world ? scene : vmScene).add(mesh);
+  VMA_FX.push({ m: mesh, v: vel, s: spin, life, t: 0, world });
+  if (VMA_FX.length > 40) { const o = VMA_FX.shift(); o.m.parent && o.m.parent.remove(o.m); }
+}
+function vmaEject(i, tgt) {
+  const g = GUNVM[i], cls = VMA_CLS[i] || 'rifle'; if (cls === 'taser' || !FP.ready) return;
+  let p;
+  if (EJECT[i] !== undefined) { if (!EJECT[i]) return; p = _vp.fromArray(EJECT[i]); }
+  else { const mi = vmaMagInfo(g, tgt); if (!mi) return; p = _vp.set(mi.c.x + mi.size.x * 0.5 + 0.004, mi.c.y + mi.size.y * 0.5 + 0.03, mi.c.z + Math.min(0.05, mi.size.z * 0.4)); if (cls === 'shells') p.set(0.02, -0.02, 0.02); }
+  const pos = tgt.localToWorld(p.clone());
+  tgt.getWorldQuaternion(_vq2);
+  const vel = V3(rand(1.3, 1.9), rand(0.9, 1.4), rand(0.1, 0.5)).applyQuaternion(_vq2);
+  const m = new THREE.Mesh(cls === 'shells' ? caseGeo.shell : cls === 'pistol' || cls === 'shield' ? caseGeo.pistol : caseGeo.rifle, cls === 'shells' ? shellMat : caseMat);
+  m.rotation.set(rand(0, 6), rand(0, 6), Math.PI / 2); m.renderOrder = 2;
+  vmaFX(m, pos, vel, V3(rand(-25, 25), rand(-25, 25), rand(-25, 25)), cls === 'shells' ? 0.9 : 0.7, false);
+}
+function vmaDropMag(g, tgt) {
+  const mi = g.mi; if (!mi) return;
+  // 화면 안: 탄창 메시 복사본이 아래로 떨어져 사라진다
+  const grp = new THREE.Group();
+  g.mag.updateMatrixWorld(true);
+  g.mag.traverse((o) => { if (o.isMesh && o.visible !== false) { const c = new THREE.Mesh(o.geometry, o.material); o.matrixWorld.decompose(c.position, c.quaternion, c.scale); grp.add(c); } });
+  const pos = V3(); vmaFX(grp, pos, V3(rand(-0.3, -0.1), -0.9, rand(0, 0.2)), V3(rand(-4, 4), rand(-2, 2), rand(-4, 4)), 0.8, false);
+  // 세계: 발밑에 빈 탄창이 남는다
+  const fwd = V3(-Math.sin(P.yaw), 0, -Math.cos(P.yaw)), rt = V3(Math.cos(P.yaw), 0, -Math.sin(P.yaw));
+  const w = new THREE.Mesh(new THREE.BoxGeometry(mi.size.y * 0.95, Math.max(0.018, mi.size.x), Math.max(0.03, mi.size.z)), vmaMagMat);
+  w.position.copy(P.pos).addScaledVector(fwd, 0.35).addScaledVector(rt, -0.15); w.position.y = P.pos.y + Math.max(0.009, mi.size.x * 0.5);
+  w.rotation.y = rand(0, 6); w.castShadow = true; scene.add(w); vmaGround.push({ m: w, t: gameTime });
+  while (vmaGround.length > 12) { const o = vmaGround.shift(); scene.remove(o.m); }
+}
+const vmaMagMat = new THREE.MeshStandardMaterial({ color: 0x22252a, roughness: 0.7, metalness: 0.3 });
+const vmaGround = [];
+function vmaUpdateFX(dt) {
+  _vq.copy(camera.quaternion).invert(); vmaGrav.set(0, -9.8, 0).applyQuaternion(_vq);
+  for (let i = VMA_FX.length - 1; i >= 0; i--) {
+    const f = VMA_FX[i]; f.t += dt;
+    f.v.addScaledVector(vmaGrav, dt); f.m.position.addScaledVector(f.v, dt);
+    f.m.rotation.x += f.s.x * dt; f.m.rotation.y += f.s.y * dt; f.m.rotation.z += f.s.z * dt;
+    if (f.t > f.life) { f.m.parent && f.m.parent.remove(f.m); VMA_FX.splice(i, 1); }
+  }
+  for (let i = vmaGround.length - 1; i >= 0; i--) if (gameTime - vmaGround[i].t > 40 || gameTime < vmaGround[i].t) { scene.remove(vmaGround[i].m); vmaGround.splice(i, 1); }
+}
+
+/* ---- 동작 시작 ---- */
+function vmaCancel() {
+  const a = vma.act; if (!a) return;
+  if (a.g) { vmaRestMag(a.g); a.g.mag.visible = !a.g.magHideIdle; }
+  vma.act = null; vma.carryOn = false;
+}
+function vmaBusy() { return !!vma.act && vma.act.kind !== 'mode'; }
+function vmaStartReload(empty) {
+  vmaCancel();
+  const i = P.cur, cls = VMA_CLS[i] || 'rifle';
+  if (cls === 'shells') vma.act = { kind: 'shells', g: GUNVM[i], i, cls, empty, t: 0, ph: 'in', pt: 0, shell: 0 };
+  else vma.act = { kind: 'reload', g: GUNVM[i], i, cls, empty, t: 0, dur: P.reloadDur, ev: 0, dropped: false };
+}
+function vmaInspect() {
+  if (state !== 'playing' || !P.alive || P.reloading || P.switchT > 0 || vma.act || vm.ads > 0.2) return;
+  vma.act = { kind: 'inspect', g: GUNVM[P.cur], i: P.cur, cls: VMA_CLS[P.cur] || 'rifle', t: 0, dur: 3.4, ev: 0 };
+}
+function vmaMode() { if (!vma.act) vma.act = { kind: 'mode', i: P.cur, t: 0, dur: 0.32, ev: 0 }; }
+// 섬광탄: G를 누르면 던지는 동작을 시작하고, 손을 놓는 순간(0.5초쯤) 실제로 날아간다
+function vmaThrow(release) {
+  if (P.cur === 10 || !FP.ready) { sfx.pin(); release(); return; }
+  if (vma.act && vma.act.kind === 'throw') return;
+  if (P.reloading) { P.reloading = false; vmaCancel(); }
+  vma.act = { kind: 'throw', i: P.cur, t: 0, dur: 0.92, ev: 0, release, done: false };
+}
+// 사격: 반동 스프링 + 카메라 + 탄피
+function vmaFire(w) {
+  const a = vm.ads, s = clamp(w.kick / 0.0115, 0.6, 3.4), big = w.type === 'bolt' || w.type === 'pump';
+  vma.rc.v.z += (big ? 2.6 : 1.5) * Math.pow(s, 0.45) * (1 - a * 0.35);
+  vma.rc.v.y += 0.12 * s * (1 - a * 0.5);
+  vma.rcR.v.x += (big ? 5.5 : 2.6) * Math.pow(s, 0.5) * (1 - a * 0.45);
+  vma.rcR.v.y += rand(-1, 1) * 0.5 * Math.pow(s, 0.6) * (1 - a * 0.6);
+  vma.rcR.v.z += rand(-1, 1) * 1.6 * (1 - a * 0.7) + (big ? -1.2 : 0);
+  vma.cam.v.x += 0.18 * Math.sqrt(s); vma.cam.v.z += rand(-1, 1) * 0.35 * Math.sqrt(s);
+  if (vma.act && vma.act.kind !== 'throw') vmaCancel();
+  if (w.type !== 'bolt' && w.type !== 'pump' && w.type !== 'taser') vmaEject(P.cur, P.cur === 10 ? pistolSH : GUNVM[P.cur].group);
+}
+
+/* ---- 매 프레임: 스프링 · 이동 곡선 (총의 추가 위치/각도를 돌려준다) ---- */
+function vmaStep(dt, w) {
+  const a = vm.ads, hipK = 1 - a * 0.82, ground = P.onGround;
+  const mx = clamp(vma.mdx, -350, 350), my = clamp(vma.mdy, -350, 350); vma.mdx = vma.mdy = 0;
+  // 조준 흔들림: 돌리는 쪽 반대로 총이 늦게 따라오다 살짝 넘어간다
+  vma.swR.v.y += mx * 0.0019 * hipK; vma.swR.v.x += my * 0.0014 * hipK; vma.swR.v.z += mx * 0.0026 * hipK;
+  vma.sw.v.x -= mx * 0.00026 * hipK; vma.sw.v.y += my * 0.0002 * hipK;
+  // 이동 흔들림: 옆으로 걸으면 그쪽으로 기울고 살짝 처진다
+  const sy = Math.sin(P.yaw), cy = Math.cos(P.yaw), vr = P.vel.x * cy - P.vel.z * sy, vf = -P.vel.x * sy - P.vel.z * cy;
+  vma.sw.t.set(-vr * 0.0028 * hipK, (ground ? 0 : -0.012) * hipK, clamp(vf, -8, 8) * 0.0016 * hipK);
+  vma.swR.t.set((ground ? 0 : -0.06) * hipK, 0, -vr * 0.014 * hipK);
+  // 점프 · 착지 · 앉기
+  if (!ground) vma.airVy = Math.min(vma.airVy, P.vel.y);
+  if (vma.wasGround && !ground && P.vel.y > 1) { vma.sw.v.y -= 0.32; vma.swR.v.x -= 0.7; }
+  if (!vma.wasGround && ground) { const k = clamp(-vma.airVy / 10, 0.25, 1.3); vma.sw.v.y -= 0.85 * k; vma.swR.v.x -= 1.5 * k; vma.cam.v.x -= 0.45 * k; vma.airVy = 0; }
+  if (P.crouch !== vma.wasCrouch) { vma.sw.v.y += P.crouch ? -0.3 : 0.25; vma.swR.v.z += P.crouch ? 0.7 : -0.5; }
+  // 정조준 들어갈 때 '툭' 하고 자리 잡기
+  if (vma.wasAds < 0.5 && a >= 0.5) { vma.rc.v.y -= 0.14; vma.rcR.v.z += 0.4; vma.rcR.v.x -= 0.35; }
+  if (vma.wasAds >= 0.5 && a < 0.5) { vma.sw.v.y -= 0.12; vma.swR.v.z -= 0.35; }
+  vma.wasGround = ground; vma.wasCrouch = P.crouch; vma.wasAds = a;
+  if (!P.sprinting) vma.tac = false;
+  vma.tacK = damp(vma.tacK, vma.tac ? 1 : 0, 9, dt);
+  sprStep(vma.sw, dt); sprStep(vma.swR, dt); sprStep(vma.rc, dt); sprStep(vma.rcR, dt); sprStep(vma.cam, dt);
+  // 벽에 붙으면 총을 세운다
+  if (P.alive && state !== 'menu') {
+    _va.set(0, 0, -1).applyQuaternion(camera.quaternion);
+    const reach = (VMA_CLS[P.cur] === 'pistol' || P.cur === 10) ? 0.62 : 0.92;
+    const h = rayWorld(camera.position, _va, reach);
+    vma.wall = damp(vma.wall, h ? clamp((reach - h.distance) / (reach * 0.6), 0, 1) : 0, 9, dt);
+  }
+  vmaUpdateFX(dt);
+}
+
+/* ---- 동작의 총/카메라 자세 (gp, gr, camA) ---- */
+function vmaActGun(dt) {
+  vma.gp.set(0, 0, 0); vma.gr.set(0, 0, 0); vma.camA.set(0, 0, 0); vma.lh.w = 0; vma.carryOn = false;
+  const A = vma.act; if (!A) return;
+  if (A.i !== P.cur && A.kind !== 'throw') { vmaCancel(); return; }
+  if ((A.kind === 'reload' || A.kind === 'shells') && !P.reloading && !(A.kind === 'shells' && A.ph === 'out')) { vmaCancel(); return; }
+  if (A.kind === 'inspect' && (P.reloading || P.switchT > 0 || vm.ads > 0.3 || vm.sprint > 0.5 || mouseL)) { vmaCancel(); return; }
+  A.t += dt;
+  if (A.kind === 'shells') return vmaShellsGun(A, dt);
+  const u = clamp(A.t / A.dur, 0, 1); A.u = u;
+  if (A.kind === 'reload') {
+    const c = A.cls, tilt = hump(0, 0.13, 0.84, 1, u);
+    if (c === 'shield') { const d = hump(0, 0.2, 0.75, 1, u); vma.gp.set(0, -0.2 * d, 0.04 * d); vma.gr.set(-0.55 * d, 0, 0.2 * d); }
+    else if (c === 'pistol' || c === 'taser') { vma.gp.set(-0.045 * tilt, 0.075 * tilt, 0.02 * tilt); vma.gr.set(0.4 * tilt, 0.22 * tilt, -0.5 * tilt); }
+    else { vma.gp.set(-0.09 * tilt, 0.11 * tilt, 0.03 * tilt); vma.gr.set(0.3 * tilt, 0.22 * tilt, -0.45 * tilt); }
+    vma.camA.set(-0.025 * tilt, 0.02 * tilt, -0.035 * tilt);
+  } else if (A.kind === 'inspect') {
+    const k1 = sstep(0, 0.16, u) * (1 - sstep(0.36, 0.5, u)), k2 = sstep(0.38, 0.52, u) * (1 - sstep(0.82, 0.97, u));
+    const dr = Math.sin(A.t * 1.7) * 0.02;
+    vma.gp.set(0.035 * k1 - 0.01 * k2, 0.045 * k1 + 0.035 * k2, 0.07 * k1 + 0.06 * k2);
+    vma.gr.set(0.22 * k1 + 0.32 * k2 + dr, -1.0 * k1 + 0.62 * k2, 0.5 * k1 - 0.8 * k2 + dr);
+    vma.camA.set(-0.02 * (k1 + k2), 0, 0);
+  } else if (A.kind === 'mode') {
+    const k = hump(0, 0.3, 0.45, 1, u); vma.gr.set(0.03 * k, 0.06 * k, -0.16 * k);
+  } else if (A.kind === 'throw') {
+    const d = hump(0.02, 0.2, 0.74, 0.95, u);
+    vma.gp.set(0.07 * d, -0.075 * d, 0.04 * d); vma.gr.set(-0.25 * d, -0.25 * d, -0.25 * d);
+    const wind = hump(0.25, 0.42, 0.46, 0.6, u);
+    vma.camA.set(0.02 * wind - 0.03 * hump(0.5, 0.56, 0.6, 0.8, u), 0.03 * wind, 0.04 * wind);
+  }
+  vmaEvents(A, u);
+  if (u >= 1) { if (A.g) vmaRestMag(A.g); vma.act = null; }
+}
+// 시간에 맞춘 소리 · 툭 치는 반동
+function vmaEvents(A, u) {
+  const E = A.kind === 'reload' ? vmaReloadEvents(A) : A.kind === 'inspect' ? [[0.08, () => sfx.click(0, 0.12)], [0.44, () => sfx.click(0, 0.12)], [0.64, () => sfx.click(0, 0.22)], [0.74, () => sfx.clack(0, 0.22)]]
+    : A.kind === 'mode' ? [[0.35, () => sfx.click(0, 0.3, 2800)]]
+    : A.kind === 'throw' ? [[0.22, () => sfx.pin()], [0.52, () => { if (!A.done) { A.done = true; A.release(); } vma.cam.v.x -= 0.2; }]] : [];
+  while (A.ev < E.length && u >= E[A.ev][0]) { E[A.ev][1](); A.ev++; }
+}
+function vmaReloadEvents(A) {
+  if (A.E) return A.E;
+  const c = A.cls, e = A.empty, g = A.g, tgt = A.i === 10 ? pistolSH : g.group;
+  const bump = (y, r) => { vma.rc.v.y += y; vma.rcR.v.x += r; };
+  const drop = () => { if (!A.dropped) { A.dropped = true; vmaMagInfo(g, tgt); vmaDropMag(g, tgt); } };
+  if (c === 'shield') A.E = [[0.2, () => sfx.click(0, 0.3)], [0.3, drop], [0.6, () => sfx.clack(0, 0.45)], [0.8, () => e && sfx.click(0, 0.35, 2400)]];
+  else if (c === 'pistol') A.E = [[0.07, () => sfx.click(0, 0.3)], [0.08, drop], [0.55, () => { sfx.clack(0, 0.45); bump(0.3, 0.9); }], [0.6, () => bump(0.25, 0.5)]].concat(e ? [[0.765, () => { sfx.click(0, 0.4, 2400); sfx.clack(0, 0.3); bump(-0.2, -1.2); vma.cam.v.z += 0.2; }]] : []);
+  else if (c === 'taser') A.E = [[0.2, () => sfx.click(0, 0.3)], [0.25, drop], [0.62, () => { sfx.clack(0, 0.45); bump(0.15, 0.6); }]];
+  else if (e) {
+    const fin = c === 'smg' ? [[0.69, () => { sfx.click(0, 0.35, 2000); vma.rcR.v.z += 0.4; }], [0.74, () => { sfx.clack(0, 0.5); bump(-0.35, -1.2); vma.cam.v.x += 0.2; vma.cam.v.z -= 0.2; }]]
+      : c === 'bolt' ? [[0.72, () => { P.boltT = 0.9; P.boltSnd = 0; }]]
+      : [[0.71, () => { sfx.click(0, 0.4, 2400); sfx.clack(0, 0.35); bump(0.2, 0.8); vma.cam.v.z += 0.25; }]];
+    A.E = [[0.08, () => sfx.click(0, 0.3)], [0.1, drop], [0.56, () => { sfx.clack(0, 0.45); bump(0.35, 1.2); vma.cam.v.x -= 0.12; }]].concat(fin);
+  } else A.E = [[0.15, () => sfx.click(0, 0.3)], [0.22, () => sfx.clack(0, 0.3)], [0.75, () => { sfx.clack(0, 0.45); bump(0.35, 1.2); vma.cam.v.x -= 0.12; }], [0.82, () => bump(0.3, 0.6)]];
+  return A.E;
+}
+// 산탄총: 들어가기 → 한 발씩(0.52초) 반복 → 나오기(+빈 상태였으면 펌프)
+function vmaShellsGun(A, dt) {
+  const w = W(), a = P.ammo[P.cur];
+  A.pt += dt;
+  let tilt = 1;
+  if (A.ph === 'in') { tilt = sstep(0, 0.28, A.pt); if (A.pt >= 0.28) { A.ph = 'load'; A.pt = 0; } }
+  else if (A.ph === 'load') {
+    const SH = 0.52;
+    if (A.pt >= SH) {
+      A.pt -= SH;
+      if (a.mag < w.magSize && (mode === 'training' || a.reserve > 0)) { a.mag++; if (mode !== 'training') a.reserve--; A.shells = (A.shells || 0) + 1; }
+      if (a.mag >= w.magSize || (mode !== 'training' && a.reserve <= 0)) { A.ph = 'out'; A.pt = 0; P.reloading = false; }
+    }
+    if (A.ph === 'load' && A.pt > 0.42 && !A.snd) { A.snd = true; sfx.clack(0, 0.35); vma.rc.v.y += 0.18; vma.rcR.v.x += 0.4; }
+    if (A.pt < 0.1) A.snd = false;
+  } else if (A.ph === 'out') {
+    tilt = 1 - sstep(0, 0.3, A.pt);
+    if (A.pt >= 0.3) { if (A.empty && !A.pumped) { A.pumped = true; P.boltT = 0.6; P.boltSnd = 0; } vmaRestMag(A.g); A.g.mag.visible = false; vma.act = null; return; }
+  }
+  vma.gp.set(-0.06 * tilt, 0.1 * tilt, 0.02 * tilt); vma.gr.set(0.26 * tilt, 0.16 * tilt, -0.8 * tilt);
+  vma.camA.set(-0.02 * tilt, 0.015 * tilt, -0.03 * tilt);
+}
+function vmaShellStop() { const A = vma.act; P.reloading = false; if (A && A.kind === 'shells' && A.ph !== 'out') { A.ph = 'out'; A.pt = 0.12; A.empty = false; } }
+
+/* ---- 동작의 탄창 · 왼손 (총이 자리 잡은 뒤, 총 기준 좌표로) ---- */
+function vmaParts(g, tgt) {
+  const A = vma.act;
+  if (!A || !A.g || A.g !== g || (A.kind !== 'reload' && A.kind !== 'shells' && A.kind !== 'inspect')) {
+    if (A && A.kind === 'throw') vmaThrowParts(A, tgt);
+    return;
+  }
+  const mi = vmaMagInfo(g, tgt); if (!mi) return;
+  const lh = vma.lh, u = A.u || 0;
+  tgt.updateMatrixWorld(true);
+  const pouch = tgt.worldToLocal(_vpo.copy(A.cls === 'shells' ? BELT : POUCH));
+  const off = _va.set(0, 0, 0), rot = _vb.set(0, 0, 0);
+  const below = (k) => off.copy(mi.axis).multiplyScalar(mi.L * k);
+  const gripOff = A.cls === 'taser' ? V3(-0.03, -0.012, 0) : A.cls === 'pistol' || A.cls === 'shield' ? V3(-0.026, -mi.size.y * 0.3, 0.006) : V3(-mi.size.x * 0.5 - 0.024, -mi.size.y * 0.18, 0.004);
+  let magVis = true, hold = true, spec = LH_SPEC.mag, hand = null;
+  if (A.kind === 'inspect') {
+    if (A.cls === 'pistol' || A.cls === 'taser' || A.cls === 'shells' || A.cls === 'shield') return;
+    const k = hump(0.6, 0.66, 0.72, 0.78, u); below(0.28 * k);
+    lh.w = hump(0.55, 0.61, 0.78, 0.86, u);
+  } else if (A.kind === 'shells') {
+    // 빈손으로 벨트에 가서 한 발 집고 → 장전구 아래로 → 밀어 넣는다 (0.52초에 한 발)
+    const p = A.ph === 'load' ? A.pt / 0.52 : 0;
+    const port = _vp.set(0, -0.05, 0.0), under = _vun.set(0, -0.12, 0.05);
+    const inPort = _vh.set(port.x, port.y, port.z - 0.05);
+    const kA = sstep(0.36, 0.62, p), kB = sstep(0.62, 0.84, p);
+    off.copy(pouch).lerp(under, kA); if (kB > 0) off.lerpVectors(under, inPort, kB);
+    off.sub(mi.c);
+    rot.set(0, 0, 0.6 * (1 - kA));
+    magVis = A.ph === 'load' && p > 0.3 && p < 0.86;
+    lh.w = A.ph === 'in' ? sstep(0, 0.28, A.pt) : A.ph === 'out' ? 1 - sstep(0, 0.3, A.pt) : 1;
+    spec = LH_SPEC.pinch; hold = A.ph === 'load' && p > 0.3 && p < 0.86;
+    if (!hold) {
+      // 장전구 → 벨트 (첫 발은 덮개를 잡은 손에서 바로 벨트로)
+      const from = A.shells > 0 || A.ph === 'out' ? _vc.copy(inPort).add(V3(0, -0.02, 0.02)) : _vc.copy(under);
+      hand = A.ph === 'load' ? (p < 0.3 ? _vh.copy(from).lerp(pouch, sstep(0, 0.28, p)) : _vh.copy(from)) : _vh.copy(from);
+    }
+    A.g.mag.visible = magVis; vmaSetMag(g, mi, off, rot);
+    vmaHand(mi, off, rot, gripOff, spec, hold, hand);
+    return;
+  } else {
+    const c = A.cls, e = A.empty;
+    if (c === 'shield') { magVis = u < 0.3 || u > 0.45; below(u > 0.3 && u < 0.6 ? 1 - sstep(0.45, 0.6, u) : 0); lh.w = 0; g.mag.visible = magVis; vmaSetMag(g, mi, off, rot); return; }
+    if (c === 'pistol' || c === 'taser' || e) {
+      // 빈 탄창: 버튼을 누르면 떨어지고(위 이벤트), 손은 파우치 → 새 탄창 → 끼우기 → (노리쇠/장전손잡이/슬라이드)
+      const P0 = c === 'taser' ? 0.25 : c === 'pistol' ? 0.08 : 0.1, P1 = c === 'taser' ? 0.4 : 0.3, P2 = c === 'taser' ? 0.55 : 0.5, P3 = c === 'taser' ? 0.62 : c === 'pistol' ? 0.57 : 0.58;
+      lh.w = sstep(0.02, 0.08, u) * (1 - sstep(c === 'pistol' ? 0.64 : 0.84, c === 'pistol' ? 0.78 : 0.95, u));
+      if (c === 'taser' && u < P0) { const k = sstep(0.12, P0, u); below(k); }
+      magVis = u < P0 || u >= P1;
+      if (u >= P1) {
+        // 파우치 → 끼우기 직전
+        const k = sstep(P1, P2, u);
+        off.copy(pouch).sub(mi.c).lerp(_vc.copy(mi.axis).multiplyScalar(mi.L * 0.75), k);
+        rot.set(0.5 * (1 - k), 0.2 * (1 - k), 0.9 * (1 - k));
+        if (u >= P2) { below(0.75 * (1 - sstep(P2, P3, u))); rot.set(0, 0, 0); }
+      }
+      hold = u >= P1 && u < P3 + 0.01;
+      if (!hold) {
+        if (u < P0) hand = _vh.copy(mi.c).add(_vc.set(-mi.size.x * 0.5 - 0.02, mi.size.y * 0.3, 0));
+        else if (u < P1) hand = _vh.copy(mi.c).add(_vc.set(-0.03, 0, 0)).lerp(pouch, sstep(P0, P1 - 0.04, u));
+        else {
+          // 끼운 뒤: 바닥 치기 / 노리쇠 / 장전손잡이 / 슬라이드
+          const bottom = _vh.copy(mi.c).addScaledVector(mi.axis, mi.size.y * 0.55 + 0.01);
+          hand = bottom; spec = LH_SPEC.palm;
+          if (e && (c === 'rifle')) { const bc = V3(mi.c.x - mi.size.x * 0.5 - 0.014, mi.c.y + mi.size.y * 0.5 + 0.012, mi.c.z + mi.size.z * 0.2); hand = bottom.lerp(bc, sstep(0.6, 0.68, u)); hand.x += 0.012 * hump(0.68, 0.7, 0.72, 0.76, u); spec = LH_SPEC.side; }
+          else if (e && c === 'smg') { const hk = V3(...(HK_HANDLE[A.i] || [-0.036, 0.028, -0.26])); hk.z += 0.07 * sstep(0.66, 0.7, u); hk.y -= 0.02 * sstep(0.72, 0.745, u); hand = bottom.lerp(hk, sstep(0.6, 0.66, u)); spec = LH_SPEC.hk; }
+          else if (e && c === 'bolt') { lh.w *= 1 - sstep(0.6, 0.7, u); }
+        }
+      }
+      if (c === 'pistol' && g.slide) g.slide.position.z = g.slideZ + (e && u < 0.77 ? 0.045 : 0);
+    } else {
+      // 전술 장전: 쓰던 탄창을 손으로 빼서 파우치에 넣고 새 탄창을 끼운다
+      lh.w = sstep(0.03, 0.12, u) * (1 - sstep(0.86, 0.96, u));
+      if (u < 0.24) below(sstep(0.14, 0.24, u));
+      else if (u < 0.5) { const k = sstep(0.24, 0.42, u); off.copy(mi.axis).multiplyScalar(mi.L).lerp(_vc.copy(pouch).sub(mi.c), k); rot.set(0.5 * k, 0.2 * k, 0.9 * k); }
+      else if (u < 0.68) { const k = sstep(0.5, 0.68, u); off.copy(pouch).sub(mi.c).lerp(_vc.copy(mi.axis).multiplyScalar(mi.L * 0.8), k); rot.set(0.5 * (1 - k), 0.2 * (1 - k), 0.9 * (1 - k)); }
+      else below(0.8 * (1 - sstep(0.68, 0.76, u)));
+      hold = u < 0.79;
+      if (!hold) { hand = _vh.copy(mi.c).addScaledVector(mi.axis, mi.size.y * 0.55 + 0.01); hand.addScaledVector(mi.axis, 0.015 * (1 - hump(0.79, 0.81, 0.83, 0.86, u))); spec = LH_SPEC.palm; }
+    }
+  }
+  g.mag.visible = magVis;
+  vmaSetMag(g, mi, off, rot);
+  vmaHand(mi, off, rot, gripOff, spec, hold, hand);
+}
+function vmaHand(mi, off, rot, gripOff, spec, hold, hand) {
+  const lh = vma.lh;
+  if (hold) { _ve.set(rot.x, rot.y, rot.z); _vq.setFromEuler(_ve); lh.k.copy(gripOff).applyQuaternion(_vq).add(mi.c).add(off); }
+  else if (hand) lh.k.copy(hand);
+  lh.spec = spec;
+}
+// 투척: 왼손이 화면 안으로 섬광탄을 들고 와 핀을 뽑고 뒤로 젖혔다 던진다 (점은 화면 기준)
+const TH_PATH = [[0, -0.12, -0.34, -0.5], [0.12, -0.15, -0.17, -0.54], [0.24, -0.13, -0.15, -0.52], [0.42, -0.27, -0.03, -0.42], [0.54, -0.05, 0.0, -0.7], [0.68, 0.03, -0.28, -0.58], [0.82, -0.12, -0.34, -0.5]];
+function vmaThrowParts(A, tgt) {
+  const u = A.u || 0, lh = vma.lh;
+  lh.w = hump(0.03, 0.12, 0.78, 0.92, u);
+  let i = 0; while (i < TH_PATH.length - 2 && u > TH_PATH[i + 1][0]) i++;
+  const a = TH_PATH[i], b = TH_PATH[i + 1], k = sstep(a[0], b[0], u);
+  _vc.set(lerp(a[1], b[1], k), lerp(a[2], b[2], k), lerp(a[3], b[3], k));
+  if (u > 0.2 && u < 0.26) _vc.x += 0.015 * Math.sin((u - 0.2) * 160); // 핀 뽑기
+  tgt.updateMatrixWorld(true); lh.k.copy(tgt.worldToLocal(_vc)); lh.spec = LH_SPEC.nade;
+  vma.carryOn = u > 0.07 && u < 0.53;
+}
+// 손 모양 섞기 (기본 쥠 ↔ 동작 손)
+const _LB = { k: [0, 0, 0], f: [0, 0, 0], t: [0, 0, 0], curl: [0, 0, 0], idx: [0, 0, 0], ifan: 0, th: [[0, 0, 0], [0, 0, 0], [0, 0, 0]] };
+function vmaBlendSpec(a, b, k) {
+  for (let i = 0; i < 3; i++) {
+    _LB.f[i] = lerp(a.f[i], b.f[i], k); _LB.t[i] = lerp(a.t[i], b.t[i], k);
+    _LB.curl[i] = lerp(a.curl[i], b.curl[i], k); _LB.idx[i] = lerp(a.idx[i], b.idx[i], k);
+    for (let j = 0; j < 3; j++) _LB.th[i][j] = lerp(a.th[i][j], b.th[i][j], k);
+  }
+  _LB.ifan = lerp(a.ifan || 0, b.ifan || 0, k);
+  return _LB;
+}
+// 손에 든 섬광탄은 손바닥에 붙여 그린다 (IK가 끝난 뒤)
+const vmaNade = new THREE.Mesh(nadeGeo, nadeMat); vmaNade.visible = false; vmaNade.renderOrder = 3; vmaNade.scale.setScalar(0.62); vmScene.add(vmaNade);
+const vmaPin = new THREE.Mesh(new THREE.TorusGeometry(0.012, 0.0025, 6, 12), new THREE.MeshStandardMaterial({ color: 0xb0b4b8, metalness: 0.8, roughness: 0.3 })); vmaNade.add(vmaPin); vmaPin.position.set(0.03, 0.075, 0);
+function vmaPostIK() {
+  vmaNade.visible = vma.carryOn && FP.ready;
+  if (!vmaNade.visible) return;
+  const h = HF.L; FP.b.LH.getWorldPosition(_va);
+  vmaNade.position.copy(_va).addScaledVector(h.f, FP.hl.L * 0.62).addScaledVector(h.p, 0.04);
+  _vb.copy(h.f); vmaNade.quaternion.setFromUnitVectors(V3(0, 1, 0), _vb.normalize());
+  vmaPin.visible = !vma.act || (vma.act.u || 0) < 0.22;
+}
+
 function updateViewmodel(dt) {
-  const g = GUNVM[P.cur], w = W(), a = vm.ads;
-  vm.swayX = damp(vm.swayX, vm.swayTX, 12, dt); vm.swayY = damp(vm.swayY, vm.swayTY, 12, dt);
-  vm.swayTX = damp(vm.swayTX, 0, 8, dt); vm.swayTY = damp(vm.swayTY, 0, 8, dt);
+  const g = GUNVM[P.cur], w = W(), a = vm.ads, tgt = P.cur === 10 ? pistolSH : g.group;
+  vmaStep(dt, w); vmaActGun(dt);
   vm.kick = Math.max(0, vm.kick - dt * (w.type === 'bolt' ? 5 : 14));
   vm.land = Math.max(0, vm.land - dt * 5);
   let px = lerp(g.hip.x, g.ads.x, a), py = lerp(g.hip.y, g.ads.y, a), pz = lerp(g.hip.z, g.ads.z, a);
   if (settings.bodycam) { px -= 0.05 * (1 - a); py -= 0.035 * (1 - a); pz += 0.02 * (1 - a); }
   let rx = 0, ry = lerp(0.045, 0, a), rz = 0;
-  const bobA = 1 - a * 0.88;
-  px += Math.sin(vm.bobT) * 0.011 * vm.move * bobA;
-  py += -Math.abs(Math.cos(vm.bobT)) * 0.012 * vm.move * bobA;
-  rz += Math.sin(vm.bobT) * 0.02 * vm.move * bobA;
-  py += Math.sin(gameTime * 1.6) * 0.0025 * (1 - a * 0.8);
-  px -= vm.sprint * 0.05; py -= vm.sprint * 0.045; pz += vm.sprint * 0.03;
-  ry += vm.sprint * 0.6; rx -= vm.sprint * 0.18; rz += vm.sprint * 0.28;
-  px += vm.swayX * (1 - a * 0.8); py += vm.swayY * (1 - a * 0.8); ry += vm.swayX * 1.4; rx -= vm.swayY * 1.4;
-  rz += vm.crouch * 0.07 * (1 - a);
-  pz += vm.kick * (w.type === 'bolt' ? 0.1 : 0.055); rx += vm.kick * (w.type === 'bolt' ? 0.22 : 0.09) * (1 - a * 0.5); py += vm.kick * 0.008;
-  py -= vm.land * 0.035;
-  let magOff = 0;
-  if (P.reloading) {
-    const t = clamp(1 - P.reloadT / w.reload, 0, 1), env = Math.sin(t * Math.PI);
-    rx += env * 0.32; rz += env * 0.5; py -= env * 0.06; px -= env * 0.03;
-    if (t > 0.18 && t < 0.45) magOff = -ease((t - 0.18) / 0.27) * 0.3;
-    else if (t >= 0.45 && t < 0.7) magOff = -0.3 + ease((t - 0.45) / 0.25) * 0.3;
+  const T = vm.bobT, hipK = 1 - a * 0.85, walk = vm.move * (1 - vm.sprint) * hipK, run = vm.sprint * Math.min(1, vm.move);
+  const pistolish = FP_STYLE[P.cur] === 'pistol';
+  // 걸음: 좌우 8자 + 발 디딜 때 아래로 툭
+  const foot = Math.abs(Math.sin(T)) - 0.64;
+  px += Math.sin(T) * 0.012 * walk; py += foot * 0.014 * walk; pz += foot * 0.004 * walk;
+  rz += Math.sin(T) * 0.024 * walk; ry += Math.sin(T) * 0.012 * walk; rx += foot * 0.018 * walk;
+  // 질주 / 전술 질주(Shift 두 번: 총을 가슴 앞에 세우고 뛴다)
+  const nk = vm.sprint * (1 - vma.tacK), tk = vm.sprint * vma.tacK;
+  if (pistolish) {
+    px -= 0.02 * nk; py -= 0.1 * nk; pz += 0.02 * nk; rx -= 0.55 * nk; ry += 0.3 * nk; rz += 0.1 * nk;
+    px -= 0.03 * tk; py += 0.03 * tk; pz += 0.08 * tk; rx += 0.85 * tk; ry += 0.1 * tk; rz -= 0.22 * tk;
+  } else {
+    px -= 0.05 * nk; py -= 0.055 * nk; pz += 0.03 * nk; ry += 0.6 * nk; rx -= 0.32 * nk; rz += 0.34 * nk;
+    px -= 0.03 * tk; py += 0.01 * tk; pz += 0.08 * tk; rx += 0.78 * tk; ry += 0.26 * tk; rz -= 0.36 * tk;
   }
-  g.mag.position.y = g.magY + magOff; g.mag.visible = magOff > -0.27 && (!g.magHideIdle || P.reloading);
+  px += Math.sin(T) * 0.026 * run; py += foot * 0.03 * run; rz += Math.sin(T) * 0.05 * run; ry += Math.sin(T) * 0.04 * run; rx += foot * 0.04 * run;
+  // 숨쉬기 · 정조준 미세 흔들림
+  py += Math.sin(gameTime * 1.5) * 0.0022 * (1 - a * 0.75); rx += Math.sin(gameTime * 1.5 + 1) * 0.006 * (1 - a * 0.6);
+  const ak = a * (P.crouch ? 0.5 : 1); ry += Math.sin(gameTime * 0.83) * 0.0032 * ak; rx += Math.sin(gameTime * 1.66) * 0.0022 * ak;
+  rz += vm.crouch * 0.07 * (1 - a);
+  // 스프링: 흔들림 + 반동
+  px += vma.sw.x.x + vma.rc.x.x; py += vma.sw.x.y + vma.rc.x.y; pz += vma.sw.x.z + vma.rc.x.z;
+  rx += vma.swR.x.x + vma.rcR.x.x; ry += vma.swR.x.y + vma.rcR.x.y; rz += vma.swR.x.z + vma.rcR.x.z;
+  // 벽에 붙으면 총을 세운다
+  const wl = vma.wall * (1 - a * 0.5); pz += 0.13 * wl; py += 0.035 * wl; px -= 0.02 * wl; rx += 0.8 * wl; ry += 0.25 * wl;
+  // 동작 (장전 · 살펴보기 · 조정간 · 투척)
+  px += vma.gp.x; py += vma.gp.y; pz += vma.gp.z; rx += vma.gr.x; ry += vma.gr.y; rz += vma.gr.z;
   if (w.type === 'bolt') {
     const bt = P.boltT > 0 ? clamp(1 - P.boltT / 0.95, 0, 1) : 0;
     const env = P.boltT > 0 ? Math.sin(bt * Math.PI) : 0;
     rz += env * 0.28; py -= env * 0.03;
     boltSR.rotation.z = env * 1.2; boltSR.position.z = 0.08 + (bt > 0.3 && bt < 0.75 ? Math.sin((bt - 0.3) / 0.45 * Math.PI) * 0.08 : 0);
+    if (P.boltT > 0 && P.boltT < 0.5 && !vma.ej) { vma.ej = true; vmaEject(P.cur, tgt); }
   }
-  if (g.fore) { const e = P.boltT > 0 && w.type === 'pump' ? Math.sin(clamp(1 - P.boltT / 0.6, 0, 1) * Math.PI) : 0; g.fore.position.z = g.foreZ + e * 0.075; }
+  if (g.fore) {
+    const e = P.boltT > 0 && w.type === 'pump' ? Math.sin(clamp(1 - P.boltT / 0.6, 0, 1) * Math.PI) : 0; g.fore.position.z = g.foreZ + e * 0.075;
+    if (w.type === 'pump') { rx += e * 0.06; vma.rc.t.z = e * 0.01; if (P.boltT > 0 && P.boltT < 0.34 && !vma.ej) { vma.ej = true; vmaEject(P.cur, tgt); } }
+  }
+  if (P.boltT <= 0) vma.ej = false;
   if (g.slide) { const empty = P.ammo[P.cur].mag === 0 && !P.reloading; g.slide.position.z = g.slideZ + (empty ? 0.045 : vm.kick * 0.05); }
   if (g.shield) { g.shield.position.x = -0.55 - a * 0.08; g.shield.rotation.y = 0.32 + a * 0.22; }
-  const sw = P.switchT > 0 ? P.switchT / w.switchTime : 0;
-  py -= ease(sw) * 0.32; rx -= ease(sw) * 0.7;
+  // 꺼내기: 아래에서 굴러 올라와 살짝 넘어갔다가 자리 잡는다
+  const su = P.switchT > 0 ? 1 - P.switchT / w.switchTime : 1, eo = 1 - easeOutBack(su);
+  py -= eo * 0.26; px += eo * 0.05; rx -= eo * 0.85; rz += eo * 0.5; ry += eo * 0.2;
   holder.position.set(px, py, pz); holder.rotation.set(rx, ry, rz, 'YXZ');
+  holder.updateMatrixWorld(true);
+  if (!vma.act || vma.act.g !== g) { if (g.mi) vmaRestMag(g); else if (g.magY != null) g.mag.position.y = g.magY; g.mag.visible = !g.magHideIdle; }
+  vmaParts(g, tgt);
+  vma.camOut.set(vma.cam.x.x + vma.camA.x, vma.cam.x.y + vma.camA.y, vma.cam.x.z + vma.camA.z);
   vm.flash -= dt;
   if (vm.flash > 0) {
     g.muzzle.add(flashVM); flashVM.visible = true;
-    const s = (w.type === 'bolt' ? 0.34 : 0.22) * (w.quiet ? 0.3 : 1) * rand(0.8, 1.2); flashVM.scale.set(s, s, s); flashVM.material.rotation = rand(0, 6);
+    const fs = (w.type === 'bolt' ? 0.34 : 0.22) * (w.quiet ? 0.3 : 1) * rand(0.8, 1.2); flashVM.scale.set(fs, fs, fs); flashVM.material.rotation = rand(0, 6);
   } else flashVM.visible = false;
   vmCam.fov = lerp(58, 46, ease(a));
   vmCam.updateProjectionMatrix();
@@ -6115,7 +6532,7 @@ function updateFPBody(dt = 1 / 60) {
   for (const [o, q] of FP.restQ) o.quaternion.copy(q);
   FP.root.updateMatrixWorld(true); holder.updateMatrixWorld(true);
   tgt.getWorldQuaternion(_gq);
-  const hr = handFrame('R', style.r), hl = handFrame('L', style.l);
+  const hr = handFrame('R', style.r); let hl = HF.L, ls = style.l;
   // knuckle points (gun space) → wrist targets (view space)
   _hR.copy(hands.r).add(_ka.fromArray(style.r.k)); tgt.localToWorld(_hR); knuckleToWrist(_hR, hr, 'R');
   if (shield) shieldVM.localToWorld(_hL.set(0.12, -0.02, 0.1));
@@ -6124,7 +6541,10 @@ function updateFPBody(dt = 1 / 60) {
     else if (sname === 'pistol') _hL.copy(hands.r);
     else if (hands.l) { _hL.copy(hands.l); if (g.fore) _hL.z += g.fore.position.z - g.foreZ; }
     else _hL.set(-0.05, -0.05, 0);
-    _hL.add(_ka.fromArray(style.l.k)); tgt.localToWorld(_hL); knuckleToWrist(_hL, hl, 'L');
+    _hL.add(_ka.fromArray(style.l.k));
+    if (vma.lh.w > 0.001 && vma.lh.spec) { const k = clamp(vma.lh.w, 0, 1); _hL.lerp(vma.lh.k, k); ls = vmaBlendSpec(style.l, vma.lh.spec, k); }
+    hl = handFrame('L', ls);
+    tgt.localToWorld(_hL); knuckleToWrist(_hL, hl, 'L');
   }
   FP.b.RA.getWorldPosition(_poleR).add(_ka.fromArray(style.poleR));
   FP.b.LA.getWorldPosition(_poleL).add(_ka.fromArray(style.poleL));
@@ -6132,7 +6552,8 @@ function updateFPBody(dt = 1 / 60) {
   ik2(FP.b.LA, FP.b.LF, FP.b.LH, _hL, _poleL);
   const FR = FP.fing.R, FL = FP.fing.L;
   orientHand(FP.b.RH, FP.b.RM, FR.I[0], FR.P[0], hr.f, hr.t); poseFingers('R', style.r);
-  if (!shield) { orientHand(FP.b.LH, FP.b.LM, FL.I[0], FL.P[0], hl.f, hl.t); poseFingers('L', style.l); }
+  if (!shield) { orientHand(FP.b.LH, FP.b.LM, FL.I[0], FL.P[0], hl.f, hl.t); poseFingers('L', ls); }
+  vmaPostIK();
 }
 
 function update(dt) {
@@ -6157,8 +6578,10 @@ function update(dt) {
     else endGame();
   }
 }
+const FPS_MANUAL = MP_Q.get('manual') === '1'; // 시험용: 자동 진행을 멈추고 바깥에서 한 칸씩 돌린다
 function frame(now) {
   requestAnimationFrame(frame);
+  if (FPS_MANUAL) return;
   trackRes(now - last);
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   if (state === 'playing' || (state === 'paused' && NET.on)) {
@@ -7138,7 +7561,7 @@ window.__fps = {
   get nodes() { return nodes; }, useLevel, mini, damagePlayer, mates, COND, settings, orderMates, escapeVan, tireMeshes, get LEVEL() { return LEVEL; }, EQ, shout, throwFlash, arrest, surrender, doorOpen, bossFlee, callReinforcements, evPool, boss, nades, setDifficulty: (d) => { difficulty = d; },
   look: (yaw, pitch) => { P.yaw = yaw; P.pitch = pitch; }, fire: () => { P.clicked = true; }, setMouse: (l, r) => { mouseL = l; mouseR = r; }, endGame, switchWeapon,
   sim: (sec) => { const n = Math.round(sec * 60); for (let i = 0; i < n && state === 'playing'; i++) { update(1 / 60); updateCamera(1 / 60); } },
-  place: (x, z) => { P.pos.set(x, 0, z); }, WEAPONS, GUNVM, applyLoadout, cycleMode, curMode, beanbagBot, CHR, loadCharacters, setType, GUNS, GUN_MESH, loadGuns, RES, FP, FP_GRIP, vmScene, vmCam, holder, vmTick: (dt) => { updateViewmodel(dt); updateFPBody(dt); }, updateCharacters, NET, EN, remotes, mpJoin, mpLeave, mpOpenLobby, losClear, V3, get HIT_BY() { return HIT_BY; },
+  place: (x, z) => { P.pos.set(x, 0, z); }, WEAPONS, GUNVM, applyLoadout, cycleMode, curMode, beanbagBot, CHR, loadCharacters, setType, GUNS, GUN_MESH, loadGuns, RES, FP, FP_GRIP, vmScene, vmCam, holder, vmTick: (dt) => { updateViewmodel(dt); updateFPBody(dt); }, updateCharacters, NET, EN, remotes, mpJoin, mpLeave, mpOpenLobby, losClear, V3, vma, vmaInspect, startReload, keys, scene, camera, get HIT_BY() { return HIT_BY; },
 };
 </script>
 </body>
