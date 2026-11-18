@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WELEV ARENA 체험판 — 웹 FPS 훈련장 & 봇전</title>
+<title>WELEV ARENA — 경찰특공대 협동 FPS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -18,6 +18,18 @@ html,body{height:100%;overflow:hidden;background:#0a0c10;color:var(--txt);
 #game canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 body.playing #game canvas{cursor:none}
 .hidden{display:none!important}
+.cats{display:flex;gap:6px;margin:16px 0 10px}
+.cats button{flex:1;padding:11px 0;font-size:15px;font-weight:900;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--mut);font-family:inherit;cursor:pointer}
+.cats button:hover{color:var(--txt)}
+.cats button.sel{background:var(--acc);color:#111;border-color:var(--acc)}
+.cats button i{font-style:normal;font-size:11px;font-weight:800;margin-left:6px;background:#2a6bff;color:#fff;padding:1px 7px;border-radius:999px}
+.cats button i:empty{display:none}
+.mode.op b small{font-size:11px;font-weight:800;color:var(--acc);letter-spacing:.04em;margin-right:2px}
+.mode.locked{opacity:.42;border-style:dashed;cursor:default;padding-top:9px;padding-bottom:9px}
+.mode.locked b{font-size:14px}
+.mode.locked:hover{border-color:var(--line)}
+.mode.locked b small{color:var(--mut)}
+.cat .row{margin-top:4px}
 #mplobby .mpl{width:min(560px,100%);text-align:left}
 .mpl h2,.mpl > p,.mpl .badge{text-align:center}
 .mpl .badge{display:flex;justify-content:center}
@@ -317,23 +329,31 @@ body.bodycam #xhair{display:none}
 <div id="menu" class="overlay">
   <div class="menu panel">
     <div>
-      <span class="badge"><i></i>WEB FPS · 1단계 체험판</span>
+      <span class="badge"><i></i>WEB FPS · 경찰특공대 협동 작전</span>
       <h1 class="logo">WELEV<span> ARENA</span></h1>
-      <p class="sub">설치 없이 브라우저에서 바로 하는 총싸움.<br>지금은 혼자서 사격감과 손맛을 다듬는 단계예요.</p>
-      <div class="modes">
-        <button class="mode coop" data-mode="coop"><b>같이하기 · 무한 작전<i class="new">NEW</i></b><span>친구와 동시 접속 · 들어오는 대로 바로 합류 · 시간이 갈수록 강도단이 늘어나요</span><em id="coopCnt">친구와 함께</em></button>
-        <button class="mode sel" data-mode="training"><b>훈련장</b><span>60초 동안 튀어나오는 타깃 맞히기 · 머리 250점</span><em id="bestLabel">최고 0점</em></button>
-        <button class="mode" data-mode="bots"><b>봇전</b><span>봇 5명과 대결 · 먼저 20킬 · 5분</span><em>1 vs 5</em></button>
-        <button class="mode" data-mode="alley"><b>골목 작전</b><span>익선동 느낌 한옥마을 · 강도 8명 + 두목 · 시민을 쏘면 −500점</span><em id="bestAlley">최고 0점</em></button>
+      <p class="sub">설치 없이 브라우저에서 바로 하는 경찰특공대 총싸움.<br>친구와 함께 출동하거나, 혼자 작전을 풀거나, 훈련장에서 손을 풀어 보세요.</p>
+      <div class="cats" id="catSeg"><button data-cat="coop" class="sel">같이하기<i id="coopCnt"></i></button><button data-cat="solo">혼자 작전</button><button data-cat="train">훈련</button></div>
+      <div class="modes cat" data-cat="coop">
+        <button class="mode op" data-mode="coop" data-map="cityhall"><b><small>작전명</small>광장<i class="new">NEW</i></b><span>서울시청 · 서울광장 · 세종대로 · 대한문 · 들어오는 대로 합류하는 무한 작전</span><em>—</em></button>
+        <button class="mode op" data-mode="coop" data-map="yeongtong"><b><small>작전명</small>시계탑<i class="new">NEW</i></b><span>수원 영통 중심상가 · 구름광장 시계탑 · 청명은행 · 시간이 갈수록 강도단이 늘어나요</span><em>—</em></button>
+        <button class="mode op locked" disabled><b><small>작전 3</small>준비 중</b><em>새 작전 지역 · 곧 공개</em></button>
+        <button class="mode op locked" disabled><b><small>작전 4</small>준비 중</b><em>새 작전 지역 · 곧 공개</em></button>
+        <button class="mode op locked" disabled><b><small>작전 5</small>준비 중</b><em>새 작전 지역 · 곧 공개</em></button>
+      </div>
+      <div class="modes cat hidden" data-cat="solo">
         <button class="mode" data-mode="cityhall"><b>서울시청 작전</b><span>실제 서울광장·세종대로·대한문 배치 · 서울도서관 인질 구출</span><em id="bestCity">최고 0점</em></button>
         <button class="mode" data-mode="yeongtong"><b>영통 작전</b><span>수원 영통역 중심상가 · 구름광장 시계탑 · 은행 인질 구출</span><em id="bestYt">최고 0점</em></button>
+        <button class="mode" data-mode="alley"><b>골목 작전</b><span>익선동 느낌 한옥마을 · 강도 8명 + 두목 · 시민을 쏘면 −500점</span><em id="bestAlley">최고 0점</em></button>
       </div>
-      
-      <div class="row" id="diffRow" style="opacity:.45">
-        <label>봇전 난이도</label>
-        <div class="seg" id="diffSeg"><button data-d="easy">쉬움</button><button data-d="normal" class="sel">보통</button><button data-d="hard">어려움</button><button data-d="real">실전</button></div>
+      <div class="modes cat hidden" data-cat="train">
+        <button class="mode sel" data-mode="training"><b>훈련장</b><span>60초 동안 튀어나오는 타깃 맞히기 · 머리 250점</span><em id="bestLabel">최고 0점</em></button>
+        <button class="mode" data-mode="bots"><b>봇전</b><span>봇 5명과 대결 · 먼저 20킬 · 5분</span><em>1 vs 5</em></button>
+        <div class="row" id="diffRow" style="opacity:.45">
+          <label>봇전 난이도</label>
+          <div class="seg" id="diffSeg"><button data-d="easy">쉬움</button><button data-d="normal" class="sel">보통</button><button data-d="hard">어려움</button><button data-d="real">실전</button></div>
+        </div>
       </div>
-      <button id="startBtn" class="start">시작하기</button>
+      <button id="startBtn" class="start">출동 준비</button>
       <p class="note" id="deviceNote">PC 크롬 권장 · 키보드와 마우스가 필요해요 · 소리를 켜 주세요</p>
     </div>
     <div>
@@ -434,9 +454,8 @@ body.bodycam #xhair{display:none}
     <p>들어오는 대로 바로 합류해요. 시간이 갈수록, 대원이 많을수록 강도단이 늘어나요.<br>쓰러져도 3초 뒤 그 자리에서 다시 일어나요. 시민을 쏘면 팀 점수 −500.</p>
     <div class="nkrow"><label for="mpNick">내 이름</label><input id="mpNick" type="text" maxlength="10" autocomplete="off" enterkeyhint="go" placeholder="예: 알파팀 승태"></div>
     <div class="modes mpmaps" id="mpMaps">
-      <button class="mode" data-map="yeongtong"><b>영통 중심상가</b><span>수원 영통역 · 구름광장 시계탑 · 청명은행</span><em>—</em></button>
-      <button class="mode" data-map="cityhall"><b>서울시청</b><span>서울광장 · 세종대로 · 서울도서관</span><em>—</em></button>
-      <button class="mode" data-map="alley"><b>한옥골목</b><span>익선동 느낌 한옥마을 골목</span><em>—</em></button>
+      <button class="mode op" data-map="cityhall"><b><small>작전명</small>광장</b><span>서울시청 · 서울광장 · 세종대로</span><em>—</em></button>
+      <button class="mode op" data-map="yeongtong"><b><small>작전명</small>시계탑</b><span>수원 영통 중심상가 · 구름광장 시계탑</span><em>—</em></button>
     </div>
     <p class="note" id="mpNote"></p>
     <div class="btns"><button class="btn2 pri" id="mpGo">출동</button><button class="btn2" id="mpGear">장비</button><button class="btn2" id="mpBack">뒤로</button></div>
@@ -512,7 +531,7 @@ const mpNick = (s) => String(s == null ? '' : s).replace(/[^0-9A-Za-z가-힣ㄱ-
 const fnum = (v, d = 0) => (typeof v === 'number' && isFinite(v) ? v : d);
 const rd1 = (v) => Math.round(v * 10) / 10, rd2 = (v) => Math.round(v * 100) / 100, rd3 = (v) => Math.round(v * 1000) / 1000;
 const NET = {
-  on: false, id: mpHex(8), nick: '', map: 'yeongtong', num: 1, room: '', pres: null, inbox: null, lobby: null, lobbyTry: false,
+  on: false, id: mpHex(8), nick: '', map: 'cityhall', num: 1, room: '', pres: null, inbox: null, lobby: null, lobbyTry: false,
   host: false, hostId: '', hostClaim: 0, joinT: 0, joinedAt: 0, inGame: false, joining: false, peers: new Map(),
   sendT: 0, snapT: 0, civT: 0, doorT: 0, tickT: 0, trackT: 0, lastTick: 0, lastYaw: 0, shot: 0, shotEnd: null, arrests: 0,
   counts: {}, invite: '', prevDiff: null, boardT: 0, sqMsgT: 0, prepMp: false,
@@ -6671,7 +6690,9 @@ window.addEventListener('resize', () => {
    · 방장 1명이 강도·시민 AI·위협 단계·팀 점수를 돌리고 초당 10번 상태를 보낸다
      방장이 나가거나 탭을 내리면 남은 대원 중 가장 먼저 들어온 사람이 이어받는다(가진 사본에서 그대로 이어감)
    ========================================================= */
-const MP_MAPS = ['yeongtong', 'cityhall', 'alley'];
+const MP_MAPS = ['cityhall', 'yeongtong'];
+const MP_OPS = { cityhall: '광장', yeongtong: '시계탑' }; // 같이하기 작전명
+const mpRoomLabel = () => `작전명 ${MP_OPS[NET.map] || ''} · ${MAP_NAMES[NET.map]} ${NET.num}번 방`;
 const BT = ['rifle', 'shotgun', 'sniper', 'shield', 'pistol', 'smg', 'knife'];
 const CS = ['eat', 'idle', 'duck', 'walk', 'flee', 'hurt', 'gone', 'held', 'wait', 'freed', 'follow'];
 const CK = ['seat', 'stand', 'walk', 'hostage'];
@@ -7381,7 +7402,8 @@ function mpPickRoom(map) {
 }
 function mpRenderLobby() {
   let total = 0; for (const k in NET.counts) total += NET.counts[k];
-  const cc = $('coopCnt'); if (cc) cc.textContent = MP_OK ? (NET.lobby ? `지금 ${total}명 출동 중` : '친구와 함께') : '배포 사이트 전용';
+  const cc = $('coopCnt'); if (cc) cc.textContent = MP_OK && total ? `${total}명` : '';
+  document.querySelectorAll('#menu .mode.op[data-map]').forEach((el) => { const n = mpMapCount(el.dataset.map); el.querySelector('em').textContent = !MP_OK ? '배포 사이트 전용' : n ? `${n}명 출동 중` : NET.lobby ? '지금 비어 있음' : '친구와 함께'; });
   const box = $('mpMaps'); if (!box) return;
   box.querySelectorAll('.mode').forEach((el) => {
     const m = el.dataset.map, n = mpMapCount(m); el.classList.toggle('sel', m === NET.map);
@@ -7403,7 +7425,7 @@ function mpOpenLobby() {
   $('menu').classList.add('hidden'); $('prep').classList.add('hidden'); $('mplobby').classList.remove('hidden');
   if (!$('mpNick').value) { let n = ''; try { n = mpNick(localStorage.getItem('welevfps.nick')); } catch (e) {} $('mpNick').value = n || `대원${Math.floor(10 + Math.random() * 90)}`; }
   if (!MP_OK) mpLobbyNote(`같이하기는 배포된 사이트에서만 돼요 → <a href="${MP_CFG.site}" target="_blank" rel="noopener">${MP_CFG.site.replace(/^https:\/\/|\/$/g, '')}</a>`, true);
-  else mpLobbyNote(NET.invite ? `초대받은 방: <b>${MAP_NAMES[NET.invite.split('-')[0]] || ''} ${NET.invite.split('-')[1] || 1}번 방</b>` : '맵을 고르면 사람이 있는 방에 자동으로 들어가요 (한 방 최대 16명, 차면 다음 방)');
+  else mpLobbyNote(NET.invite ? `초대받은 방: <b>작전명 ${MP_OPS[NET.invite.split('-')[0]] || ''} · ${MAP_NAMES[NET.invite.split('-')[0]] || ''} ${NET.invite.split('-')[1] || 1}번 방</b>` : '작전을 고르면 사람이 있는 방에 자동으로 들어가요 (한 방 최대 16명, 차면 다음 방)');
   useLevel(NET.map); mpRenderLobby(); mpLobbyWatch();
 }
 async function mpJoin(map, nickIn) {
@@ -7459,7 +7481,7 @@ async function mpCopyInvite() {
 function mpPauseInfo() {
   const on = NET.on; $('mpPause').classList.toggle('hidden', !on); if (!on) return;
   const n = 1 + [...NET.peers.values()].filter((q) => q.g).length;
-  $('mpRoomTxt').innerHTML = `<b>${MAP_NAMES[NET.map]} ${NET.num}번 방</b> · 대원 ${n}명 · 위협 ${EN.lv}단계<br>같이하기 중에는 게임이 멈추지 않아요`;
+  $('mpRoomTxt').innerHTML = `<b>${mpRoomLabel()}</b> · 대원 ${n}명 · 위협 ${EN.lv}단계<br>같이하기 중에는 게임이 멈추지 않아요`;
 }
 function mpBoard(show) {
   const el = $('board'); el.classList.toggle('hidden', !show); if (!show) return;
@@ -7467,13 +7489,13 @@ function mpBoard(show) {
   const rows = [{ n: NET.nick, k: stats.kills, a: NET.arrests, d: stats.deaths, me: true, host: NET.host }];
   for (const q of NET.peers.values()) if (q.g) rows.push({ n: q.n, k: q.k, a: q.a, d: q.d, host: q.id === NET.hostId, link: q.L && q.L.open ? '직접' : '중계', away: !q.v || now - q.heard > 4000 });
   rows.sort((a, b) => b.k + b.a * 2 - (a.k + a.a * 2));
-  el.innerHTML = `<div class="bh"><b>${MAP_NAMES[NET.map]} ${NET.num}번 방 · 대원 ${rows.length}명</b><span>위협 ${EN.lv}단계 · 팀 점수 ${MS.score.toLocaleString()} · ${fmtTime(EN.el)}</span></div>`
+  el.innerHTML = `<div class="bh"><b>${mpRoomLabel()} · 대원 ${rows.length}명</b><span>위협 ${EN.lv}단계 · 팀 점수 ${MS.score.toLocaleString()} · ${fmtTime(EN.el)}</span></div>`
     + `<table><tr><th>대원</th><th>처치</th><th>체포</th><th>쓰러짐</th><th>연결</th></tr>${rows.map((r) => `<tr class="${r.me ? 'me' : ''}"><td>${r.n}${r.host ? ' <i>지휘</i>' : ''}${r.away ? ' <i class="aw">자리 비움</i>' : ''}</td><td>${r.k}</td><td>${r.a}</td><td>${r.d}</td><td>${r.me ? '—' : r.link}</td></tr>`).join('')}</table>`
     + '<p>ESC 메뉴에서 초대 링크를 복사할 수 있어요 · 지휘 = 강도단 AI를 돌리는 대원</p>';
 }
 function enIntro() {
-  centerMsg('무한 작전 — 강도단이 계속 몰려와요 · 시민을 지키세요', 'info', 3); sfx.siren();
-  radio(`${MAP_NAMES[NET.map]} 일대 강도단 출현. 경찰특공대 전원 출동하라.`, false);
+  centerMsg(`작전명 ${MP_OPS[NET.map] || ''} — 강도단이 계속 몰려와요 · 시민을 지키세요`, 'info', 3); sfx.siren();
+  radio(`작전명 ${MP_OPS[NET.map] || ''}. ${MAP_NAMES[NET.map]} 일대 강도단 출현. 경찰특공대 전원 출동하라.`, false);
 }
 document.addEventListener('visibilitychange', () => { if (!NET.on) return; if (document.hidden && NET.hostClaim) NET.hostClaim = 0; mpTrack(); mpElect(); });
 addEventListener('pagehide', () => { if (NET.on) mpLeave(); });
@@ -7488,13 +7510,24 @@ function updateBestLabel() {
   $('bestYt').textContent = '최고 ' + bestYt.toLocaleString() + '점';
 }
 updateBestLabel();
-document.querySelectorAll('.mode').forEach((b) => b.addEventListener('click', () => {
-  document.querySelectorAll('.mode').forEach((x) => x.classList.remove('sel')); b.classList.add('sel');
+let menuQuiet = false;
+document.querySelectorAll('#menu .mode:not(.locked)').forEach((b) => b.addEventListener('click', () => {
+  b.parentElement.querySelectorAll('.mode').forEach((x) => x.classList.remove('sel')); b.classList.add('sel');
   mode = b.dataset.mode; $('diffRow').style.opacity = mode === 'bots' ? 1 : 0.45;
-  if (mode === 'coop') mpLobbyWatch();
+  if (mode === 'coop') { if (b.dataset.map) NET.map = b.dataset.map; NET.invite = NET.invite && NET.invite.startsWith(NET.map + '-') ? NET.invite : ''; mpLobbyWatch(); mpRenderLobby(); }
   useLevel(mode === 'coop' ? NET.map : levelFor(mode));
-  sfx.init(); sfx.ui();
+  if (!menuQuiet) { sfx.init(); sfx.ui(); }
 }));
+// 카테고리: 같이하기(작전명) · 혼자 작전 · 훈련
+const START_TXT = { coop: '출동 준비', solo: '작전 준비', train: '시작하기' };
+function menuCat(cat, quiet) {
+  document.querySelectorAll('#catSeg button').forEach((x) => x.classList.toggle('sel', x.dataset.cat === cat));
+  document.querySelectorAll('#menu .cat').forEach((x) => x.classList.toggle('hidden', x.dataset.cat !== cat));
+  const box = document.querySelector(`#menu .cat[data-cat="${cat}"]`), card = box.querySelector('.mode.sel:not(.locked)') || box.querySelector('.mode:not(.locked)');
+  menuQuiet = !!quiet; if (card) card.click(); menuQuiet = false;
+  $('startBtn').textContent = START_TXT[cat];
+}
+document.querySelectorAll('#catSeg button').forEach((b) => b.addEventListener('click', () => menuCat(b.dataset.cat)));
 document.querySelectorAll('#diffSeg button').forEach((b) => b.addEventListener('click', () => {
   document.querySelectorAll('#diffSeg button').forEach((x) => x.classList.remove('sel')); b.classList.add('sel');
   difficulty = b.dataset.d; sfx.init(); sfx.ui();
@@ -7524,14 +7557,21 @@ document.querySelectorAll('#prep .cards[data-k] button').forEach((b) => b.addEve
 }));
 $('goBtn').addEventListener('click', () => { $('prep').classList.add('hidden'); if (NET.prepMp) { $('mplobby').classList.remove('hidden'); mpJoin(NET.map); return; } startGame(mode); });
 $('prepBack').addEventListener('click', () => { $('prep').classList.add('hidden'); if (NET.prepMp) { NET.prepMp = false; $('prep').classList.remove('mp'); $('mplobby').classList.remove('hidden'); sfx.ui(); return; } $('menu').classList.remove('hidden'); sfx.ui(); });
-$('mpMaps').querySelectorAll('.mode').forEach((el) => el.addEventListener('click', () => { NET.map = el.dataset.map; if (NET.invite && !NET.invite.startsWith(NET.map + '-')) NET.invite = ''; useLevel(NET.map); sfx.ui(); mpRenderLobby(); }));
+$('mpMaps').querySelectorAll('.mode').forEach((el) => el.addEventListener('click', () => { NET.map = el.dataset.map; if (NET.invite && !NET.invite.startsWith(NET.map + '-')) NET.invite = ''; useLevel(NET.map); sfx.ui(); mpRenderLobby(); document.querySelectorAll('#menu .mode.op[data-map]').forEach((x) => x.classList.toggle('sel', x.dataset.map === NET.map)); }));
 $('mpGo').addEventListener('click', () => mpJoin(NET.map));
 $('mpBack').addEventListener('click', () => { $('mplobby').classList.add('hidden'); $('menu').classList.remove('hidden'); sfx.ui(); });
 $('mpGear').addEventListener('click', () => { NET.prepMp = true; $('prep').classList.add('mp'); $('mplobby').classList.add('hidden'); syncPrep(); $('prep').classList.remove('hidden'); sfx.ui(); });
 $('mpNick').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') mpJoin(NET.map); });
 $('mpInvite').addEventListener('click', mpCopyInvite);
 // 초대 링크(?room=영통-2 같은)로 들어오면 바로 같이하기 로비를 연다
-{ const rm = MP_Q.get('room'), mm = rm && /^([a-z]+)-(\d{1,2})$/.exec(rm); if (mm && MP_MAPS.includes(mm[1])) { NET.invite = rm; NET.map = mm[1]; const card = document.querySelector('.mode[data-mode="coop"]'); if (card) card.click(); setTimeout(mpOpenLobby, 200); } }
+{
+  const rm = MP_Q.get('room'), mm = rm && /^([a-z]+)-(\d{1,2})$/.exec(rm);
+  if (mm && MP_MAPS.includes(mm[1])) {
+    NET.invite = rm; NET.map = mm[1];
+    document.querySelectorAll('#menu .cat[data-cat="coop"] .mode').forEach((x) => x.classList.toggle('sel', x.dataset.map === mm[1]));
+    menuCat('coop', true); setTimeout(mpOpenLobby, 200);
+  } else menuCat('coop', true);
+}
 
 $('resumeBtn').addEventListener('click', resume);
 $('quitBtn').addEventListener('click', toMenu);
@@ -7552,7 +7592,7 @@ setBodycam(settings.bodycam);
 bindSlider('sens', 'sens'); bindSlider('sens2', 'sens'); bindSlider('vol', 'vol'); bindSlider('vol2', 'vol');
 syncSliders();
 if (window.matchMedia && matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches) {
-  const n = $('deviceNote'); n.textContent = '이 체험판은 PC(키보드·마우스)용이에요. 휴대폰에서는 조작이 어려워요.'; n.classList.add('warn');
+  const n = $('deviceNote'); n.textContent = '이 게임은 PC(키보드·마우스)용이에요. 휴대폰에서는 조작이 어려워요.'; n.classList.add('warn');
 }
 
 // small hook for automated checks
