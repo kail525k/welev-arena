@@ -413,7 +413,7 @@ body.bodycam #xhair{display:none}
       <div class="opt"><label>작전 종류</label><div class="seg" data-k="mtype"><button data-v="hostage">인질 구출</button><button data-v="escape">도주 저지</button><button data-v="defend">저지선 사수</button><button data-v="escort">요인 호송</button></div></div>
       <div class="opt"><label>시간대</label><div class="seg" data-k="tod"><button data-v="base">기본</button><button data-v="night">밤</button><button data-v="random">무작위</button></div></div>
       <div class="opt"><label>날씨</label><div class="seg" data-k="weather"><button data-v="clear">맑음</button><button data-v="rain">비</button><button data-v="snow">눈</button><button data-v="random">무작위</button></div></div>
-      <div class="opt"><label>AI 팀원</label><div class="seg" data-k="mates"><button data-v="0">없음</button><button data-v="2">2명</button><button data-v="3">3명</button></div></div>
+      <div class="opt"><label>AI 팀원</label><div class="seg" data-k="mates"><button data-v="0">없음</button><button data-v="1">1명</button><button data-v="2">2명</button><button data-v="3">3명</button></div></div>
       <div class="opt"><label>난이도</label><div class="seg" data-k="diff"><button data-v="easy">쉬움</button><button data-v="normal">보통</button><button data-v="hard">어려움</button><button data-v="real">실전</button></div></div>
       <p class="note" id="prepNote"></p>
       <div class="cmd"><kbd>V</kbd> 투항 명령 · <kbd>E</kbd> 문/체포 · <kbd>G</kbd> 섬광탄 · <kbd>F</kbd> 손전등 · <kbd>Z</kbd> 팀 따라와 · <kbd>X</kbd> 대기 · <kbd>H</kbd> 문 진입 · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> 무기 · <kbd>N</kbd> 조정간(단발·점사·연발)</div>
@@ -1150,8 +1150,8 @@ function buildArena() {
    3갈래 길: 서쪽 시장 골목(장거리) · 가운데 광장(중앙 장악) · 동쪽 사진관 골목(근접)
    연결로: 아랫골목 · 장독대 골목 · 찻집 옆길 · 윗골목, 목표(식당) 입구 3곳, 찻집 옥상(높이)
    ========================================================= */
-const ALLEY_EXITS = [[-30.75, 30], [0, 30.5], [25.5, 30]];
-const ALLEY_WALK = [[-30.75, 20], [-30.75, -6], [-30.75, -20], [-21, 1.75], [-8, 8], [6, 4], [0, 20], [-10, 13.75], [10, 13.75], [20, 13.75], [25.5, 0], [25.5, -16], [18, -2.75], [-5, -26], [10, -26], [-14.25, -16]];
+const ALLEY_EXITS = [[0, 14.4], [25.5, 14.4], [-14.25, -27]];
+const ALLEY_WALK = [[-21, 1.75], [-8, 8], [6, 4], [0, 12], [-10, 13.75], [10, 13.75], [20, 13.75], [-24, 13.75], [25.5, 0], [25.5, -16], [18, -2.75], [-5, -26], [10, -26], [-14.25, -16], [-14.25, -26]];
 const DINING_TABLES = [[-8.5, -11.2], [-8.5, -14.6], [-4.2, -11.2], [-4.2, -14.6], [9.0, -12.6]];
 const CAFE_TABLES = [[-25.2, 10.4], [-20.2, 10.4], [-22.7, 5.6]];
 const ALLEY_ZONES = [
@@ -1163,9 +1163,9 @@ const ALLEY_ZONES = [
 ];
 function buildAlley() {
   const L = newLevel('alley', {
-    bounds: { x0: -36, x1: 34, z0: -32, z1: 33 }, nav: { x0: -35.25, x1: 33.75, z0: -31.25, z1: 32.75, step: 1.5, pad: 0.45, epad: 0.38 },
-    ground: 'stone', dmgMul: 0.85, orbit: { cx: -2, cz: 0, r: 27, h: 21 }, zones: ALLEY_ZONES, exits: ALLEY_EXITS, walk: ALLEY_WALK, pickup: [-30.75, -26], reinf: [[-28, 29.8, 0], [15, 29.8, 0]], escapeVan: [12, -26.2, 0], escapeBoss: [16.8, -26], extract: [0, 28.5],
-    defend: { x: 0, z: -5, r: 6, spawn: [0, -2.5, Math.PI], spawns: [[-30.75, 26], [25.5, 26], [-30.75, -26], [25.5, -26], [-5, -26], [0, 24]] }, indoor: [[-12, 13, -24, -8], [-28, -17, 3, 12]],
+    bounds: { x0: -29.6, x1: 28.6, z0: -28.6, z1: 16 }, nav: { x0: -27.75, x1: 27.75, z0: -28.25, z1: 15.25, step: 1.5, pad: 0.45, epad: 0.38 },
+    ground: 'stone', dmgMul: 0.85, orbit: { cx: -1, cz: -6, r: 24, h: 20 }, zones: ALLEY_ZONES, exits: ALLEY_EXITS, walk: ALLEY_WALK, pickup: [14.2, -26], reinf: [[-14.25, -26, 0], [25.5, -20, Math.PI / 2]], escapeVan: [12, -26.2, 0], escapeBoss: [16.8, -26], extract: [0, 13.4],
+    defend: { x: 0, z: -5, r: 6, spawn: [0, -2.5, Math.PI], spawns: [[0, 14], [25.5, 13.5], [-14.25, -26], [25.5, -26], [-5, -26], [-24, 13.75]] }, indoor: [[-12, 13, -24, -8], [-28, -17, 3, 12]],
     env: { skyTop: 0x2c3f72, skyMid: 0xd98a62, skyBot: 0xf2c48a, fog: 0xc8906e, fogNear: 40, fogFar: 140, hemiSky: 0xffdcc0, hemiGround: 0x7a5f48, hemiI: 1.2, sunColor: 0xffb47a, sunI: 2.0, sunOff: [26, 36, 20], exposure: 1.12 },
   });
   // ---- textures
@@ -1278,6 +1278,9 @@ function buildAlley() {
   plane(78, 72, M.paving, -1, 0, 0.5, 2);
   plane(70, 5.8, M.asphalt, -1, 0.012, 30.1, 4);
   deco(new THREE.Mesh(new THREE.PlaneGeometry(700, 700).rotateX(-Math.PI / 2).translate(0, -0.04, 0), new THREE.MeshLambertMaterial({ color: 0x6b6258 })), false);
+  // ---- 작전 구역: 바깥 시장길·남쪽 큰길은 경찰 통제선 밖
+  { const tf = new THREE.MeshStandardMaterial({ map: M.tape.map, roughness: 0.6 }), cm = new THREE.MeshStandardMaterial({ color: 0xff6a1a, roughness: 0.6 });
+    policeLine(-28.9, -28, -28.9, 15.2, tf, cm); policeLine(-28.9, 15.2, -27.6, 15.2, tf, cm); policeLine(-3.1, 15.2, 3.3, 15.2, tf, cm); policeLine(24.0, 15.2, 27.4, 15.2, tf, cm); }
   // ---- invisible map boundary
   addCollider(-37, 0, -33, -36, 12, 34); addCollider(34, 0, -33, 35, 12, 34);
   addCollider(-37, 0, -33, 35, 12, -32); addCollider(-37, 0, 33, 35, 12, 34);
@@ -4118,7 +4121,7 @@ function setWeaponVisible(i) { GUNVM.forEach((g, k) => { g.group.visible = k ===
 // mission modes share one ruleset (robbers + boss + hostage + civilians); each has its own map and setup
 const MISSIONS = {
   alley: {
-    level: 'alley', time: 360, spawn: [0, 29.5, 0], sTime: 150, setup: () => setupAlley(), title: '한옥골목 강도 진압', timeMsg: '제한 시간 6분이 지났어요.',
+    level: 'alley', time: 360, spawn: [0, 13.4, 0], sTime: 150, setup: () => setupAlley(), title: '한옥골목 강도 진압', timeMsg: '제한 시간 6분이 지났어요.',
     hint: 'V 투항 명령 → E 체포(+500) · G 섬광탄 · 문 앞 E 길게: 폭약 돌파 · 시민 −500 · T 드론', start: '작전 개시 — 강도·두목 제압 · 시민 보호',
   },
   cityhall: {
@@ -4146,7 +4149,7 @@ const TYPE_HINTS = {
   escort: '요인을 구출해 가까이 가면 따라와요 · 초록 원까지 호송 · 요인이 3번 맞으면 실패',
 };
 const PREP_BRIEF = {
-  hostage: (m) => m === 'ytower' ? '영통 시계탑 앞 <b>5층 빌딩</b>에 강도단이 들이닥쳐 1층 냉삼집 손님을 인질로 잡았어요(1~3명). 2층 PC방·3층 노래방·4층 사무실에도 흩어져 있고, 두목은 4층 원장실에 있어요. A·B 계단과 엘리베이터로 올라가고, 옥상 저격수를 조심하세요.' : m === 'yeongtong' ? '수원 영통역 앞 <b>청명은행 영통지점</b>을 턴 강도단이 객장에서 손님을 인질로 잡고 있어요(1~3명). 먹자골목 고깃집 <b>청명 냉삼</b>과 봉영로 버스정류장에도 있어요. 구름광장(시계탑)·은행 옆 골목·봉영로 세 갈래로 접근하고, 은행 정문 차양 위 감시조를 조심하세요.' : m === 'cityhall' ? '세종대로에서 현금수송차를 턴 강도단이 <b>서울도서관(옛 시청)</b> 로비에서 시민을 인질로 잡고 있어요(1~3명). 무교동 식당에도 숨어 있어요. 정문·서쪽문·동쪽문 3곳으로 진입하고, 발코니 저격수를 조심하세요. 경찰 통제선 안 좁은 구역에서 싸워요.' : '한옥마을 식당 <b>온담 솥밥</b>에 강도 8명과 방탄복 두목이 들이닥쳐 손님을 인질로 잡았어요(1~3명). 시장 골목·광장·사진관 골목 세 갈래로 접근하세요.',
+  hostage: (m) => m === 'ytower' ? '영통 시계탑 앞 <b>5층 빌딩</b>에 강도단이 들이닥쳐 1층 냉삼집 손님을 인질로 잡았어요(1~3명). 2층 PC방·3층 노래방·4층 사무실에도 흩어져 있고, 두목은 4층 원장실에 있어요. A·B 계단과 엘리베이터로 올라가고, 옥상 저격수를 조심하세요.' : m === 'yeongtong' ? '수원 영통역 앞 <b>청명은행 영통지점</b>을 턴 강도단이 객장에서 손님을 인질로 잡고 있어요(1~3명). 먹자골목 고깃집 <b>청명 냉삼</b>과 봉영로 버스정류장에도 있어요. 구름광장(시계탑)·은행 옆 골목·봉영로 세 갈래로 접근하고, 은행 정문 차양 위 감시조를 조심하세요.' : m === 'cityhall' ? '세종대로에서 현금수송차를 턴 강도단이 <b>서울도서관(옛 시청)</b> 로비에서 시민을 인질로 잡고 있어요(1~3명). 무교동 식당에도 숨어 있어요. 정문·서쪽문·동쪽문 3곳으로 진입하고, 발코니 저격수를 조심하세요. 경찰 통제선 안 좁은 구역에서 싸워요.' : '한옥마을 식당 <b>온담 솥밥</b>에 강도 8명과 방탄복 두목이 들이닥쳐 손님을 인질로 잡았어요(1~3명). 경찰 통제선 안 좁은 골목에서 광장·사진관 골목·윗골목으로 접근하세요.',
   escape: (m) => `강도단이 <b>${m === 'cityhall' ? '을지로 입구' : m === 'ytower' ? '시계탑 광장 서쪽' : m === 'yeongtong' ? '반달로 시네마 앞' : '윗골목'}</b>에 세운 도주 차량에 현금을 싣고 있어요. <b>2분 30초</b> 안에 타이어 2개를 쏘거나 두목을 제압해 차량을 막으세요. 나머지 강도들이 길목에서 시간을 끌어요.`,
   defend: (m) => `<b>${MISSION_PLACE[m] || '온담 솥밥'}</b> 안에 시민들이 대피해 있어요. 강도단이 3차례(마지막엔 두목) 몰려와요. 파란 원(저지선) 안에 강도가 6초 이상 머물면 실패예요. 공격 사이에 섬광탄이 1개씩 보충돼요.`,
   escort: (m) => `강도단의 범행을 증언할 <b>요인(증인)</b>이 ${m === 'cityhall' ? '서울도서관 로비' : m === 'ytower' ? '1층 냉삼집' : m === 'yeongtong' ? '청명은행 객장' : '온담 솥밥 주방'}에 붙잡혀 있어요. 구출하면 따라오니 경찰 집결지의 <b>초록 원</b>까지 호송하세요. 요인이 3번 맞으면 실패예요.`,
@@ -4386,7 +4389,7 @@ function setupAlley() {
     [[0, 0, -12.5, Math.PI, 2.5], [-8, 0, -12.9, Math.PI, 2]],                             // dining room
     [[9.5, 0, -10.2, Math.PI, 1.5], [9.2, 0, -15.0, Math.PI, 1.5]],                        // private room
     [[21, 3.4, 4, Math.PI / 2, 0, 'static'], [18.5, 3.4, 7.2, Math.PI / 2, 0, 'static']],  // tea-house rooftop
-    [[-30.75, 0, -6, 0, 6], [-30.75, 0, 14, Math.PI, 6], [-30.75, 0, -20, 0, 6]],          // market lane
+    [[-14.25, 0, -16, 0, 6], [-21, 0, 1.75, Math.PI / 2, 6], [-10, 0, 13.75, Math.PI, 6]],  // 안쪽 골목
     [[-22.5, 0, 7.5, -Math.PI / 2, 2], [-24.5, 0, 9.4, -Math.PI / 2, 2]],                  // café
     [[25.5, 0, -12, 0, 6], [25.5, 0, 6, Math.PI, 6]],                                      // photo-studio lane
     [[-5, 0, -26, Math.PI / 2, 9], [10, 0, -26, -Math.PI / 2, 9]],                         // upper lane
@@ -4397,8 +4400,8 @@ function setupAlley() {
   const next = () => civs[ci++];
   for (const [tx, tz] of DINING_TABLES) for (const s of [-1, 1]) placeCiv(next(), tx + 0.35 * s, tz + 0.72 * s, s < 0 ? Math.PI : 0, 'seat', 'eat');
   CAFE_TABLES.forEach(([tx, tz], i) => { if (nHost >= 2 && i === 0) return; placeCiv(next(), tx, tz + 0.72, 0, 'seat', 'eat'); });
-  for (const [x, z, yaw] of [[-31.0, 7.5, -Math.PI / 2], [-30.0, 18, Math.PI / 2], [-31.0, -21, -Math.PI / 2]]) placeCiv(next(), x, z, yaw, 'stand', 'idle');
-  for (const [x, z] of [[-30.75, 14], [0, 19], [25.5, -3]].slice(0, nHost >= 3 ? 2 : 3)) placeCiv(next(), x, z, rand(-3, 3), 'walk', 'walk');
+  for (const [x, z, yaw] of [[-19, 1.2, Math.PI / 2], [6, 4.6, -Math.PI / 2], [-24, 14.2, Math.PI]]) placeCiv(next(), x, z, yaw, 'stand', 'idle');
+  for (const [x, z] of [[-10, 13.75], [0, 12], [25.5, -3]].slice(0, nHost >= 3 ? 2 : 3)) placeCiv(next(), x, z, rand(-3, 3), 'walk', 'walk');
   holdHostage(B[0], next());
   if (nHost >= 2) holdHostage(B[5], next());   // the café robber grabs a guest
   if (nHost >= 3) holdHostage(B[1], next());   // the dining-room robber grabs a diner
@@ -5056,7 +5059,9 @@ function botFire(b, d) {
   if (Math.random() < chance) {
     end = target.add(V3(rand(-0.12, 0.12), rand(-0.15, 0.15), rand(-0.12, 0.12)));
     const dmg = d.dmg * (LEVEL.dmgMul || 1) * (b.boss ? 1.6 : 1) * dmgMul * rand(0.85, 1.15);
-    if (atPlayer) damagePlayer(dmg, b); else if (b.tgt.remote) mpHitRemote(b.tgt, dmg, b); else if (b.tgt.mate) mateDamage(b.tgt, dmg, b); else vipHit(b.tgt, b);
+    const shp = (!b.tgt || !b.tgt.remote) && Math.random() < 0.8 ? mateShieldAt(mz, end) : null;   // 방패 위로 넘어오는 총알도 가끔
+    if (shp) { end = shp; impact(shp, V3(mz.x - shp.x, 0, mz.z - shp.z).normalize(), 'metal'); if (P.pos.distanceTo(shp) < 14) sfx.ric(); }
+    else if (atPlayer) damagePlayer(dmg, b); else if (b.tgt.remote) mpHitRemote(b.tgt, dmg, b); else if (b.tgt.mate) mateDamage(b.tgt, dmg, b); else vipHit(b.tgt, b);
   } else {
     const dir = target.clone().sub(mz).normalize();
     const side = V3().crossVectors(dir, V3(0, 1, 0)).normalize();
@@ -5734,12 +5739,14 @@ const BM_SWAT = {
   visor: new THREE.MeshStandardMaterial({ color: 0x5fa8ff, emissive: 0x2a6bff, emissiveIntensity: 0.9 }), boot: BM_DEFAULT.boot, gun: BM_DEFAULT.gun,
 };
 const MATE_NAMES = ['알파 2', '알파 3', '알파 4'];
+const POLICE_SHIELD_MAT = new THREE.MeshBasicMaterial({ map: textTex(256, 88, (g, w, h) => { g.fillStyle = '#0d1016'; g.fillRect(0, 0, w, h); g.fillStyle = '#ffffff'; g.font = `900 40px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('POLICE', w / 2, 30); g.font = `800 26px ${FONT}`; g.fillText('경 찰', w / 2, 68); }) });
 const mates = [];
 for (let i = 0; i < 3; i++) {
   const m = makeBot(BM_SWAT); m.mate = true; m.idx = i; m.name = MATE_NAMES[i];
+  { const pt = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.17), POLICE_SHIELD_MAT); pt.position.set(0, -0.08, -0.034); pt.rotation.y = Math.PI; m.shieldG.add(pt); }   // 방패 앞면 '경찰 POLICE'
   for (const pt of m.parts) { pt.userData.bot = null; pt.userData.mate = m; }
-  const tex = textTex(256, 72, (g, w, h) => { g.fillStyle = 'rgba(30,90,200,.9)'; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; g.font = `900 40px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(MATE_NAMES[i], w / 2, h / 2 + 2); });
-  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true, opacity: 0.85 })); sp.scale.set(0.7, 0.2, 1); sp.position.y = 2.2; sp.renderOrder = 6; m.root.add(sp); m.tagS = sp;
+  const tex = textTex(360, 72, (g, w, h) => { g.fillStyle = 'rgba(30,90,200,.9)'; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; g.font = `900 36px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(MATE_NAMES[i] + ' · ' + ['방패', '후방', '측면'][i], w / 2, h / 2 + 2); });
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true, opacity: 0.85 })); sp.scale.set(0.98, 0.2, 1); sp.position.y = 2.2; sp.renderOrder = 6; m.root.add(sp); m.tagS = sp;
   Object.assign(m, { order: 'follow', holdPos: V3(), tgt: null, tgtT: 0, repathT: 0, shoutCd: 0, arrestT: 0, downT: 0, breach: null });
   mates.push(m);
 }
@@ -5769,16 +5776,51 @@ function mpDrawTag(r, nick) {
 // 방장이 다른 대원의 사격을 처리할 때는 맞힘 소리를 내지 않는다(그 대원 화면에서 난다)
 for (const k of ['hit', 'head', 'kill']) { const f = sfx[k]; if (typeof f === 'function') sfx[k] = (...a) => { if (!HIT_BY) return f.apply(sfx, a); }; }
 const MATE_ACC = { easy: 0.36, normal: 0.3, hard: 0.26, real: 0.24 };
+// 역할: 1명 = 앞 방패 · 2명 = + 뒤 감시 · 3명 = + 좌우 지원
+const MATE_ROLE = ['shield', 'rear', 'flank'];
+const mateRole = (m) => MATE_ROLE[m.idx] || 'flank';
+function mateFree(x, z) { return !blocked2D(x, z, 0.36, LEVEL, P.pos.y) && !(typeof outsideLine === 'function' && outsideLine(x, z)); }
+function mateSpot(m) {
+  const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw), rx = Math.cos(P.yaw), rz = -Math.sin(P.yaw), role = mateRole(m);
+  if (role === 'flank') {   // 넓은 쪽에 붙는다 (가끔 다시 고름)
+    m.sideT = (m.sideT || 0) - 1;
+    if (m.sideT <= 0) { m.sideT = 40; const okR = mateFree(P.pos.x + rx * 1.5, P.pos.z + rz * 1.5), okL = mateFree(P.pos.x - rx * 1.5, P.pos.z - rz * 1.5); if (okR !== okL) m.flankSide = okR ? 1 : -1; else if (!m.flankSide) m.flankSide = 1; }
+  }
+  const [f, sd] = role === 'shield' ? [1.9, -0.7] : role === 'rear' ? [-2.0, 0.2] : [-0.3, (m.flankSide || 1) * 1.5];
+  let gx = P.pos.x + fx * f + rx * sd, gz = P.pos.z + fz * f + rz * sd;
+  for (let k = 0; k < 4 && !mateFree(gx, gz); k++) { gx = P.pos.x + (gx - P.pos.x) * 0.6; gz = P.pos.z + (gz - P.pos.z) * 0.6; }
+  return [gx, gz, P.pos.y];
+}
+function mateLookYaw(m) {
+  const role = mateRole(m);
+  if (role === 'shield') return P.yaw;
+  if (role === 'rear') return P.yaw + Math.PI;
+  return P.yaw + (Math.sin(gameTime * 0.8 + m.idx) > 0 ? -1.25 : 1.25);   // 좌우를 번갈아 살핀다
+}
+// 앞 방패 대원: 정면에서 날아오는 총알은 방패가 막는다
+function mateShieldAt(mz, end) {
+  for (const m of mates) {
+    if (!m.active || !m.alive || !m.shieldOn) continue;
+    const fx = -Math.sin(m.yaw), fz = -Math.cos(m.yaw), sx = m.pos.x + fx * 0.45, sy = m.pos.y + 1.2, sz = m.pos.z + fz * 0.45;
+    const tx = mz.x - sx, tz = mz.z - sz, tl = Math.hypot(tx, tz) || 1; if ((tx * fx + tz * fz) / tl < 0.3) continue;
+    const dx = end.x - mz.x, dy = end.y - mz.y, dz = end.z - mz.z, L2 = dx * dx + dy * dy + dz * dz || 1;
+    const t = ((sx - mz.x) * dx + (sy - mz.y) * dy + (sz - mz.z) * dz) / L2; if (t <= 0 || t >= 1) continue;
+    const px = mz.x + dx * t, py = mz.y + dy * t, pz = mz.z + dz * t;
+    if (Math.hypot(px - sx, pz - sz) < 0.38 && Math.abs(py - sy) < 0.6) return V3(px, py, pz);
+  }
+  return null;
+}
 function spawnMates() {
   const n = settings.mates | 0;
   mates.forEach((m, i) => {
     m.active = i < n; m.root.visible = m.active; m.tagS.visible = m.active;
     if (!m.active) return;
-    const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw), rx = Math.cos(P.yaw), rz = -Math.sin(P.yaw), side = [-1, 1, 0][i], back = i === 2 ? 2.6 : 1.5;
-    m.pos.set(P.pos.x - fx * back + rx * side * 1.2, 0, P.pos.z - fz * back + rz * side * 1.2);
+    m.order = 'follow'; m.flankSide = 1; m.sideT = 0;
+    const sp = mateSpot(m); m.pos.set(sp[0], P.pos.y, sp[1]);
     m.vel.set(0, 0, 0); m.yaw = m.targetYaw = P.yaw; m.root.rotation.set(0, P.yaw, 0); m.root.scale.setScalar(1);
     m.alive = true; m.hp = 100; m.order = 'follow'; m.tgt = null; m.path = []; m.pathIdx = 0; m.breach = null; m.burst = 0; m.fireCd = 0.3; m.stunT = 0; m.flinch = 0;
     resetPose(m); m.gunG.visible = true; m.onGround = true;
+    setType(m, mateRole(m) === 'shield' ? 'shield' : 'rifle'); m.name = MATE_NAMES[i];
   });
 }
 function mateCount() { return mates.filter((m) => m.active).length; }
@@ -5803,13 +5845,18 @@ function mateLine(m, to) {
 }
 function mateTarget(m) {
   _me.set(m.pos.x, m.pos.y + 1.6, m.pos.z);
-  let best = null, bd = 34;
+  const role = mateRole(m), fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw);
+  let best = null, bs = 1e9;
   for (const b of bots) {
     if (!b.active || !b.alive || b.surrender) continue;
     const d = Math.hypot(b.pos.x - m.pos.x, b.pos.z - m.pos.z);
-    if (d >= bd) continue;
+    if (d >= 34) continue;
+    const ax = b.pos.x - P.pos.x, az = b.pos.z - P.pos.z, al = Math.hypot(ax, az) || 1, dot = (ax * fx + az * fz) / al;
+    const mine = role === 'shield' ? dot > 0.3 : role === 'rear' ? dot < -0.2 : Math.abs(dot) < 0.75;
+    const sc = d * (mine ? 0.55 : 1);
+    if (sc >= bs) continue;
     _mt.set(b.pos.x, b.pos.y + 1.25, b.pos.z);
-    if (losClear(_me, _mt)) { best = b; bd = d; }
+    if (losClear(_me, _mt)) { best = b; bs = sc; }
   }
   return best;
 }
@@ -5822,7 +5869,7 @@ function mateFire(m, b, d) {
   if (Math.random() < chance) {
     const head = Math.random() < 0.15;
     end = aim.clone(); if (head) end.y += 0.45;
-    let dmg = head ? 70 : 26; if (b.boss && !head) dmg *= 0.55;
+    let dmg = head ? 70 : (m.shieldOn ? 20 : 26); if (b.boss && !head) dmg *= 0.55;
     b.hp -= dmg; b.flinch = b.boss ? 0.35 : 1; b.alertT = 3; b.hearPos.copy(m.pos);
     emit(end, head ? 12 : 8, { speed: [1, 3], spread: 0.9, life: [0.2, 0.5], grav: 9, color: [0.72, 0.08, 0.06] });
     if (isMission() && b.boss && !MS.bossFled && b.hp > 0 && b.hp <= b.maxHp * 0.5 && LEVEL.pickup) bossFlee();
@@ -5836,7 +5883,7 @@ function mateFire(m, b, d) {
   spawnTracer(mz, end, 0x9fd0ff, 0.05, 0.014);
   m.flashT = 0.05; m.flash.material.rotation = rand(0, 6);
   const pan = clamp(((m.pos.x - P.pos.x) * Math.cos(P.yaw) - (m.pos.z - P.pos.z) * Math.sin(P.yaw)) / (P.pos.distanceTo(m.pos) || 1), -1, 1) * 0.8;
-  sfx.shot('rifle', P.pos.distanceTo(m.pos), -pan);
+  sfx.shot(m.shieldOn ? 'pistol' : 'rifle', P.pos.distanceTo(m.pos), -pan);
   if (isMission()) panic();
 }
 function killBotByMate(b, head, m) {
@@ -5849,10 +5896,8 @@ function killBotByMate(b, head, m) {
   }
 }
 function mateGoal(m) {
-  if (m.order === 'hold') return [m.holdPos.x, m.holdPos.z];
-  const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw), rx = Math.cos(P.yaw), rz = -Math.sin(P.yaw);
-  const side = [-1, 1, 0][m.idx], back = m.idx === 2 ? 3.4 : 2.2;
-  return [P.pos.x - fx * back + rx * side * 1.3, P.pos.z - fz * back + rz * side * 1.3];
+  if (m.order === 'hold') return [m.holdPos.x, m.holdPos.z, m.holdPos.y];
+  return mateSpot(m);
 }
 function updateMate(m, dt) {
   if (!m.active) return;
@@ -5877,7 +5922,7 @@ function updateMate(m, dt) {
   if (!goal) goal = mateGoal(m);
   let mx = 0, mz = 0, spd = 0;
   const gd = Math.hypot(goal[0] - m.pos.x, goal[1] - m.pos.z);
-  if (gd > (arrestee ? 1.5 : 1.3)) {
+  if (gd > (arrestee ? 1.5 : m.order === 'follow' && !m.breach ? 0.6 : 1.3)) {
     m.repathT -= dt;
     if (m.repathT <= 0 || m.pathIdx >= m.path.length) { setPath(m, goal[0], goal[1], goal[2] != null ? goal[2] : P.pos.y); m.repathT = 0.7; }
     const n = m.path[m.pathIdx];
@@ -5901,8 +5946,8 @@ function updateMate(m, dt) {
         else { mateFire(m, tgt, d); m.burst--; m.fireCd = 0.11; }
       }
     }
-  } else if (spd > 0) m.targetYaw = Math.atan2(-mx, -mz);
-  else if (m.order === 'follow') m.targetYaw = P.yaw;
+  } else if (spd > 0 && gd > 5) m.targetYaw = Math.atan2(-mx, -mz);
+  else m.targetYaw = mateLookYaw(m);
   const ad = angDiff(m.yaw, m.targetYaw); m.yaw += clamp(ad, -7 * dt, 7 * dt); m.root.rotation.y = m.yaw;
   m.vel.x = damp(m.vel.x, mx * spd, 8, dt); m.vel.z = damp(m.vel.z, mz * spd, 8, dt);
   const ox = m.pos.x, oz = m.pos.z;
