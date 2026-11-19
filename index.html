@@ -2418,6 +2418,7 @@ function buildYeongtong() {
     for (const s of [-1, 1]) { const st = new THREE.Mesh(stoolGeo, M.counter); st.position.set(tx + 0.35 * s, 0.225, tz + 0.72 * s); deco(st); }
   }
   addBoxB(40.4, 0, 7.6, 41.85, 1.05, 14.4, M.wood, 1, 'wood'); addBoxB(40.35, 1.05, 7.55, 41.85, 1.12, 14.45, M.counterTop, 1, 'wood', false);
+  for (const z of [8.3, 9.8, 11.3, 12.8]) { const st = new THREE.Mesh(stoolGeo, M.counter); st.position.set(39.95, 0.225, z); deco(st); }
   addBoxB(40.9, 0, 5.3, 41.85, 2.0, 7.2, M.steel, 1, 'metal');
   { const fr = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.6), M.glass); fr.position.set(40.88, 1.05, 6.25); fr.rotation.y = -Math.PI / 2; fr.userData.keep = true; BL.group.add(fr); }
   const menuTex = textTex(512, 320, (g, w, h) => {
@@ -2562,6 +2563,10 @@ function setupYeongtong() {
   let seat = 0;
   for (const [tx, tz] of YT_DINING) for (const s of [-1, 1]) { if (nHost >= 2 && seat++ === 0) continue; placeCiv(next(), tx + 0.35 * s, tz + 0.72 * s, s < 0 ? Math.PI : 0, 'seat', 'eat'); }
   for (const [x, z] of YT_SEATS) placeCiv(next(), x, z, Math.PI, 'seat', 'eat');                       // bank customers waiting for their number
+  { const [HR, HP] = HIDEOUTS.yeongtong, rb = B.map((b) => [b.pos.x, b.pos.z]), far = ([x, z]) => !rb.some(([bx, bz]) => Math.hypot(bx - x, bz - z) < 0.9);
+    for (const st of HR.seats.slice(8).filter(far).slice(0, 3)) placeCiv(next(), st[0], st[1], st[2], 'seat', 'eat');           // 식당 바
+    for (const st of [...HP.seats].sort(() => Math.random() - 0.5).filter(far).slice(0, 10)) placeCiv(next(), st[0], st[1], st[2], 'seat', 'eat');   // PC방 게이머
+    placeCiv(next(), HP.stand[0][0], HP.stand[0][1], HP.stand[0][2], 'stand', 'idle'); }
   for (const [x, z, yaw] of [[22.6, 3.3, Math.PI / 2], [46.2, -3.3, -Math.PI / 2]]) placeCiv(next(), x, z, yaw, 'stand', 'idle');
   if (nHost < 3) placeCiv(next(), -44.2, -20.5, Math.PI / 2, 'stand', 'idle');                            // waiting at the bus stop
   for (const [x, z] of [[-30, -3], [36, -1.5], [12, 30]]) placeCiv(next(), x, z, rand(-3, 3), 'walk', 'walk');
@@ -3470,7 +3475,7 @@ function makeCiv(i) {
   for (const p of parts) p.userData.civ = c;
   return c;
 }
-for (let i = 0; i < 20; i++) civs.push(makeCiv(i));
+for (let i = 0; i < 44; i++) civs.push(makeCiv(i));   // 실내(식당·PC방)까지 붐비게
 
 /* =========================================================
    Training targets
@@ -7504,7 +7509,7 @@ function setupEndless() {
   for (const b of bots) { b.active = false; b.alive = false; b.root.visible = false; b.hostage = null; b.guard = null; b.laser.visible = false; b.netBuf = null; }
   for (const c of civs) { c.netBuf = null; if (c.active && (c.state === 'held' || c.kind === 'hostage')) { c.kind = 'stand'; c.state = 'idle'; civPose(c, 1); } }
   Object.assign(MS, baseMS(), { type: 'endless', total: 0, bossFled: true, reinf: true });
-  Object.assign(EN, { lv: 1, lvT: 0, el: 0, spawnCd: 5, civT: 20, lastShot: -99, pool: bots.filter((b) => !b.boss), hides: [], hideT: 14, hideAnn: 20 }); enScaleDiff();
+  Object.assign(EN, { lv: 1, lvT: 0, el: 0, spawnCd: 5, civT: 20, lastShot: -99, pool: bots.filter((b) => !b.boss), hides: [], hideT: 12, hideAnn: 20, seatT: 0, seated: false }); enScaleDiff();
   for (const b of bots) b.hide = 0; NET.hides = {};
   mini.pings.length = 0; mini.droneT = 0; mini.droneCd = 0;
 }
@@ -7532,16 +7537,34 @@ function enZone(x, z) { for (const zz of LEVEL.zones || []) if (x >= zz[0] && x 
 // 건물 안에 숨어 기다리는 강도 (지도마다): 문을 열고 들어가 투항시키거나 제압하면 소탕 보너스
 const HIDEOUTS = {
   yeongtong: [
-    { name: '청명 냉삼 식당', short: '식당', c: [36.75, 11], door: [36, 4.4], spots: [[32.4, 6.0], [39.7, 15.9], [36.0, 11.0], [32.4, 15.9], [39.9, 10.5]] },
-    { name: '영통 PC방', short: 'PC방', c: [37, -11], door: [37, -4.4], spots: [[33.6, -8.2], [40.9, -10.6], [36.6, -13.4], [40.8, -15.9], [33.0, -16.0]] },
+    { name: '청명 냉삼 식당', short: '식당', c: [36.75, 11], door: [36, 4.4], spots: [[32.4, 6.0], [39.7, 15.9], [36.0, 11.0], [32.4, 15.9], [39.6, 6.3]], fill: 0.85,
+      seats: [...YT_DINING.flatMap(([tx, tz]) => [-1, 1].map((s) => [tx + 0.35 * s, tz + 0.72 * s, s < 0 ? Math.PI : 0])), ...[8.3, 9.8, 11.3, 12.8].map((z) => [39.95, z, -Math.PI / 2])], stand: [[36.0, 15.8, Math.PI]] },
+    { name: '영통 PC방', short: 'PC방', c: [37, -11], door: [37, -4.4], spots: [[35.4, -7.75], [40.9, -10.6], [36.45, -13.4], [40.8, -15.9], [33.0, -16.0]], fill: 0.6,
+      seats: [-9.2, -12.0, -14.8].flatMap((r) => [33.75, 34.85, 35.95, 37.05, 38.15, 39.25].flatMap((x) => [-1, 1].map((sd) => [x, r + sd * 0.86, sd < 0 ? Math.PI : 0]))), stand: [[33.5, -6.05, -Math.PI / 2]] },
   ],
 };
 const enHideouts = () => HIDEOUTS[LEVEL && LEVEL.name] || null;
+// 손님·게이머로 자리를 채운다 (방장만): 숨은 강도 자리 근처는 비워 둠
+const civFree = () => civs.find((q) => !q.active || q.state === 'gone');
+function civAt(x, z, r) { return civs.find((c) => c.active && c.state !== 'gone' && Math.hypot(c.pos.x - x, c.pos.z - z) < r); }
+function enFillSeats(H, avoid) {
+  const want = Math.round(H.seats.length * (H.fill || 0.7));
+  let have = H.seats.filter(([x, z]) => civAt(x, z, 0.4)).length;
+  for (const [x, z, yaw] of [...H.seats].sort(() => Math.random() - 0.5)) {
+    if (have >= want) break;
+    if (civAt(x, z, 0.5) || (avoid || []).some(([ax, az]) => Math.hypot(ax - x, az - z) < 0.7)) continue;
+    const c = civFree(); if (!c) break;
+    placeCiv(c, x, z, yaw, 'seat', 'eat'); have++;
+  }
+  for (const [x, z, yaw] of H.stand || []) if (!civAt(x, z, 0.5)) { const c = civFree(); if (c) placeCiv(c, x, z, yaw, 'stand', 'idle'); }
+}
 function enSpawnHide(hi) {
   const H = enHideouts()[hi], pl = enPlayers(true);
   for (const p of pl) if (Math.hypot(p.x - H.c[0], p.z - H.c[1]) < 9) return false;   // 대원이 안에 있으면 다음에
   const n = Math.min(H.spots.length, 2 + Math.min(2, Math.floor(pl.length / 2)) + (EN.lv >= 3 ? 1 : 0));
   const spots = [...H.spots].sort(() => Math.random() - 0.5).slice(0, n), list = [], tok = (EN.hideTok = (EN.hideTok || 0) + 1);
+  enFillSeats(H, spots);
+  for (const [x, z] of spots) for (const c of civs) if (c.active && c.state !== 'gone' && Math.hypot(c.pos.x - x, c.pos.z - z) < 0.6) { c.active = false; c.root.visible = false; c.state = 'gone'; }
   for (const [x, z] of spots) {
     const b = (EN.pool || []).find((q) => !q.active); if (!b) break;
     placeRobber(b, x, z, Math.atan2(-(H.door[0] - x), -(H.door[1] - z)), 0); setType(b, pick(['rifle', 'smg', 'shotgun', 'pistol', 'rifle']));
@@ -7556,6 +7579,8 @@ function enSpawnHide(hi) {
 function enHideTick(dt) {
   const HH = enHideouts(); if (!HH) return;
   EN.hides = EN.hides || [];
+  EN.seatT = (EN.seatT ?? 0) - dt;
+  if (EN.seatT <= 0) { EN.seatT = 30; if (gameTime - EN.lastShot > 12 || !EN.seated) HH.forEach((H, i) => { if (!EN.hides[i]) enFillSeats(H); }); EN.seated = true; }
   EN.hideT = (EN.hideT ?? 14) - dt;
   if (EN.hideT <= 0) {
     EN.hideT = 45 + rand(0, 25);
@@ -7569,7 +7594,7 @@ function enHideTick(dt) {
     const mine = st.bots.filter((b) => b.hide === st.tok), left = mine.filter((b) => b.active && b.alive).length;   // 투항한 자도 체포 전까지는 남은 것
     if (!left) {
       const arr = mine.filter((b) => b.arrested).length, pts = 800 + 300 * arr;
-      MS.score += pts; EN.hides[i] = null; for (const b of mine) b.hide = 0;
+      MS.score += pts; EN.hides[i] = null; for (const b of mine) b.hide = 0; EN.hideT = Math.min(EN.hideT, 20 + rand(0, 10));
       mpHostEvent({ k: 'hclr', h: i, p: pts, a: arr, n: st.n });
     } else if (ann) mpHostEvent({ k: 'hide', h: i, n: left, re: 1 });
   });
@@ -7611,9 +7636,9 @@ function enDirector(dt) {
   // 조용해지면 시민이 다시 거리로 나온다
   EN.civT -= dt;
   if (EN.civT <= 0) {
-    EN.civT = 12;
-    const live = civs.filter((c) => c.active && c.state !== 'gone' && !c.hurt).length;
-    if (live < 8 && LEVEL.exits && LEVEL.walk && gameTime - EN.lastShot > 8) {
+    EN.civT = 6;
+    const live = civs.filter((c) => c.active && c.state !== 'gone' && !c.hurt && c.kind !== 'seat').length;
+    if (live < 12 && LEVEL.exits && LEVEL.walk && gameTime - EN.lastShot > 8) {
       const c = civs.find((x) => !x.active || x.state === 'gone');
       if (c) { const ex = pick(LEVEL.exits), w = pick(LEVEL.walk); placeCiv(c, ex[0], ex[1], 0, 'walk', 'walk'); setPath(c, w[0], w[1]); }
     }
