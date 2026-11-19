@@ -491,6 +491,7 @@ body.bodycam #xhair{display:none}
     <div class="btns">
       <button class="btn2 pri" id="resumeBtn">계속하기</button>
       <button class="btn2" id="gearLiveBtn">장비 바꾸기</button>
+      <button class="btn2" id="unstickBtn">끼었어요 · 빠져나가기</button>
       <button class="btn2" id="quitBtn">메뉴로 나가기</button>
     </div>
   </div>
@@ -951,7 +952,53 @@ function policeLine(x0, z0, x1, z1, tapeMat, coneMat) {
   const inS = nx * -cx + nz * -cz < 0 ? -1 : 1;   // 고깔은 지도 안쪽에
   for (const [x, z] of [[x0, z0], [x1, z1]]) { const c = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.75, 12), coneMat); c.position.set(x + nx * 0.45 * inS, 0.375, z + nz * 0.45 * inS); deco(c); }
   const hx = Math.abs(x1 - x0) / 2 + 0.15, hz = Math.abs(z1 - z0) / 2 + 0.15;
-  addCollider(cx - hx, 0, cz - hz, cx + hx, 2.6, cz + hz, 'metal');
+  addCollider(cx - hx, 0, cz - hz, cx + hx, 6, cz + hz, 'metal');   // 차·버스 위에서 뛰어도 못 넘게 (보이는 펜스는 1.1m)
+  (BL.plines = BL.plines || []).push({ x0, z0, len, dx: (x1 - x0) / len, dz: (z1 - z0) / len, nx: nx * inS, nz: nz * inS });
+}
+// 냉삼집 테이블: 숯불 불판 위 삼겹살(익은 것·날것) · 반찬 · 상추 · 공깃밥 · 소주 · 피어오르는 연기
+let _BBQ = null;
+function bbqMats() {
+  if (_BBQ) return _BBQ;
+  const S = (o) => new THREE.MeshStandardMaterial(o);
+  const grate = canvasTex(128, (g, w, h) => { g.fillStyle = '#1b1b1b'; g.fillRect(0, 0, w, h); g.strokeStyle = '#555'; g.lineWidth = 3; for (let i = 6; i < w; i += 11) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, h); g.stroke(); } });
+  const raw = canvasTex(64, (g, w, h) => { g.fillStyle = '#dc8d87'; g.fillRect(0, 0, w, h); g.fillStyle = '#f6e4dc'; g.fillRect(0, 14, w, 8); g.fillRect(0, 40, w, 6); g.fillStyle = '#c4645f'; g.fillRect(0, 28, w, 7); }, false);
+  const done = canvasTex(64, (g, w, h) => { g.fillStyle = '#a3592a'; g.fillRect(0, 0, w, h); g.fillStyle = '#e0ae74'; g.fillRect(0, 14, w, 8); g.fillRect(0, 40, w, 6); g.fillStyle = '#4e240c'; for (let i = 2; i < w; i += 11) g.fillRect(i, 0, 3, h); }, false);
+  const smoke = canvasTex(64, (g, w, h) => { const gr = g.createRadialGradient(32, 32, 2, 32, 32, 31); gr.addColorStop(0, 'rgba(240,240,240,0.95)'); gr.addColorStop(1, 'rgba(240,240,240,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); }, false);
+  _BBQ = {
+    grill: S({ map: grate, roughness: 0.45, metalness: 0.6 }), coal: S({ color: 0x3a1608, emissive: 0xff5a1a, emissiveIntensity: 1.5, roughness: 0.9 }),
+    raw: S({ map: raw, roughness: 0.5 }), done: S({ map: done, roughness: 0.45 }),
+    bowl: S({ color: 0xf2f0ea, roughness: 0.3 }), steel: S({ color: 0xc9ccd0, roughness: 0.25, metalness: 0.8 }), rice: S({ color: 0xfcfbf5, roughness: 0.85 }),
+    side: [0xc0392b, 0x5f9a2a, 0xe8c547, 0xefe6c8, 0x6e3416, 0xd35400].map((c) => S({ color: c, roughness: 0.6 })),
+    lettuce: S({ color: 0x6dbb3c, roughness: 0.7 }), soju: S({ color: 0x2f9d5c, roughness: 0.15, metalness: 0.1 }), cup: S({ color: 0xe6eef2, roughness: 0.1, metalness: 0.2 }), hoodM: S({ color: 0xbfc3c8, roughness: 0.3, metalness: 0.7, side: THREE.DoubleSide }),
+    smoke, sMats: [],
+    geo: { grill: new THREE.CylinderGeometry(0.28, 0.26, 0.035, 18), coal: new THREE.CylinderGeometry(0.22, 0.2, 0.06, 14), meat: new THREE.BoxGeometry(0.15, 0.012, 0.07),
+      bowl: new THREE.CylinderGeometry(0.058, 0.045, 0.035, 10), fill: new THREE.CylinderGeometry(0.048, 0.048, 0.006, 10), rbowl: new THREE.CylinderGeometry(0.058, 0.044, 0.06, 12),
+      rtop: new THREE.SphereGeometry(0.054, 10, 5, 0, Math.PI * 2, 0, Math.PI / 2), soju: new THREE.CylinderGeometry(0.033, 0.035, 0.18, 10), neck: new THREE.CylinderGeometry(0.012, 0.032, 0.07, 8),
+      cup: new THREE.CylinderGeometry(0.022, 0.018, 0.05, 8), lett: new THREE.BoxGeometry(0.2, 0.05, 0.13), hood: new THREE.CylinderGeometry(0.18, 0.34, 0.32, 14, 1, true) },
+  };
+  return _BBQ;
+}
+function bbqSet(tx, ty, tz, seats, opt = {}) {
+  const B = bbqMats(), G = B.geo, m = (geo, mat, x, y, z, ry = 0) => { const o = new THREE.Mesh(geo, mat); o.position.set(x, y, z); o.rotation.y = ry; deco(o, false); return o; };
+  const gy = opt.grillTop != null ? opt.grillTop : ty + 0.09;
+  if (opt.grillTop == null) { m(G.coal, B.coal, tx, ty + 0.03, tz); m(G.grill, B.grill, tx, ty + 0.075, tz); }
+  for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2 + rand(-0.25, 0.25), r = i === 0 ? 0 : rand(0.1, 0.17); m(G.meat, Math.random() < 0.55 ? B.done : B.raw, tx + Math.cos(a) * r, gy + 0.008, tz + Math.sin(a) * r, a + rand(-0.4, 0.4)); }
+  const hw = opt.halfW || 0.7;
+  [[-1, -0.17], [-1, 0], [-1, 0.17], [1, -0.17], [1, 0], [1, 0.17]].forEach(([sx, dz], i) => { const x = tx + sx * (hw - 0.17), z = tz + dz; m(G.bowl, B.bowl, x, ty + 0.018, z); m(G.fill, B.side[(i + (tx * 7 | 0)) % 6], x, ty + 0.037, z); });
+  m(G.lett, B.lettuce, tx + (hw - 0.34) * (Math.random() < 0.5 ? -1 : 1), ty + 0.025, tz + rand(-0.1, 0.1), rand(-0.3, 0.3));
+  for (const [sx, sz] of seats) { const x = tx + (sx - tx) * 0.45, z = tz + (sz - tz) * 0.45; m(G.rbowl, B.steel, x, ty + 0.03, z); m(G.rtop, B.rice, x, ty + 0.058, z); m(G.cup, B.cup, x + 0.11, ty + 0.025, z); }
+  if (Math.random() < 0.75) { const x = tx + (hw - 0.3) * (Math.random() < 0.5 ? -1 : 1), z = tz + rand(-0.08, 0.08); m(G.soju, B.soju, x, ty + 0.09, z); m(G.neck, B.soju, x, ty + 0.215, z); }
+  if (opt.hood) { m(G.hood, B.hoodM, tx, opt.hood, tz); const d = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.085, opt.ceil - opt.hood - 0.16, 10), B.steel); d.position.set(tx, (opt.hood + 0.16 + opt.ceil) / 2, tz); deco(d, false); }
+  const sm = [];
+  for (let k = 0; k < 3; k++) { const mat = new THREE.SpriteMaterial({ map: B.smoke, transparent: true, opacity: 0.2, depthWrite: false }); const sp = new THREE.Sprite(mat); sp.userData.keep = true; BL.group.add(sp); sm.push(sp); }
+  (BL.smoke = BL.smoke || []).push({ x: tx, y: gy + 0.02, z: tz, top: opt.hood ? opt.hood - gy - 0.1 : 0.9, sm, o: rand(0, 3) });
+}
+function smokeTick(list, t) {
+  for (const s of list) for (let k = 0; k < s.sm.length; k++) {
+    const sp = s.sm[k], u = (t * 0.42 + k / s.sm.length + s.o) % 1;
+    sp.position.set(s.x + Math.sin(t * 1.3 + k * 2.1 + s.o) * 0.05 * (1 + u), s.y + u * s.top, s.z + Math.cos(t * 1.1 + k + s.o) * 0.05 * (1 + u));
+    sp.scale.setScalar(0.16 + u * 0.42); sp.material.opacity = 0.3 * Math.sin(u * Math.PI);
+  }
 }
 function signPlane(tex, w, h, x, y, z, facing) {
   const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.7, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.18 }));
@@ -2439,6 +2486,7 @@ function buildYeongtong() {
     const gr = new THREE.Mesh(grillGeo, M.black); gr.position.set(tx, 0.8, tz); deco(gr, false);
     const hd = new THREE.Mesh(hoodGeo, M.steel); hd.position.set(tx, 2.75, tz); deco(hd, false);
     for (const s of [-1, 1]) { const st = new THREE.Mesh(stoolGeo, M.counter); st.position.set(tx + 0.35 * s, 0.225, tz + 0.72 * s); deco(st); }
+    bbqSet(tx, 0.75, tz, [-1, 1].map((s) => [tx + 0.35 * s, tz + 0.72 * s]), { grillTop: 0.85, halfW: 0.7 });
   }
   addBoxB(40.4, 0, 7.6, 41.85, 1.05, 14.4, M.wood, 1, 'wood'); addBoxB(40.35, 1.05, 7.55, 41.85, 1.12, 14.45, M.counterTop, 1, 'wood', false);
   for (const z of [8.3, 9.8, 11.3, 12.8]) { const st = new THREE.Mesh(stoolGeo, M.counter); st.position.set(39.95, 0.225, z); deco(st); }
@@ -3519,7 +3567,7 @@ function makeCiv(i) {
   for (const p of parts) p.userData.civ = c;
   return c;
 }
-for (let i = 0; i < 44; i++) civs.push(makeCiv(i));   // 실내(식당·PC방)까지 붐비게
+for (let i = 0; i < 56; i++) civs.push(makeCiv(i));   // 실내(식당·PC방)까지 붐비게
 
 /* =========================================================
    Training targets
@@ -3675,7 +3723,8 @@ function buildYTower() {
   // ---- 광장 · 주변 건물 · 시계탑
   plane(40, 40, M.plaza, 0, 0, 7, 3);
   box(-20, 0, -13, -15.3, 15, 10, M.facade); box(15.3, 0, -13, 20, 13, 10, M.facade);
-  for (const [x0, x1, h] of [[-26, -12, 16], [-12, 4, 12], [4, 26, 18]]) box(x0, 0, 27, x1, h, 33, M.facade, 'stone', false);
+  for (const [x0, x1, h] of [[-26, -12, 16], [-12, 4, 12], [4, 26, 18]]) box(x0, 0, 27, x1, h, 33, M.facade);
+  addCollider(-21, 0, -14, -20, 40, 28); addCollider(20, 0, -14, 21, 40, 28); addCollider(-21, 0, -14, 21, 40, -13); addCollider(-21, 0, 27, 21, 40, 28);   // 보이지 않는 지도 경계
   box(-26, 0, -13, -20, 18, 33, M.facade, 'stone', false); box(20, 0, -13, 26, 18, 33, M.facade, 'stone', false);
   { // 시계탑
     box(-1.1, 0, 18.4, 1.1, 0.6, 20.6, M.trim); box(-0.55, 0.6, 18.95, 0.55, 6.2, 20.05, M.facade);
@@ -3766,6 +3815,7 @@ function buildYTower() {
     if (f === 4) { // 옥상 난간 · 계단탑 · 기계실 · 물탱크
       box(TW.X0, y, TW.Z0, TW.X1, y + h, TW.Z0 + 0.25, M.facade); box(TW.X0, y, TW.Z1 - 0.25, TW.X1, y + h, TW.Z1, M.facade);
       box(TW.X0, y, TW.Z0, TW.X0 + 0.25, y + h, TW.Z1, M.facade); box(TW.X1 - 0.25, y, TW.Z0, TW.X1, y + h, TW.Z1, M.facade);
+      for (const [a, b, c, d] of [[TW.X0, TW.X1, TW.Z0, TW.Z0 + 0.25], [TW.X0, TW.X1, TW.Z1 - 0.25, TW.Z1], [TW.X0, TW.X0 + 0.25, TW.Z0, TW.Z1], [TW.X1 - 0.25, TW.X1, TW.Z0, TW.Z1]]) addCollider(a, y + h, c, b, y + 9, d);   // 난간 위로 넘어가지 못하게
       floorPlane(TW.X0 + 0.25, TW.X1 - 0.25, -3.4, TW.Z1 - 0.25, y, M.roof, 4); floorPlane(-11.6, TW.X1 - 0.25, TW.Z0 + 0.25, -3.4, y, M.roof, 4);
       box(-15, y, -10, -14.7, y + 3, -2.8, M.facade); box(-11.7, y, -10, -11.4, y + 3, -2.8, M.facade); wallX(-15, -11.4, -2.9, y, M.facade, [[-14.4, -12.0, 2.3]], 3);
       box(-15, y + 3, -10, -11.4, y + 3.25, -2.8, M.facade);
@@ -3812,10 +3862,19 @@ function buildYTower() {
     const seats = [];
     for (const tx of [-12.4, -9.2, -6.0]) for (const tz of [2.0, 4.9, 7.8]) {
       box(tx - 0.75, y, tz - 0.42, tx + 0.75, y + 0.74, tz + 0.42, M.table, 'wood');
-      for (const sx of [-0.38, 0.38]) for (const sd of [-1, 1]) { const st = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 0.45, 10), M.stool); st.position.set(tx + sx, y + 0.225, tz + sd * 0.78); deco(st); seats.push([tx + sx, tz + sd * 0.78, sd < 0 ? Math.PI : 0, y]); }
+      const ts = [];
+      for (const sx of [-0.38, 0.38]) for (const sd of [-1, 1]) { const st = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 0.45, 10), M.stool); st.position.set(tx + sx, y + 0.225, tz + sd * 0.78); deco(st); seats.push([tx + sx, tz + sd * 0.78, sd < 0 ? Math.PI : 0, y]); ts.push([tx + sx, tz + sd * 0.78]); }
+      bbqSet(tx, y + 0.74, tz, ts, { halfW: 0.75, hood: y + 2.15, ceil: y + H - S });   // 숯불 불판 · 삼겹살 · 반찬 · 공깃밥 · 연통
+    }
+    { // 차림표 · 간판
+      const menu = textTex(512, 320, (g, w, hh) => { g.fillStyle = '#2b2a28'; g.fillRect(0, 0, w, hh); g.strokeStyle = '#d9573b'; g.lineWidth = 10; g.strokeRect(5, 5, w - 10, hh - 10); g.fillStyle = '#f6e7c6'; g.font = `900 44px ${FONT}`; g.textAlign = 'center'; g.fillText('청명 냉삼 차림표', w / 2, 62); g.font = `700 30px ${FONT}`; g.textAlign = 'left';
+        [['냉동삼겹살 200g', '9,000'], ['목살 200g', '11,000'], ['된장찌개', '3,000'], ['공깃밥', '1,000'], ['소주 · 맥주', '5,000']].forEach(([a, b], i) => { g.fillText(a, 44, 116 + i * 42); g.textAlign = 'right'; g.fillText(b, w - 44, 116 + i * 42); g.textAlign = 'left'; }); });
+      signPlane(menu, 1.9, 1.2, -14.68, y + 1.85, 4.9, 'px');
+      signPlane(signTex('청명 냉삼', '#b8321f', '#fff4dc', 512, 128, 66), 3.2, 0.8, -9.3, y + 3.0, 10.02, 'pz');
+      signPlane(signTex('편의점 24시', '#1565c0', '#ffffff', 512, 128, 58), 3.2, 0.8, 9.3, y + 3.0, 10.02, 'pz');
     }
     box(-4.5, y, 6.6, -3.1, y + 1.05, 9.6, M.table, 'wood');
-    TW.HIDE.push({ name: '1층 청명 냉삼 식당', short: '1층 식당', c: [-8.8, 4.8], y, door: [-5.3, -0.6], fill: 0.25, seats, stand: [[-3.7, 5.9, Math.PI / 2, y]],
+    TW.HIDE.push({ name: '1층 청명 냉삼 식당', short: '1층 식당', c: [-8.8, 4.8], y, door: [-5.3, -0.6], fill: 0.82, seats, stand: [[-3.7, 5.9, Math.PI / 2, y], [-3.7, 7.6, Math.PI / 2, y], [-7.6, 9.3, Math.PI, y]],
       spots: [[-13.9, 0.4], [-10.8, 3.45], [-7.6, 6.35], [-4.2, 3.2], [-13.9, 9.2], [-7.6, 9.25]] });
     // 로비: 안내판 · 자판기 · 화분
     box(-2.6, y, 8.4, -1.6, y + 1.9, 9.6, M.steel, 'metal'); box(1.6, y, 8.4, 2.6, y + 1.9, 9.6, std({ color: 0xc62828, roughness: 0.4 }), 'metal');
@@ -3849,7 +3908,7 @@ function buildYTower() {
         seats.push([x, r + sd * 0.86, sd < 0 ? Math.PI : 0, y]);
       }
     }
-    TW.HIDE.push({ name: '2층 영통 PC방', short: 'PC방', c: [-5, 4.9], y, door: [-7.3, -0.6], fill: 0.12, seats, stand: [[4.2, 6.0, Math.PI / 2, y]],
+    TW.HIDE.push({ name: '2층 영통 PC방', short: 'PC방', c: [-5, 4.9], y, door: [-7.3, -0.6], fill: 0.1, seats, stand: [[4.2, 6.0, Math.PI / 2, y]],
       spots: [[-13.9, 0.4], [4.2, 3.4], [-6.0, 3.4], [-0.3, 6.4], [-13.9, 9.1], [4.2, 9.2]] });
     // 화장실: 칸막이 4칸 · 세면대
     for (let i = 0; i <= 4; i++) box(7.6 + i * 1.75, y, 6.8, 7.7 + i * 1.75, y + 2.1, 9.7, M.part, 'metal');
@@ -3888,7 +3947,7 @@ function buildYTower() {
     for (let x = -13; x <= 13; x += 2.6) { const n = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.5), Math.round(x / 2.6) % 2 ? neonP : neonB); n.rotation.x = Math.PI / 2; n.position.set(x, y + H - S - 0.02, 4.65); deco(n, false); }
     for (const [a, b] of rowS) { const p = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.5), M.panel); p.rotation.x = Math.PI / 2; p.position.set((a + b) / 2, y + H - S - 0.02, 1.65); deco(p, false); }
     for (const [a, b] of rowF) { const p = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.5), M.panel); p.rotation.x = Math.PI / 2; p.position.set((a + b) / 2, y + H - S - 0.02, 7.65); deco(p, false); }
-    TW.HIDE.push({ name: '3층 별빛 노래연습장', short: '노래방', c: [0, 4.65], y, door: [0, -0.6], fill: 0.12, seats, stand: [[-13.5, -6.2, 0, y]], spots: spots.concat([[-12.5, 4.65], [12.5, 4.65], [0, 2.0]]) });
+    TW.HIDE.push({ name: '3층 별빛 노래연습장', short: '노래방', c: [0, 4.65], y, door: [0, -0.6], fill: 0.08, seats, stand: [[-13.5, -6.2, 0, y]], spots: spots.concat([[-12.5, 4.65], [12.5, 4.65], [0, 2.0]]) });
     // 뒤쪽: 노래방 카운터 · 창고
     box(-10.8, y, -6.2, -7.2, y + 1.05, -5.5, M.table, 'wood'); for (const [x, z] of [[5, -9], [7.2, -9], [9.4, -8.8], [6, -5.4]]) box(x - 0.55, y, z - 0.45, x + 0.55, y + 1.2, z + 0.45, M.wood, 'wood');
   }
@@ -3908,7 +3967,7 @@ function buildYTower() {
       for (const x of [-10.0, -7.6, -5.2, 5.2, 7.6, 10.0]) box(x - 0.04, y, r - 0.75, x + 0.04, y + 1.3, r + 0.75, M.part, 'wood');
     }
     box(-1.2, y, 4.6, 1.2, y + 1.2, 5.6, M.shelf, 'wood');
-    TW.HIDE.push({ name: '4층 영통 사무실', short: '사무실', c: [0, 4.4], y, door: [-8.3, -0.6], fill: 0.08, seats, stand: [[0, 0.6, 0, y], [13.4, 3.5, -Math.PI / 2, y]],
+    TW.HIDE.push({ name: '4층 영통 사무실', short: '사무실', c: [0, 4.4], y, door: [-8.3, -0.6], fill: 0.06, seats, stand: [[0, 0.6, 0, y], [13.4, 3.5, -Math.PI / 2, y]],
       spots: [[-14.0, 0.4], [14.0, 0.4], [0, 3.4], [0, 6.6], [-14.0, 9.0], [14.0, 6.6], [-13.4, 3.5]] });
     // 원장실 · 회의실
     box(-9.5, y, -9.0, -6.5, y + 0.76, -8.1, M.table, 'wood'); box(-11.4, y, -5.6, -9.4, y + 0.55, -3.3, M.sofa2, 'wood');
@@ -4015,7 +4074,7 @@ function resetStats() {
   Object.assign(stats, { shots: 0, hits: 0, heads: 0, kills: 0, deaths: 0, score: 0, streak: 0, bestStreak: 0, multi: 0, lastKill: -99, tHit: 0, tMiss: 0 });
 }
 function resetPlayer(x, z, yaw, y = 0) {
-  P.pos.set(x, y, z); P.vel.set(0, 0, 0); P.yaw = yaw; P.pitch = 0; P.hp = 100; P.alive = true; P.lastHit = -99;
+  P.pos.set(x, y, z); SAFE.ok = false; SAFE.stuckT = 0; P.vel.set(0, 0, 0); P.yaw = yaw; P.pitch = 0; P.hp = 100; P.alive = true; P.lastHit = -99;
   P.onGround = true; P.crouch = false; P.eyeH = STAND_EYE; P.height = 1.75; P.reloading = false; P.switchT = 0; P.boltT = 0; P.reloadDur = 1; vmaCancel();
   P.bloom = 0; P.recoil = 0; P.roll = 0; P.shake = 0; P.respawnT = 0; P.mantle = null;
   // every new round restarts gameTime at 0, so clear all timers that are stored as absolute game times
@@ -7270,11 +7329,46 @@ function updateFPBody(dt = 1 / 60) {
   vmaPostIK();
 }
 
+// 끼임·통제선 밖 방지: 통제선 밖으로 나가면 바로 안쪽으로, 벽·물건 속에 끼면 마지막 안전한 자리로
+const SAFE = { x: 0, y: 0, z: 0, ok: false, lvl: null, t: 0, stuckT: 0, msgT: -9 };
+function inCollider(e) {
+  for (const b of colliders) {
+    if (b.dyn || e.pos.y + 0.2 >= b.max.y || e.pos.y + e.height - 0.1 <= b.min.y) continue;
+    if (e.pos.x > b.min.x - e.radius + 0.06 && e.pos.x < b.max.x + e.radius - 0.06 && e.pos.z > b.min.z - e.radius + 0.06 && e.pos.z < b.max.z + e.radius - 0.06) return true;
+  }
+  return false;
+}
+function outsideLine(x, z) {
+  for (const l of LEVEL.plines || []) { const ax = x - l.x0, az = z - l.z0, t = ax * l.dx + az * l.dz; if (t < -0.6 || t > l.len + 0.6) continue; const d = ax * l.nx + az * l.nz; if (d < -0.12 && d > -5) return l; }
+  return null;
+}
+function unstick(msg) {
+  let done = false;
+  if (msg !== 'node' && SAFE.ok && SAFE.lvl === LEVEL && !outsideLine(SAFE.x, SAFE.z)) { P.pos.set(SAFE.x, SAFE.y, SAFE.z); done = true; }
+  if (!done && nodes.length) { const i = nearestNode(P.pos.x, P.pos.z, P.pos.y), n = nodes[i]; if (n) P.pos.set(n.x, n.y || 0, n.z); }
+  P.vel.set(0, 0, 0); SAFE.stuckT = 0; P.mantle = null;
+  centerMsg('안전한 곳으로 옮겼어요', 'info', 1.2);
+}
+function playerSafety(dt) {
+  if (!P.alive || P.mantle || !isMission() && mode !== 'bots') return;
+  const l = outsideLine(P.pos.x, P.pos.z);
+  if (l) {
+    const t = clamp((P.pos.x - l.x0) * l.dx + (P.pos.z - l.z0) * l.dz, 0.5, l.len - 0.5);
+    P.pos.set(l.x0 + l.dx * t + l.nx * 0.75, 0, l.z0 + l.dz * t + l.nz * 0.75); P.vel.set(0, 0, 0);
+    if (gameTime - SAFE.msgT > 3) { SAFE.msgT = gameTime; centerMsg('통제선 밖은 작전 구역이 아니에요 — 안으로 돌아왔어요', 'info', 1.6); }
+    return;
+  }
+  const stuck = inCollider(P);
+  SAFE.stuckT = stuck ? SAFE.stuckT + dt : 0;
+  if (SAFE.stuckT > 0.8) { unstick(); return; }
+  SAFE.t -= dt;
+  if (SAFE.t <= 0 && P.onGround && !stuck) { SAFE.t = 0.25; SAFE.x = P.pos.x; SAFE.y = P.pos.y; SAFE.z = P.pos.z; SAFE.ok = true; SAFE.lvl = LEVEL; }
+}
 function update(dt) {
   gameTime += dt; timeLeft -= dt;
   if (LEVEL.elev) elevUpdate(LEVEL.elev, dt);
   if (mode === 'training') updateTraining(dt);
-  if (P.alive) { updatePlayer(dt); updateWeapon(dt); }
+  if (P.alive) { updatePlayer(dt); updateWeapon(dt); playerSafety(dt); }
   else {
     vm.ads = 0; moveVertical(P, dt);
     if (mode === 'bots' || isMission()) { P.respawnT -= dt; if (P.respawnT <= 0) respawnPlayer(); }
@@ -7310,6 +7404,7 @@ function frame(now) {
     camera.fov = 62; camera.updateProjectionMatrix(); camera.lookAt(o.cx, 2, o.cz);
   }
   if (LEVEL.anim) LEVEL.anim(now / 1000);
+  if (LEVEL.smoke) smokeTick(LEVEL.smoke, now / 1000);
   updateParticles(dt); updateTracers(dt);
   sky.position.copy(camera.position);
   const so = LEVEL.env.sunOff;
@@ -8371,6 +8466,7 @@ function closeLiveGear(apply) {
   if (apply) { liveLoadout(); resume(); } else $('pause').classList.remove('hidden');
 }
 $('gearLiveBtn').addEventListener('click', openLiveGear);
+$('unstickBtn').addEventListener('click', () => { if (state !== 'paused' && state !== 'playing') return; unstick('node'); SAFE.ok = false; resume(); });
 $('goBtn').addEventListener('click', () => { if (PREP_LIVE) { closeLiveGear(true); return; } $('prep').classList.add('hidden'); if (NET.prepMp) { $('mplobby').classList.remove('hidden'); mpJoin(NET.map); return; } startGame(mode); });
 $('prepBack').addEventListener('click', () => { if (PREP_LIVE) { closeLiveGear(false); return; } $('prep').classList.add('hidden'); if (NET.prepMp) { NET.prepMp = false; $('prep').classList.remove('mp'); $('mplobby').classList.remove('hidden'); sfx.ui(); return; } $('menu').classList.remove('hidden'); sfx.ui(); });
 $('mpMaps').querySelectorAll('.mode').forEach((el) => el.addEventListener('click', () => { NET.map = el.dataset.map; if (NET.invite && !NET.invite.startsWith(NET.map + '-')) NET.invite = ''; useLevel(NET.map); sfx.ui(); mpRenderLobby(); document.querySelectorAll('#menu .mode.op[data-map]').forEach((x) => x.classList.toggle('sel', x.dataset.map === NET.map)); }));
