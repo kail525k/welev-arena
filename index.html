@@ -354,8 +354,8 @@ body.bodycam #xhair{display:none}
         <button class="mode op locked" disabled><b><small>작전 5</small>준비 중</b><em>새 작전 지역 · 곧 공개</em></button>
       </div>
       <div class="modes cat hidden" data-cat="solo">
-        <button class="mode" data-mode="cityhall"><b>서울시청 작전</b><span>실제 서울광장·세종대로·대한문 배치 · 서울도서관 인질 구출</span><em id="bestCity">최고 0점</em></button>
-        <button class="mode" data-mode="yeongtong"><b>영통 작전</b><span>수원 영통역 중심상가 · 구름광장 시계탑 · 은행 인질 구출</span><em id="bestYt">최고 0점</em></button>
+        <button class="mode" data-mode="cityhall"><b><small>작전명</small>광장</b><span>서울도서관·서울광장 · 경찰 통제선 안 좁은 구역 · 인질 구출</span><em id="bestCity">최고 0점</em></button>
+        <button class="mode" data-mode="ytower"><b><small>작전명</small>시계탑</b><span>영통 시계탑 앞 5층 빌딩 · 계단·엘리베이터 근접전 · 인질 구출</span><em id="bestYt">최고 0점</em></button>
         <button class="mode" data-mode="alley"><b>골목 작전</b><span>익선동 느낌 한옥마을 · 강도 8명 + 두목 · 시민을 쏘면 −500점</span><em id="bestAlley">최고 0점</em></button>
       </div>
       <div class="modes cat hidden" data-cat="train">
@@ -1549,8 +1549,8 @@ function buildAlley() {
    서: 세종대로 + 덕수궁 대한문·돌담 · 동: 무교로 · 을지로 입구 · 식당 골목 · 남: 소공로 경찰 집결지
    가게·호텔 이름은 모두 가상이에요. 2024년 사고가 난 세종대로18길 쪽은 지도에 넣지 않았어요.
    ========================================================= */
-const CH_EXITS = [[-22, 38.6], [3, 38.6], [27, 38.6], [-22, -45.2], [27, -45.2], [43.2, -8.5]];
-const CH_WALK = [[-32, -22], [-32, 28], [-11, -10], [16, -12], [-11, 21], [14, 31.5], [5, -12.5], [27, -32], [27, 18], [37, -29.3], [-21, 33], [17, 31], [-11, -24], [42.5, -22], [-22, -38], [36, -8.5]];
+const CH_EXITS = [[-14.4, 10.8], [3, 10.8], [27, 10.8], [-14.4, -29.9], [27, -29.9], [43.2, -8.5]];
+const CH_WALK = [[-11, -10], [16, -12], [5, -12.5], [-11, -24], [42.5, -22], [36, -8.5], [37, -29.3], [-8, 6], [18, 6], [27, 0], [27, -20], [-12, 9], [12, 9.5], [27, -28]];
 const CH_DINING = [[34.4, -23.8], [37.8, -23.8], [34.4, -17.2], [37.8, -17.2]];
 const CH_READ = [[-3.2, -19.8], [-3.2, -24.2]];
 const CH_ZONES = [
@@ -1563,9 +1563,9 @@ const CH_ZONES = [
 ];
 function buildCityHall() {
   const L = newLevel('cityhall', {
-    bounds: { x0: -38, x1: 44, z0: -46, z1: 40 }, nav: { x0: -37.25, x1: 43.25, z0: -45.25, z1: 39.25, step: 1.5, pad: 0.45, epad: 0.38 },
-    ground: 'stone', dmgMul: 0.85, orbit: { cx: 3, cz: 0, r: 30, h: 34 }, zones: CH_ZONES, exits: CH_EXITS, walk: CH_WALK, pickup: [41, -8.5], reinf: [[-25.6, -40, Math.PI / 2], [27, 34, Math.PI / 2]], escapeVan: [40.6, -10.3, 0], escapeBoss: [41, -7.2], extract: [-5.5, 33.5],
-    defend: { x: 5.5, z: -12.5, r: 7, spawn: [5.5, -10.5, Math.PI], spawns: [[-22, -42], [27, -42], [42, -8.5], [-31, 10], [27, 36], [-22, 33]] }, indoor: [[-6.35, 17.35, -26.7, -16.15], [32.65, 39.85, -26.35, -13.8]],
+    bounds: { x0: -16.5, x1: 44, z0: -32, z1: 13 }, nav: { x0: -14.75, x1: 43.25, z0: -30.25, z1: 11.75, step: 1.5, pad: 0.45, epad: 0.38 },
+    ground: 'stone', dmgMul: 0.85, orbit: { cx: 12, cz: -9, r: 27, h: 28 }, zones: CH_ZONES, exits: CH_EXITS, walk: CH_WALK, pickup: [41, -8.5], reinf: [[27, -24, Math.PI / 2], [-12.5, -2, Math.PI / 2]], escapeVan: [40.6, -10.3, 0], escapeBoss: [41, -7.2], extract: [3, 9.4],
+    defend: { x: 5.5, z: -12.5, r: 7, spawn: [5.5, -10.5, Math.PI], spawns: [[-13, -29], [27, -29.5], [42, -8.5], [-13, 9.5], [27, 9.5], [37, -29.5]] }, indoor: [[-6.35, 17.35, -26.7, -16.15], [32.65, 39.85, -26.35, -13.8]],
     env: { skyTop: 0x3f7fc6, skyMid: 0xa6c8e8, skyBot: 0xf0e4cc, fog: 0xcdd7e0, fogNear: 60, fogFar: 210, hemiSky: 0xe8f1ff, hemiGround: 0x8a7f6c, hemiI: 1.2, sunColor: 0xffe2bc, sunI: 2.5, sunOff: [-16, 34, 36], exposure: 1.04 },
     miniDraw: (g, tx, tz) => {
       const r = (x0, x1, z0, z1) => g.fillRect(tx(x0), tz(z0), tx(x1) - tx(x0), tz(z1) - tz(z0));
@@ -2061,6 +2061,9 @@ function buildCityHall() {
   longVehicle(10, 32.6, 5.2, 2.2, 2.5, M.swatSide, M.swatBody, false);
   car(-20.5, 35.2, 0.25, M.carWhite, true); car(22.5, 34.4, -0.2, M.carWhite, true); car(-24, -41, Math.PI / 2, M.carWhite, true);
   // police lines at the exits
+  // 작전 구역: 서울도서관·광장 북쪽·무교로 — 경찰 통제선으로 좁게
+  tape(-15.5, -31, -15.5, 12); tape(-15.5, 12, 32.2, 12); tape(-15.5, -31, -11.8, -31); tape(24.1, -31, 30.2, -31);
+  car(-6, 14.8, 0.06, M.carWhite, true); car(15, 14.9, -0.08, M.carWhite, true); car(-18, -6, Math.PI / 2 + 0.1, M.carWhite, true); car(-18.2, -22, Math.PI / 2 - 0.08, M.carWhite, true);
   tape(-29, -45.4, -15, -45.4); tape(24, -45.4, 30, -45.4); tape(43.4, -12, 43.4, -5); tape(43.4, -31, 43.4, -27.5); tape(-29, 39.4, -15.5, 39.4); tape(24, 39.4, 30, 39.4);
 
   // ---- skyline, Bugaksan to the north
@@ -3665,8 +3668,8 @@ function buildYTower() {
     floors: [...FY, TW.ROOF], floorRects: [null, ...[1, 2, 3, 4].map(() => ({ x0: -14.5, x1: 14.5, z0: -9.5, z1: 9.5 }))],
     ground: 'stone', dmgMul: 0.85, orbit: { cx: 0, cz: 4, r: 30, h: 24 }, zones: TW_ZONES, enCap: 14,
     exits: [[-19, 25], [19, 25], [0, 26.4]], walk: [[-12, 15], [-6, 22], [6, 22], [12, 15], [0, 13], [-16, 24], [16, 24], [0, 6], [0, -1.7], [-8, -1.7], [8, -1.7]],
-    pickup: [0, 24], reinf: [[-18, 25, 0], [18, 25, 0]], escapeVan: [0, 25, 0], escapeBoss: [2, 24], extract: [0, 24],
-    defend: { x: 0, z: 0, r: 5, spawn: [0, 20, 0], spawns: [[-18, 25], [18, 25]] },
+    pickup: [-14.8, 17.5], reinf: [[-17.5, 24.5, 0], [17.5, 24.5, 0]], escapeVan: [-16.9, 17.5, Math.PI / 2], escapeBoss: [-14.9, 19.6], extract: [0, 24],
+    defend: { x: 0, z: 2, r: 5, spawn: [0, 3, Math.PI], spawns: [[-17, 24], [17, 24], [0, 26], [-12, 26], [12, 26]] },
     indoor: [[-15, 15, -10, 10]],
     env: { skyTop: 0x4a7fc0, skyMid: 0xb5cde4, skyBot: 0xf1dfc4, fog: 0xd3d9df, fogNear: 50, fogFar: 160, hemiSky: 0xf2f4fa, hemiGround: 0x9a8e7c, hemiI: 1.95, sunColor: 0xffdcb0, sunI: 2.3, sunOff: [-26, 40, 30], exposure: 1.05 },
     miniLabels: [[0, 18.5, '시계탑'], [-13.2, -6.5, 'A계단'], [13.2, -6.5, 'B계단'], [0, -8.6, '엘베']],
@@ -3874,7 +3877,7 @@ function buildYTower() {
       signPlane(signTex('편의점 24시', '#1565c0', '#ffffff', 512, 128, 58), 3.2, 0.8, 9.3, y + 3.0, 10.02, 'pz');
     }
     box(-4.5, y, 6.6, -3.1, y + 1.05, 9.6, M.table, 'wood');
-    TW.HIDE.push({ name: '1층 청명 냉삼 식당', short: '1층 식당', c: [-8.8, 4.8], y, door: [-5.3, -0.6], fill: 0.82, seats, stand: [[-3.7, 5.9, Math.PI / 2, y], [-3.7, 7.6, Math.PI / 2, y], [-7.6, 9.3, Math.PI, y]],
+    TW.HIDE.push({ name: '1층 청명 냉삼 식당', short: '1층 식당', c: [-8.8, 4.8], y, door: [-5.3, -0.6], fill: 0.82, seats, stand: [[-3.7, 5.9, Math.PI / 2, y], [-5.0, 8.4, -Math.PI / 2, y], [-7.6, 9.3, Math.PI, y]],
       spots: [[-13.9, 0.4], [-10.8, 3.45], [-7.6, 6.35], [-4.2, 3.2], [-13.9, 9.2], [-7.6, 9.25]] });
     // 로비: 안내판 · 자판기 · 화분
     box(-2.6, y, 8.4, -1.6, y + 1.9, 9.6, M.steel, 'metal'); box(1.6, y, 8.4, 2.6, y + 1.9, 9.6, std({ color: 0xc62828, roughness: 0.4 }), 'metal');
@@ -4008,6 +4011,34 @@ function setupYTower() {
   };
 }
 
+// 혼자 작전: 같은 빌딩에서 인질 구출 · 도주 차량 저지 · 저지선 사수 · 요인 호송
+function setupYTowerSolo() {
+  Object.assign(MS, baseMS(), { type: settings.mtype });
+  if (MS.type === 'defend') { for (const H of TW.HIDE) enFillSeats(H, H.spots); return setupDefend(); }
+  const F = TW.FY, R = TW.ROOF;
+  const B = placeRobbers([
+    [[-10.8, 0, 3.4, Math.PI, 0, 'hostage'], [-7.6, 0, 6.3, Math.PI, 0, 'hostage']],     // 1층 냉삼집 — 인질범
+    [[6, R, 9.0, Math.PI, 0, 'static'], [-6, R, 9.0, Math.PI, 0, 'static']],              // 옥상 저격수 (광장 감시)
+    [[-6, F[1], 3.4, Math.PI / 2, 3], [-0.3, F[1], 6.4, -Math.PI / 2, 3]],                // 2층 PC방
+    [[-12.5, F[2], 4.65, -Math.PI / 2, 3], [12.5, F[2], 4.65, Math.PI / 2, 3]],           // 3층 노래방 복도
+    [[13.4, 0, 6.1, Math.PI / 2, 2], [9, 0, 3.5, 0, 2]],                                   // 1층 편의점
+    [[-13.4, F[3], 3.5, Math.PI / 2, 3], [14.0, F[3], 6.6, -Math.PI / 2, 3]],             // 4층 사무실
+    [[-1.5, F[1], -1.7, 0, 3], [6, F[2], -1.7, 0, 3]],                                    // 2·3층 복도
+    [[-7.5, 0, -4.5, 0, 3], [7.5, 0, -4.4, 0, 3]],                                         // 1층 주방·창고
+  ]);
+  setupBoss(-8, -6, Math.PI, F[3]);                                                         // 4층 원장실 — 두목
+  const nHost = MS.type === 'hostage' ? pick(HOSTS[difficulty]) : 1;
+  const hold = (b) => { const c = civFree(); if (c) holdHostage(b, c); };
+  hold(B[0]);
+  if (nHost >= 2) hold(B[2]);   // PC방 손님
+  if (nHost >= 3) hold(B[5]);   // 4층 직원
+  const avoid = [...B, boss].map((b) => [b.pos.x, b.pos.z]);
+  for (const H of TW.HIDE) enFillSeats(H, avoid);   // 손님·게이머·직원 (강도 바로 옆 자리는 비움)
+  for (let i = 0; i < 3; i++) { const c = civFree(); if (!c) break; const w = pick(LEVEL.walk); placeCiv(c, w[0] + rand(-1, 1), w[1] + rand(-1, 1), rand(-3, 3), 'walk', 'walk'); }
+  assignTypes(B); missionTypeSetup(B);
+  mini.pings.length = 0; mini.droneT = 0; mini.droneCd = 0;
+}
+
 /* =========================================================
    Build levels
    ========================================================= */
@@ -4091,7 +4122,7 @@ const MISSIONS = {
     hint: 'V 투항 명령 → E 체포(+500) · G 섬광탄 · 문 앞 E 길게: 폭약 돌파 · 시민 −500 · T 드론', start: '작전 개시 — 강도·두목 제압 · 시민 보호',
   },
   cityhall: {
-    level: 'cityhall', time: 420, spawn: [-5.5, 35.4, -0.19], sTime: 180, setup: () => setupCityHall(), title: '서울시청 강도 진압', timeMsg: '제한 시간 7분이 지났어요.',
+    level: 'cityhall', time: 420, spawn: [4, 10.2, 0], sTime: 180, setup: () => setupCityHall(), title: '서울시청 강도 진압', timeMsg: '제한 시간 7분이 지났어요.',
     hint: '도서관은 정전 — F 손전등 · V 투항 → E 체포 · G 섬광탄 · 문 앞 E 길게: 폭약 · T 드론', start: '작전 개시 — 서울도서관 인질 구출 · 시민 보호',
   },
   yeongtong: {
@@ -4099,7 +4130,7 @@ const MISSIONS = {
     hint: '은행 차양 위 감시조 주의 · V 투항 → E 체포 · G 섬광탄 · 문 앞 E 길게: 폭약 · T 드론', start: '작전 개시 — 청명은행 인질 구출 · 시민 보호',
   },
   ytower: {
-    level: 'ytower', time: 420, spawn: [3.5, 24.4, 0.12], sTime: 180, setup: () => setupYTower(), title: '영통 시계탑 빌딩 소탕', timeMsg: '제한 시간 7분이 지났어요.',
+    level: 'ytower', time: 420, spawn: [3.5, 24.4, 0.12], sTime: 180, setup: () => (NET.on ? setupYTower() : setupYTowerSolo()), title: '영통 시계탑 빌딩 소탕', timeMsg: '제한 시간 7분이 지났어요.',
     hint: '좁은 실내전 · A/B 계단 · 엘리베이터 매복 주의 · V 투항 → E 체포 · G 섬광탄 · T 드론', start: '작전 개시 — 시계탑 빌딩 층마다 소탕 · 시민 보호',
   },
 };
@@ -4115,10 +4146,10 @@ const TYPE_HINTS = {
   escort: '요인을 구출해 가까이 가면 따라와요 · 초록 원까지 호송 · 요인이 3번 맞으면 실패',
 };
 const PREP_BRIEF = {
-  hostage: (m) => m === 'yeongtong' ? '수원 영통역 앞 <b>청명은행 영통지점</b>을 턴 강도단이 객장에서 손님을 인질로 잡고 있어요(1~3명). 먹자골목 고깃집 <b>청명 냉삼</b>과 봉영로 버스정류장에도 있어요. 구름광장(시계탑)·은행 옆 골목·봉영로 세 갈래로 접근하고, 은행 정문 차양 위 감시조를 조심하세요.' : m === 'cityhall' ? '세종대로에서 현금수송차를 턴 강도단이 <b>서울도서관(옛 시청)</b> 로비에서 시민을 인질로 잡고 있어요(1~3명). 무교동 식당에도 숨어 있어요. 정문·서쪽문·동쪽문 3곳으로 진입하고, 발코니·무대 위 저격수를 조심하세요.' : '한옥마을 식당 <b>온담 솥밥</b>에 강도 8명과 방탄복 두목이 들이닥쳐 손님을 인질로 잡았어요(1~3명). 시장 골목·광장·사진관 골목 세 갈래로 접근하세요.',
-  escape: (m) => `강도단이 <b>${m === 'cityhall' ? '을지로 입구' : m === 'yeongtong' ? '반달로 시네마 앞' : '윗골목'}</b>에 세운 도주 차량에 현금을 싣고 있어요. <b>2분 30초</b> 안에 타이어 2개를 쏘거나 두목을 제압해 차량을 막으세요. 나머지 강도들이 길목에서 시간을 끌어요.`,
+  hostage: (m) => m === 'ytower' ? '영통 시계탑 앞 <b>5층 빌딩</b>에 강도단이 들이닥쳐 1층 냉삼집 손님을 인질로 잡았어요(1~3명). 2층 PC방·3층 노래방·4층 사무실에도 흩어져 있고, 두목은 4층 원장실에 있어요. A·B 계단과 엘리베이터로 올라가고, 옥상 저격수를 조심하세요.' : m === 'yeongtong' ? '수원 영통역 앞 <b>청명은행 영통지점</b>을 턴 강도단이 객장에서 손님을 인질로 잡고 있어요(1~3명). 먹자골목 고깃집 <b>청명 냉삼</b>과 봉영로 버스정류장에도 있어요. 구름광장(시계탑)·은행 옆 골목·봉영로 세 갈래로 접근하고, 은행 정문 차양 위 감시조를 조심하세요.' : m === 'cityhall' ? '세종대로에서 현금수송차를 턴 강도단이 <b>서울도서관(옛 시청)</b> 로비에서 시민을 인질로 잡고 있어요(1~3명). 무교동 식당에도 숨어 있어요. 정문·서쪽문·동쪽문 3곳으로 진입하고, 발코니 저격수를 조심하세요. 경찰 통제선 안 좁은 구역에서 싸워요.' : '한옥마을 식당 <b>온담 솥밥</b>에 강도 8명과 방탄복 두목이 들이닥쳐 손님을 인질로 잡았어요(1~3명). 시장 골목·광장·사진관 골목 세 갈래로 접근하세요.',
+  escape: (m) => `강도단이 <b>${m === 'cityhall' ? '을지로 입구' : m === 'ytower' ? '시계탑 광장 서쪽' : m === 'yeongtong' ? '반달로 시네마 앞' : '윗골목'}</b>에 세운 도주 차량에 현금을 싣고 있어요. <b>2분 30초</b> 안에 타이어 2개를 쏘거나 두목을 제압해 차량을 막으세요. 나머지 강도들이 길목에서 시간을 끌어요.`,
   defend: (m) => `<b>${MISSION_PLACE[m] || '온담 솥밥'}</b> 안에 시민들이 대피해 있어요. 강도단이 3차례(마지막엔 두목) 몰려와요. 파란 원(저지선) 안에 강도가 6초 이상 머물면 실패예요. 공격 사이에 섬광탄이 1개씩 보충돼요.`,
-  escort: (m) => `강도단의 범행을 증언할 <b>요인(증인)</b>이 ${m === 'cityhall' ? '서울도서관 로비' : m === 'yeongtong' ? '청명은행 객장' : '온담 솥밥 주방'}에 붙잡혀 있어요. 구출하면 따라오니 경찰 집결지의 <b>초록 원</b>까지 호송하세요. 요인이 3번 맞으면 실패예요.`,
+  escort: (m) => `강도단의 범행을 증언할 <b>요인(증인)</b>이 ${m === 'cityhall' ? '서울도서관 로비' : m === 'ytower' ? '1층 냉삼집' : m === 'yeongtong' ? '청명은행 객장' : '온담 솥밥 주방'}에 붙잡혀 있어요. 구출하면 따라오니 경찰 집결지의 <b>초록 원</b>까지 호송하세요. 요인이 3번 맞으면 실패예요.`,
 };
 const levelFor = (m) => (MISSIONS[m] ? MISSIONS[m].level : 'arena');
 
@@ -4215,7 +4246,9 @@ function setupDefend() {
   // people sheltering inside the building you defend
   let ci = 0;
   const next = () => civs[ci++];
-  if (LEVEL.name === 'cityhall') {
+  if (LEVEL.name === 'ytower') {
+    /* 식당·PC방 손님은 setupYTowerSolo에서 앉힘 */
+  } else if (LEVEL.name === 'cityhall') {
     for (const [tx, tz] of CH_READ) for (const s of [-1, 1]) for (const o of [-0.7, 0.7]) placeCiv(next(), tx + o, tz + 0.72 * s, s < 0 ? Math.PI : 0, 'seat', 'eat');
     for (const x of [9, 11, 13, 15]) placeCiv(next(), x, -24, Math.PI, 'stand', 'duck');
   } else if (LEVEL.name === 'yeongtong') {
@@ -4335,14 +4368,14 @@ function friendlyFire(m) {
 }
 function holdHostage(b, h) {
   const fx = -Math.sin(b.yaw), fz = -Math.cos(b.yaw), rx = Math.cos(b.yaw), rz = -Math.sin(b.yaw);
-  placeCiv(h, b.pos.x + fx * 0.45 - rx * 0.22, b.pos.z + fz * 0.45 - rz * 0.22, b.yaw, 'hostage', 'held'); b.hostage = h; MS.hostTotal++;
+  placeCiv(h, b.pos.x + fx * 0.45 - rx * 0.22, b.pos.z + fz * 0.45 - rz * 0.22, b.yaw, 'hostage', 'held', b.pos.y); b.hostage = h; MS.hostTotal++;
 }
 function placeRobbers(RB) {
   // each robber picks one of its candidate spots: [x, y, z, yaw, guard radius, flag]  (radius < 5 holds the spot, >= 5 roams)
   return RB.map((opts, i) => { const r = pick(opts), b = bots[i]; b.name = ROBBER_NAMES[i]; placeRobber(b, r[0], r[2], r[3], r[4], r[1]); b.static = r[5] === 'static'; return b; });
 }
-function setupBoss(x, z, yaw) {
-  boss.name = '두목'; placeRobber(boss, x, z, yaw, 2);
+function setupBoss(x, z, yaw, y = 0) {
+  boss.name = '두목'; placeRobber(boss, x, z, yaw, 2, y);
   boss.maxHp = boss.hp = { easy: 450, normal: 600, hard: 800, real: 900 }[difficulty]; boss.root.scale.setScalar(1.15);
 }
 function setupAlley() {
@@ -4380,12 +4413,12 @@ function setupCityHall() {
   const B = placeRobbers([
     [[slots[0][0], 0, slots[0][1], slots[0][2], 0, 'hostage']],                            // 서울도서관 로비 — 인질범
     [[5.5, 4.2, -15.25, Math.PI, 0, 'static']],                                            // 도서관 발코니 저격수
-    [[-17.6, 0, 0.5, -Math.PI / 2, 3], [-22.6, 0, 6.0, -Math.PI / 2, 3]],                   // 세종대로 현금수송차
-    [[6.5, 1.3, 25.4, 0, 0, 'static'], [20.6, 0, 2.5, Math.PI / 2, 3]],                     // 광장 무대 위 / 부스 사이
-    [[-31.2, 0, 3.2, -Math.PI / 2, 4], [-31.0, 0, 22.5, -Math.PI / 2, 4]],                  // 대한문 앞
+    [[-12.5, 0, 0.5, -Math.PI / 2, 3], [-12, 0, 7.5, -Math.PI / 2, 3]],                     // 광장 서쪽 통제선 앞
+    [[18, 0, -4, Math.PI, 3], [20.6, 0, 2.5, Math.PI / 2, 3]],                               // 광장 부스 사이
+    [[-13, 0, -12, -Math.PI / 2, 3], [2, 0, -10, Math.PI, 3]],                               // 도서관 앞 광장
     [[36.25, 0, -21.25, Math.PI / 2, 2]],                                                   // 무교 불낙지 식당 안
     [[27, 0, -22, Math.PI, 8], [37, 0, -29.3, Math.PI / 2, 6], [42.2, 0, -20, 0, 6]],       // 무교로·골목
-    [[-20, 0, -33, Math.PI, 8], [-13.5, 0, -35, Math.PI, 6], [-10.5, 0, -22, Math.PI / 2, 5]], // 세종대로 북쪽·시청 정원
+    [[-13, 0, -24, Math.PI, 4], [27, 0, -8, Math.PI / 2, 4], [-10.5, 0, -22, Math.PI / 2, 5]], // 시청 서편 정원 · 을지로 입구
   ]);
   setupBoss(slots[1][0], slots[1][1], slots[1][2]);
   const nHost = MS.type === 'hostage' ? pick(HOSTS[difficulty]) : 1;
@@ -4396,8 +4429,8 @@ function setupCityHall() {
   for (const [tx, tz] of CH_DINING) for (const s of [-1, 1]) { if (nHost >= 2 && seat++ === 0) continue; placeCiv(next(), tx + 0.35 * s, tz + 0.72 * s, s < 0 ? Math.PI : 0, 'seat', 'eat'); }
   for (const [x, z, yaw] of [[-3.9, -20.52, Math.PI], [-2.5, -19.08, 0], [-2.5, -24.92, Math.PI], [8, 6, Math.PI / 2], [-1.5, 9, -Math.PI / 2]]) placeCiv(next(), x, z, yaw, 'seat', 'eat');
   for (const [x, z, yaw] of [[20.6, -8, Math.PI / 2], [20.6, 6, Math.PI / 2]]) placeCiv(next(), x, z, yaw, 'stand', 'idle');
-  if (nHost < 3) placeCiv(next(), -30.4, 17.6, Math.PI / 2, 'stand', 'idle'); // tourist at 대한문
-  for (const [x, z] of [[6, -11.5], [-31, -14], [31, 8]]) placeCiv(next(), x, z, rand(-3, 3), 'walk', 'walk');
+  if (nHost < 3) placeCiv(next(), -12.6, -12.9, Math.PI / 2, 'stand', 'idle'); // 도서관 앞 관광객
+  for (const [x, z] of [[6, -11.5], [-12, -14], [27, 4]]) placeCiv(next(), x, z, rand(-3, 3), 'walk', 'walk');
   holdHostage(B[0], next());
   if (nHost >= 2) holdHostage(B[5], next());   // a diner in 무교 불낙지
   if (nHost >= 3) holdHostage(B[4], next());   // a tourist at 대한문
@@ -4456,10 +4489,10 @@ function endGame() {
     const MI = MISSIONS[mode];
     const hostOk = MS.hostSaved === MS.hostTotal && (MS.type !== 'escort' || MS.vipHp === 3);
     const grade = !MS.success ? 'F' : (MS.civHit === 0 && hostOk && MS.deaths === 0 && MS.arrests >= 3 && MS.fouls === 0) ? 'S' : (MS.civHit === 0 && hostOk) ? 'A' : MS.civHit <= 1 ? 'B' : 'C';
-    const isBest = MS.success && total > (mode === 'cityhall' ? bestCity : mode === 'yeongtong' ? bestYt : bestAlley);
+    const isBest = MS.success && total > (mode === 'cityhall' ? bestCity : mode === 'yeongtong' || mode === 'ytower' ? bestYt : bestAlley);
     if (isBest) {
       if (mode === 'cityhall') { bestCity = total; try { localStorage.setItem('welevfps.bestCity', String(bestCity)); } catch (e) {} }
-      else if (mode === 'yeongtong') { bestYt = total; try { localStorage.setItem('welevfps.bestYt', String(bestYt)); } catch (e) {} }
+      else if (mode === 'yeongtong' || mode === 'ytower') { bestYt = total; try { localStorage.setItem('welevfps.bestYt', String(bestYt)); } catch (e) {} }
       else { bestAlley = total; try { localStorage.setItem('welevfps.bestAlley', String(bestAlley)); } catch (e) {} }
     }
     $('resTitle').textContent = MS.success ? '작전 성공!' : '작전 실패';
@@ -5177,7 +5210,7 @@ function updateBot(b, dt) {
   b.flashT -= dt; b.flash.visible = b.flashT > 0;
   if (b.hostage) {
     const h = b.hostage, fx = -Math.sin(b.yaw), fz = -Math.cos(b.yaw), rx = Math.cos(b.yaw), rz = -Math.sin(b.yaw);
-    h.pos.set(b.pos.x + fx * 0.45 - rx * 0.22, 0, b.pos.z + fz * 0.45 - rz * 0.22); h.yaw = b.yaw; h.root.rotation.y = b.yaw;
+    h.pos.set(b.pos.x + fx * 0.45 - rx * 0.22, b.pos.y, b.pos.z + fz * 0.45 - rz * 0.22); h.yaw = b.yaw; h.root.rotation.y = b.yaw;
   }
   b.root.updateMatrixWorld(true);
 }
