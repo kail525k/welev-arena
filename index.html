@@ -2013,7 +2013,7 @@ const YT_DINING = [[34.2, 8.6], [37.8, 8.6], [34.2, 13.2], [37.8, 13.2]];
 const YT_SEATS = [[-37.9, 15.6], [-36.7, 15.6], [-29.6, 15.6], [-28.4, 15.6]];
 const YT_ZONES = [
   [-40.85, -26.15, 12.65, 24.35, '청명은행 객장'], [-36.75, -30.75, 9.75, 12.35, '은행 차양 위', 3],
-  [31.65, 41.85, 5.15, 16.85, '청명 냉삼'], [-3, 7, -5, 5, '시계탑'],
+  [31.65, 41.85, 5.15, 16.85, '청명 냉삼'], [32.4, 41.7, -16.85, -5.15, '영통 PC방'], [-3, 7, -5, 5, '시계탑'],
   [-42, -21, -11.5, 11.5, '직녀광장'], [-21, 5.6, -11.5, 11.5, '구름광장'],
   [5.6, 18.4, -37.5, 37.5, '청명남로'], [18.4, 52, -4.85, 4.85, '먹자골목'], [18.4, 52, 17.15, 22.85, '청명남로28번길'], [18.4, 52, -22.85, -17.15, '청명남로34번길'],
   [28.2, 31.35, 4.85, 17.15, '식당 옆 통로'], [28.6, 32.1, -17.15, -4.85, '골목 통로'],
@@ -2041,7 +2041,7 @@ function buildYeongtong() {
     ground: 'stone', dmgMul: 0.85, orbit: { cx: -4, cz: 0, r: 36, h: 34 }, zones: YT_ZONES, exits: YT_EXITS, walk: YT_WALK,
     pickup: [41.8, -41.6], reinf: [[-50, -40, Math.PI], [12, 43, 0]], escapeVan: [37.5, -41.6, 0], escapeBoss: [41.6, -39.4], extract: [-43, 35.6],
     defend: { x: -33.75, z: 8.6, r: 6.5, spawn: [-33.75, 7, 0], spawns: [[-50, -42], [-50, 28], [50, 0], [50, 20], [12, -44], [30.75, -42], [12, 44]] },
-    indoor: [[-40.85, -26.15, 12.65, 24.35], [31.65, 41.85, 5.15, 16.85]],
+    indoor: [[-40.85, -26.15, 12.65, 24.35], [31.65, 41.85, 5.15, 16.85], [32.4, 41.7, -16.85, -5.15]],
     env: { skyTop: 0x4a7fc0, skyMid: 0xb5cde4, skyBot: 0xf1dfc4, fog: 0xd3d9df, fogNear: 60, fogFar: 200, hemiSky: 0xe9f0fb, hemiGround: 0x8d8170, hemiI: 1.18, sunColor: 0xffdcb0, sunI: 2.45, sunOff: [-30, 38, 26], exposure: 1.05 },
     miniDraw: (g, tx, tz) => {
       const r = (x0, x1, z0, z1) => g.fillRect(tx(x0), tz(z0), tx(x1) - tx(x0), tz(z1) - tz(z0));
@@ -2050,7 +2050,7 @@ function buildYeongtong() {
       g.fillStyle = 'rgba(176,128,104,.9)'; r(18.4, 52, -4.85, 4.85);
       g.fillStyle = '#e8b83a'; g.beginPath(); g.arc(tx(2), tz(0), 3, 0, 7); g.fill();
     },
-    miniLabels: [[-33.5, 18.5, '청명은행'], [-31.5, -4, '직녀광장'], [-9, -4, '구름광장'], [2, 4.5, '시계탑'], [12, -28, '청명남로'], [41, -1, '먹자골목'], [36.75, 11, '냉삼'], [-50, -20, '봉영로'], [-44, 29, '영통역'], [-12, 41.75, '반달로'], [41, -28, '시네마']],
+    miniLabels: [[-33.5, 18.5, '청명은행'], [-31.5, -4, '직녀광장'], [-9, -4, '구름광장'], [2, 4.5, '시계탑'], [12, -28, '청명남로'], [41, -1, '먹자골목'], [36.75, 11, '냉삼'], [37, -11, 'PC방'], [-50, -20, '봉영로'], [-44, 29, '영통역'], [-12, 41.75, '반달로'], [41, -28, '시네마']],
   });
 
   // ---- textures
@@ -2435,7 +2435,58 @@ function buildYeongtong() {
   building(30.6, 62, 22.85, 33, 20, M.bizD, [[42, 'nz', 0.15], [31, 'nz', 0.32], [25, 'nz', 0.2, 7.9, 4], [19, 'pz', 0.15]]);
   // north side
   building(18.4, 28.6, -17.15, -4.85, 20, M.bizA, [[2, 'pz', 0.5], [12, 'nx', 0.5], [15, 'pz', 0.5, 7.9, 4], [16, 'pz', 0.5, 11.3, 4], [33, 'nz', 0.5]]);
-  building(32.1, 42, -17.15, -4.85, 17, M.bizE, [[8, 'pz', 0.5, 3.0, 4.2], [36, 'pz', 0.5, 7.9, 4], [39, 'pz', 0.5, 11.3, 4], [21, 'nz', 0.5]]);
+  // 영통 PC방 (들어갈 수 있음): 앞문은 먹자골목, 뒷문은 34번길. 책상 3줄 · 모니터 36대 · 카운터 · 음료 냉장고
+  {
+    const PI = std({ color: 0x2a2a3a, roughness: 0.85 }), PF = std({ color: 0x3b3d46, roughness: 0.7 }), DESK = std({ color: 0x1d1e22, roughness: 0.55 }), SEAT = std({ color: 0x1a1a1f, roughness: 0.6 }), SEAT2 = std({ color: 0xa8201a, roughness: 0.55 });
+    wpiece(32.1, 35.5, 0, 3.6, -5.15, -4.85, 5, SF, PI, 3.6, 4); wpiece(35.5, 38.5, 2.6, 3.6, -5.15, -4.85, 5, SF, PI, 3.6, 4); wpiece(38.5, 42, 0, 3.6, -5.15, -4.85, 5, SF, PI, 3.6, 4);
+    wpiece(32.1, 39, 0, 3.6, -17.15, -16.85, 4, SF, PI, 3.6, 4); wpiece(39, 41, 2.4, 3.6, -17.15, -16.85, 4, SF, PI, 3.6, 4); wpiece(41, 42, 0, 3.6, -17.15, -16.85, 4, SF, PI, 3.6, 4);
+    wpiece(32.1, 32.4, 0, 3.6, -16.85, -5.15, 0, SF, PI, 3.6, 4); wpiece(41.7, 42, 0, 3.6, -16.85, -5.15, 1, SF, PI, 3.6, 4);
+    addBoxB(32.4, 3.4, -16.85, 41.7, 3.6, -5.15, M.ceil, 2.5, 'stone');
+    block(32.1, 42, -17.15, -4.85, 17, M.bizE, 6.8, 'concrete', true, 3.6);
+    { const lg = new THREE.Mesh(new THREE.BoxGeometry(10.4, 0.25, 12.8), M.trim); lg.position.set(37.05, 3.72, -11); deco(lg); }
+    asign(9, 5.2, 1.3, 37, 4.45, -4.73, 'pz'); asign(36, 3.6, 0.9, 37, 7.9, -4.73, 'pz'); asign(39, 3.6, 0.9, 37, 11.3, -4.73, 'pz'); asign(9, 3.4, 0.85, 37, 3.1, -17.27, 'nz');
+    plane(9.3, 11.7, PF, 37.05, 0.012, -11, 2);
+    // 모니터 화면(가상의 게임 화면 3가지)
+    const scr = textTex(512, 320, (g, w, h) => {
+      const pal = [['#0b2a4a', '#3fa7ff', '#7cff8a'], ['#2a0b3a', '#ff4fd8', '#ffd23f'], ['#06261c', '#2bd9a0', '#ff6b3d']];
+      for (let k = 0; k < 3; k++) { const [a, b, c] = pal[k], x0 = 0, y0 = (k * h) / 3, hh = h / 3;
+        const gr = g.createLinearGradient(0, y0, 0, y0 + hh); gr.addColorStop(0, a); gr.addColorStop(1, '#000'); g.fillStyle = gr; g.fillRect(x0, y0, w, hh);
+        g.fillStyle = b; for (let i = 0; i < 7; i++) g.fillRect(20 + i * 70, y0 + hh * 0.55 - (i * 37 % 30), 42, hh * 0.35 + (i * 37 % 30));
+        g.fillStyle = c; g.beginPath(); g.arc(w * 0.72, y0 + hh * 0.35, 18, 0, 7); g.fill();
+        g.fillStyle = 'rgba(255,255,255,.85)'; g.fillRect(14, y0 + 8, 120, 8); g.fillRect(w - 134, y0 + 8, 120, 8); g.fillStyle = b; g.fillRect(14, y0 + 8, 80, 8); }
+    });
+    const SCR = [0, 1, 2].map((k) => { const m = new THREE.MeshBasicMaterial({ map: scr }); return m; });
+    const scrGeo = (k) => { const geo = new THREE.PlaneGeometry(0.56, 0.33), uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setY(i, (2 - k) / 3 + uv.getY(i) / 3); return geo; };
+    const SG3 = [0, 1, 2].map(scrGeo), monBack = new THREE.BoxGeometry(0.6, 0.37, 0.04), seatGeo = new THREE.BoxGeometry(0.52, 0.1, 0.5), backGeo2 = new THREE.BoxGeometry(0.5, 0.68, 0.08), legGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.42, 6);
+    let mk = 0;
+    for (const r of [-9.2, -12.0, -14.8]) {
+      addBoxB(33.2, 0.72, r - 0.45, 40.0, 0.78, r + 0.45, DESK, 2, 'wood', false); addCollider(33.2, 0, r - 0.45, 40.0, 0.78, r + 0.45, 'wood');
+      addBoxB(33.2, 0.78, r - 0.02, 40.0, 1.16, r + 0.02, M.black, 1, 'wood', false);
+      for (let x = 33.75; x < 39.8; x += 1.1) for (const sd of [-1, 1]) {
+        const mb = new THREE.Mesh(monBack, M.black); mb.position.set(x, 1.08, r + sd * 0.1); deco(mb, false);
+        const sc = new THREE.Mesh(SG3[mk % 3], SCR[mk % 3]); sc.position.set(x, 1.08, r + sd * 0.125); sc.rotation.y = sd > 0 ? 0 : Math.PI; sc.userData.keep = true; BL.group.add(sc); mk++;
+        const kb = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.02, 0.15), M.black); kb.position.set(x, 0.79, r + sd * 0.3); deco(kb, false);
+        const sz = r + sd * 0.86, se = new THREE.Mesh(seatGeo, SEAT); se.position.set(x, 0.47, sz); deco(se);
+        const bk = new THREE.Mesh(backGeo2, (mk % 2) ? SEAT2 : SEAT); bk.position.set(x, 0.86, sz + sd * 0.25); deco(bk);
+        const lg2 = new THREE.Mesh(legGeo, M.steel); lg2.position.set(x, 0.21, sz); deco(lg2, false);
+      }
+    }
+    // 카운터 · 음료 냉장고 · 요금표
+    addBoxB(32.5, 0, -7.6, 34.8, 1.05, -6.8, M.counter, 1, 'wood'); addBoxB(32.45, 1.05, -7.65, 34.85, 1.12, -6.75, M.counterTop, 1, 'wood', false);
+    { const mo = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.32, 0.04), M.black); mo.position.set(33.6, 1.32, -7.2); deco(mo, false); }
+    addBoxB(40.6, 0, -6.6, 41.7, 2.0, -5.3, M.steel, 1, 'metal');
+    { const fr = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 1.6), std({ color: 0x9fd6ff, emissive: 0x4aa8ff, emissiveIntensity: 0.6, roughness: 0.2 })); fr.position.set(40.58, 1.05, -5.95); fr.rotation.y = -Math.PI / 2; fr.userData.keep = true; BL.group.add(fr); }
+    const feeTex = textTex(512, 320, (g, w, h) => {
+      g.fillStyle = '#0d1b2a'; g.fillRect(0, 0, w, h); g.strokeStyle = '#33d1ff'; g.lineWidth = 10; g.strokeRect(5, 5, w - 10, h - 10);
+      g.fillStyle = '#33d1ff'; g.font = `900 48px ${FONT}`; g.textAlign = 'center'; g.fillText('영통 PC방 요금', w / 2, 70);
+      g.fillStyle = '#e8f6ff'; g.font = `700 34px ${FONT}`; g.textAlign = 'left';
+      [['1시간', '1,500'], ['3시간', '4,000'], ['라면 · 음료', '2,000'], ['24시간 영업', '']].forEach(([a, b], i) => { g.fillText(a, 46, 132 + i * 46); g.textAlign = 'right'; g.fillText(b, w - 46, 132 + i * 46); g.textAlign = 'left'; });
+    });
+    signPlane(feeTex, 1.6, 1.0, 32.42, 1.9, -9.8, 'px');
+    for (const [x, z, c] of [[35, -8.4, 0x8c7bff], [38.8, -13.6, 0x5aa8ff]]) { const pl = new THREE.PointLight(c, 3.6, 11, 2); pl.position.set(x, 2.9, z); BL.group.add(pl); }
+    addDoor({ x0: 35.5, x1: 38.5, z0: -5.15, z1: -4.85, h: 2.6, axis: 'x', inward: -1, double: true, mat: DOOR_MAT.steel, name: 'PC방 정문' });
+    addDoor({ x0: 39, x1: 41, z0: -17.15, z1: -16.85, h: 2.4, axis: 'x', inward: 1, mat: DOOR_MAT.steel, name: 'PC방 뒷문' });
+  }
   building(42, 62, -17.15, -4.85, 14, M.bizC, [[20, 'pz', 0.12], [7, 'pz', 0.32], [43, 'pz', 0.2, 7.9, 4]]);
   building(18.4, 30.6, -33, -22.85, 24, M.bizD, [[34, 'pz', 0.5], [4, 'nx', 0.5], [13, 'pz', 0.5, 7.9, 4], [26, 'nx', 0.5, 7.9, 4]]);
   building(30.6, 62, -33, -22.85, 22, M.bizE, [[24, 'nz', 0.25, 6.5, 7], [24, 'pz', 0.15, 6.5, 6], [29, 'pz', 0.32]]);
@@ -2502,7 +2553,7 @@ function setupYeongtong() {
     [[-44, 0, -16, Math.PI, 4], [-44, 0, -28, Math.PI * 0.9, 4]],                                           // 봉영로 버스정류장
     [[36.75, 0, 11, 0, 2], [38.7, 0, 15.2, 0.4, 2]],                                                        // 청명 냉삼 식당 안
     [[26, 0, -1, Math.PI / 2, 6], [12, 0, -21, Math.PI, 7], [12, 0, 24, 0, 7]],                             // 먹자골목 · 청명남로
-    [[30.75, 0, 20, Math.PI / 2, 6], [-23.3, 0, -26, Math.PI, 5], [-4.2, 0, 26, 0, 5]],                     // 골목들
+    [[30.75, 0, 20, Math.PI / 2, 6], [-23.3, 0, -26, Math.PI, 5], [-4.2, 0, 26, 0, 5], [40.9, 0, -10.6, 2.6, 2], [36.6, 0, -13.4, 3.0, 2]],   // 골목들 · 영통 PC방 안
   ]);
   setupBoss(slots[1][0], slots[1][1], slots[1][2]);
   const nHost = MS.type === 'hostage' ? pick(HOSTS[difficulty]) : 1;
@@ -7407,6 +7458,19 @@ function mpEvent(ev) {
       radio(`본부에서 알린다. 위협 ${EN.lv}단계. 강도단 증원 확인.`, false);
       EQ.flash = Math.min(9, EQ.flash + 1); if (EN.lv % 2 === 0) EQ.charge = Math.min(6, EQ.charge + 1); updateGearHUD();
       break;
+    case 'hide': {
+      const H = (enHideouts() || [])[ev.h | 0]; if (!H) break;
+      NET.hides = NET.hides || {}; NET.hides[ev.h | 0] = 1; ping(H.c[0], H.c[1], 'radio');
+      if (!ev.re) { radio(`제보 접수. ${H.name} 안에 강도 ${ev.n | 0}명이 숨어 있다. 진입해서 투항시키거나 제압하라.`, false); centerMsg(`${H.short}에 숨은 강도 ${ev.n | 0}명 — 들어가서 제압 · 체포`, 'info', 2.8); sfx.warn(); }
+      break;
+    }
+    case 'hclr': {
+      const H = (enHideouts() || [])[ev.h | 0]; if (!H) break;
+      if (NET.hides) NET.hides[ev.h | 0] = 0;
+      centerMsg(`${H.short} 소탕 완료! 팀 +${fnum(ev.p)}${ev.a ? ` · 체포 ${ev.a | 0}명 보너스` : ''}`, 'head', 2.6);
+      radio(`${H.name} 확보 완료. 수고했다.`, false); popup('+' + fnum(ev.p) + ' 소탕', 'head');
+      break;
+    }
     case 'boss': centerMsg('두목 출현! 방탄복 — 머리를 노리세요', 'kill', 2.4); sfx.warn(); radio('두목 출현. 방탄복 착용, 집중 사격하라.', false); break;
     case 'sq':
       ping(fnum(ev.x), fnum(ev.z), 'radio');
@@ -7440,7 +7504,8 @@ function setupEndless() {
   for (const b of bots) { b.active = false; b.alive = false; b.root.visible = false; b.hostage = null; b.guard = null; b.laser.visible = false; b.netBuf = null; }
   for (const c of civs) { c.netBuf = null; if (c.active && (c.state === 'held' || c.kind === 'hostage')) { c.kind = 'stand'; c.state = 'idle'; civPose(c, 1); } }
   Object.assign(MS, baseMS(), { type: 'endless', total: 0, bossFled: true, reinf: true });
-  Object.assign(EN, { lv: 1, lvT: 0, el: 0, spawnCd: 5, civT: 20, lastShot: -99, pool: bots.filter((b) => !b.boss) }); enScaleDiff();
+  Object.assign(EN, { lv: 1, lvT: 0, el: 0, spawnCd: 5, civT: 20, lastShot: -99, pool: bots.filter((b) => !b.boss), hides: [], hideT: 14, hideAnn: 20 }); enScaleDiff();
+  for (const b of bots) b.hide = 0; NET.hides = {};
   mini.pings.length = 0; mini.droneT = 0; mini.droneCd = 0;
 }
 function enPickType() {
@@ -7464,13 +7529,58 @@ function enSpawnPoint() {
   return best;
 }
 function enZone(x, z) { for (const zz of LEVEL.zones || []) if (x >= zz[0] && x <= zz[1] && z >= zz[2] && z <= zz[3] && !zz[5]) return zz[4]; return ''; }
+// 건물 안에 숨어 기다리는 강도 (지도마다): 문을 열고 들어가 투항시키거나 제압하면 소탕 보너스
+const HIDEOUTS = {
+  yeongtong: [
+    { name: '청명 냉삼 식당', short: '식당', c: [36.75, 11], door: [36, 4.4], spots: [[32.4, 6.0], [39.7, 15.9], [36.0, 11.0], [32.4, 15.9], [39.9, 10.5]] },
+    { name: '영통 PC방', short: 'PC방', c: [37, -11], door: [37, -4.4], spots: [[33.6, -8.2], [40.9, -10.6], [36.6, -13.4], [40.8, -15.9], [33.0, -16.0]] },
+  ],
+};
+const enHideouts = () => HIDEOUTS[LEVEL && LEVEL.name] || null;
+function enSpawnHide(hi) {
+  const H = enHideouts()[hi], pl = enPlayers(true);
+  for (const p of pl) if (Math.hypot(p.x - H.c[0], p.z - H.c[1]) < 9) return false;   // 대원이 안에 있으면 다음에
+  const n = Math.min(H.spots.length, 2 + Math.min(2, Math.floor(pl.length / 2)) + (EN.lv >= 3 ? 1 : 0));
+  const spots = [...H.spots].sort(() => Math.random() - 0.5).slice(0, n), list = [], tok = (EN.hideTok = (EN.hideTok || 0) + 1);
+  for (const [x, z] of spots) {
+    const b = (EN.pool || []).find((q) => !q.active); if (!b) break;
+    placeRobber(b, x, z, Math.atan2(-(H.door[0] - x), -(H.door[1] - z)), 0); setType(b, pick(['rifle', 'smg', 'shotgun', 'pistol', 'rifle']));
+    b.static = true; b.hide = tok; b.name = `숨은 강도 ${bots.indexOf(b) + 1}`; b.hp = b.maxHp = Math.min(180, 100 + 8 * (EN.lv - 1)); b.netFc = 0; b.netAim = null;
+    list.push(b);
+  }
+  if (!list.length) return false;
+  EN.hides[hi] = { tok, bots: list, n: list.length };
+  mpHostEvent({ k: 'hide', h: hi, n: list.length });
+  return true;
+}
+function enHideTick(dt) {
+  const HH = enHideouts(); if (!HH) return;
+  EN.hides = EN.hides || [];
+  EN.hideT = (EN.hideT ?? 14) - dt;
+  if (EN.hideT <= 0) {
+    EN.hideT = 45 + rand(0, 25);
+    const free = HH.map((_, i) => i).filter((i) => !EN.hides[i]);
+    if (free.length && !enSpawnHide(pick(free))) EN.hideT = 8;
+  }
+  EN.hideAnn = (EN.hideAnn ?? 20) - dt;
+  const ann = EN.hideAnn <= 0; if (ann) EN.hideAnn = 20;
+  HH.forEach((H, i) => {
+    const st = EN.hides[i]; if (!st) return;
+    const mine = st.bots.filter((b) => b.hide === st.tok), left = mine.filter((b) => b.active && b.alive).length;   // 투항한 자도 체포 전까지는 남은 것
+    if (!left) {
+      const arr = mine.filter((b) => b.arrested).length, pts = 800 + 300 * arr;
+      MS.score += pts; EN.hides[i] = null; for (const b of mine) b.hide = 0;
+      mpHostEvent({ k: 'hclr', h: i, p: pts, a: arr, n: st.n });
+    } else if (ann) mpHostEvent({ k: 'hide', h: i, n: left, re: 1 });
+  });
+}
 function enSpawnSquad(n) {
   const nd = enSpawnPoint(); if (!nd) return 0;
   const pl = enPlayers(false); let made = 0;
   for (let i = 0; i < n; i++) {
     const b = (EN.pool || []).find((x) => !x.active); if (!b) break;
     let x = nd.x + rand(-1.4, 1.4), z = nd.z + rand(-1.4, 1.4); if (blocked2D(x, z, 0.45)) { x = nd.x; z = nd.z; }
-    b.name = `강도 ${bots.indexOf(b) + 1}`; placeRobber(b, x, z, 0, 0); setType(b, enPickType());
+    b.name = `강도 ${bots.indexOf(b) + 1}`; placeRobber(b, x, z, 0, 0); setType(b, enPickType()); b.hide = 0;
     b.hp = b.maxHp = Math.min(180, 100 + 8 * (EN.lv - 1)); b.netFc = 0; b.netAim = null;
     const t = pl.length ? pl[Math.floor(Math.random() * pl.length)] : null;
     if (t) { b.yaw = b.targetYaw = Math.atan2(-(t.x - x), -(t.z - z)); b.root.rotation.y = b.yaw; b.state = 'hunt'; b.alertT = 2; b.hearPos.set(t.x, 0, t.z); setPath(b, t.x + rand(-4, 4), t.z + rand(-4, 4)); }
@@ -7489,6 +7599,7 @@ function enSpawnBoss() {
 function enDirector(dt) {
   EN.el += dt; EN.lvT += dt;
   if (EN.lvT >= EN_LVL) { EN.lvT = 0; EN.lv++; enScaleDiff(); mpHostEvent({ k: 'lv', lv: EN.lv }); if (EN.lv % 4 === 0) enSpawnBoss(); }
+  enHideTick(dt);
   const pl = Math.max(1, enPlayers(true).length);
   let alive = 0; for (const b of bots) if (b.active && b.alive && !b.surrender && !b.boss) alive++;
   const target = Math.min(22, 3 + 2 * pl + EN.lv);
@@ -7563,6 +7674,7 @@ function mpTick() {
 }
 function mpSlowTick(now) {
   NET.tickT = 1; mpLinks(); mpElect();
+  if (NET.inGame && NET.hides && (NET.hidePing = (NET.hidePing || 0) + 1) % 4 === 0) { const HH = enHideouts() || []; for (const k in NET.hides) if (NET.hides[k] && HH[k]) ping(HH[k].c[0], HH[k].c[1], 'radio'); }
   for (const q of [...NET.peers.values()]) if (!q.seenP && now - q.first > 15000) NET.peers.delete(q.id);
   if (++NET.trackT > 45) { NET.trackT = 0; mpTrack(); }
 }
