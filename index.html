@@ -233,6 +233,13 @@ body.bodycam #xhair{display:none}
 #vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(160,0,0,.8) 100%);opacity:0}
 #flash{position:absolute;inset:0;background:rgba(255,30,30,.22);opacity:0}
 #civflash{position:absolute;inset:0;box-shadow:inset 0 0 120px 30px rgba(60,160,255,.55);opacity:0}
+#supp{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 46%,rgba(0,0,0,.42) 74%,rgba(0,0,0,.86) 100%);opacity:0}
+#nvgOv{position:absolute;inset:0;pointer-events:none;display:none;background:radial-gradient(circle at 50% 50%,transparent 60%,rgba(0,14,0,.5) 74%,rgba(0,0,0,.94) 88%),repeating-linear-gradient(0deg,rgba(0,0,0,.07) 0,rgba(0,0,0,.07) 1px,transparent 1px,transparent 3px)}
+#nvgTag{position:absolute;left:50%;top:84px;transform:translateX(-50%);font:700 12px ui-monospace,Menlo,Consolas,monospace;color:#b8ff9c;letter-spacing:.12em;text-shadow:0 0 6px rgba(120,255,120,.6);display:none}
+body.nvg #game canvas{filter:grayscale(1) sepia(1) hue-rotate(72deg) saturate(2.4) brightness(1.3) contrast(1.12)}
+body.nvg #nvgOv,body.nvg #nvgTag{display:block}
+body.helmcam #bcam{display:block}
+.viewSeg button{white-space:nowrap}
 .ddir{position:absolute;left:50%;top:50%;width:240px;height:240px;margin:-120px 0 0 -120px;opacity:0}
 .ddir:before{content:'';position:absolute;left:50%;top:0;width:86px;height:22px;margin-left:-43px;
   border-radius:50% 50% 0 0/100% 100% 0 0;background:linear-gradient(180deg,rgba(255,40,40,.95),rgba(255,40,40,0))}
@@ -307,13 +314,16 @@ body.bodycam #xhair{display:none}
   <div id="fbang"></div>
   <div id="flash"></div>
   <div id="civflash"></div>
+  <div id="supp"></div>
+  <div id="nvgOv"></div>
+  <div id="nvgTag">NVG · 야간투시경</div>
   <div id="scope"><div class="lens"></div><div class="post"><i class="lh"></i><i class="lv"></i><i class="pl"></i><i class="pr"></i><i class="pt"></i><i class="pb"></i><i class="mh"></i><i class="mv"></i><i class="bdc b1"></i><i class="bdc b2"></i><i class="bdc b3"></i><i class="bdc b4"></i><i class="dot"></i></div></div>
   <div id="dmgdirs"><div class="ddir"></div><div class="ddir"></div><div class="ddir"></div><div class="ddir"></div></div>
   <div id="xhair"><i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i><b id="xdot"></b></div>
   <div id="hitmk"><i></i><i></i><i></i><i></i></div>
   <div id="bcDot"></div>
   <div id="prompt"><span id="promptTxt"></span><div class="pb"><i id="promptBar"></i></div></div>
-  <div id="bcam"><div><i></i>REC · 경찰특공대 03</div><div id="bcTime">0000-00-00 00:00:00 KST</div><div>WELEV BODYCAM X9 · <span id="bcLight">LIGHT OFF</span></div></div>
+  <div id="bcam"><div><i></i>REC · 경찰특공대 03</div><div id="bcTime">0000-00-00 00:00:00 KST</div><div><span id="bcName">WELEV BODYCAM X9</span> · <span id="bcLight">LIGHT OFF</span></div></div>
   <div id="popups"></div>
   <div id="topbar">
     <div id="tA"><small id="tAl">점수</small><b id="tAv">0</b></div>
@@ -383,17 +393,19 @@ body.bodycam #xhair{display:none}
         <kbd>1~4 · 휠 · Q</kbd><span>무기 교체 (3 저격총 · 4 비살상)</span>
         <kbd>G</kbd><span>섬광탄 던지기 (적 3초 기절)</span>
         <kbd>V</kbd><span>투항 명령 "경찰이다! 엎드려!"</span>
-        <kbd>E</kbd><span>문 열기 · 체포 (문 앞에서 길게: 폭약 돌파)</span>
+        <kbd>E</kbd><span>문 열기·닫기 · 체포(사살의 2배) · 길게: 폭약</span>
+        <kbd>Y</kbd><span>문 잠그기 · 도어 웨지 (다시 누르면 빼기)</span>
         <kbd>T</kbd><span>드론 정찰 (남은 적 위치 표시)</span>
-        <kbd>F</kbd><span>손전등 켜기·끄기</span>
-        <kbd>B</kbd><span>바디캠 화면 켜기·끄기</span>
+        <kbd>F</kbd><span>손전등 (정전 구역에선 적에게 들켜요)</span>
+        <kbd>J</kbd><span>야간투시경 켜기·끄기</span>
+        <kbd>B</kbd><span>화면 시점: 기본 → 헬멧캠 → 바디캠</span>
         <kbd>Z · X · H</kbd><span>팀: 따라와 · 대기 · 문 진입</span>
         <kbd>ESC</kbd><span>일시정지</span>
       </div>
       <h3>설정</h3>
       <div class="slider"><span>마우스 감도</span><input id="sens" type="range" min="0.3" max="3" step="0.05"><output id="sensOut"></output></div>
       <div class="slider"><span>소리 크기</span><input id="vol" type="range" min="0" max="1" step="0.05"><output id="volOut"></output></div>
-      <div class="row tog"><label>바디캠 화면 (어안 렌즈·흔들림·녹화 표시)</label><div class="seg bcSeg"><button data-v="1">켜기</button><button data-v="0">끄기</button></div></div>
+      <div class="row tog"><label>화면 시점 (B로 바꾸기)</label><div class="seg viewSeg"><button data-v="normal">기본</button><button data-v="helm">헬멧캠</button><button data-v="body">바디캠</button></div></div>
       <div class="guns">
         <div class="gun"><b>장비 바꾸기</b><small>작전 준비·같이하기의 장비 화면, 그리고 게임 중 ESC → 장비 바꾸기에서 언제든 총을 바꿀 수 있어요.</small></div>
         <div class="gun"><b>총기 11종 · 4칸</b><small>주무기 6 · 권총 · 저격총 2 · 비살상 2 + 조준경·소음기·손잡이 + 섬광탄/폭약/방탄복</small></div>
@@ -416,7 +428,7 @@ body.bodycam #xhair{display:none}
       <div class="opt"><label>AI 팀원</label><div class="seg" data-k="mates"><button data-v="0">없음</button><button data-v="1">1명</button><button data-v="2">2명</button><button data-v="3">3명</button></div></div>
       <div class="opt"><label>난이도</label><div class="seg" data-k="diff"><button data-v="easy">쉬움</button><button data-v="normal">보통</button><button data-v="hard">어려움</button><button data-v="real">실전</button></div></div>
       <p class="note" id="prepNote"></p>
-      <div class="cmd"><kbd>V</kbd> 투항 명령 · <kbd>E</kbd> 문/체포 · <kbd>G</kbd> 섬광탄 · <kbd>F</kbd> 손전등 · <kbd>Z</kbd> 팀 따라와 · <kbd>X</kbd> 대기 · <kbd>H</kbd> 문 진입 · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> 무기 · <kbd>N</kbd> 조정간(단발·점사·연발)</div>
+      <div class="cmd"><kbd>V</kbd> 투항 명령 · <kbd>E</kbd> 문/체포 · <kbd>G</kbd> 섬광탄 · <kbd>F</kbd> 손전등 · <kbd>J</kbd> 야간투시경 · <kbd>Y</kbd> 문 잠금 · <kbd>Z</kbd> 팀 따라와 · <kbd>X</kbd> 대기 · <kbd>H</kbd> 문 진입 · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> 무기 · <kbd>N</kbd> 조정간(단발·점사·연발)</div>
     </div>
     <div>
       <h3>장비</h3>
@@ -487,7 +499,7 @@ body.bodycam #xhair{display:none}
     <div id="mpPause" class="hidden"><p id="mpRoomTxt"></p><button class="btn2" id="mpInvite">초대 링크 복사</button></div>
     <div class="slider"><span>마우스 감도</span><input id="sens2" type="range" min="0.3" max="3" step="0.05"><output id="sensOut2"></output></div>
     <div class="slider"><span>소리 크기</span><input id="vol2" type="range" min="0" max="1" step="0.05"><output id="volOut2"></output></div>
-    <div class="row tog"><label>바디캠 화면</label><div class="seg bcSeg"><button data-v="1">켜기</button><button data-v="0">끄기</button></div></div>
+    <div class="row tog"><label>화면 시점</label><div class="seg viewSeg"><button data-v="normal">기본</button><button data-v="helm">헬멧캠</button><button data-v="body">바디캠</button></div></div>
     <div class="btns">
       <button class="btn2 pri" id="resumeBtn">계속하기</button>
       <button class="btn2" id="gearLiveBtn">장비 바꾸기</button>
@@ -563,7 +575,7 @@ const EN_LVL = 75; // 위협 단계가 오르는 간격(초)
 const isEndless = () => NET.on && MS.type === 'endless';
 
 const LO_DEF = { p: 0, sn: 8, nl: 4, sp: 'flash', opt: 'dot', sup: false, grip: false };
-const settings = { sens: 1, vol: 0.7, bodycam: false, vfx: 2, mtype: 'hostage', tod: 'base', weather: 'clear', mates: 2, loadout: Object.assign({}, LO_DEF) };
+const settings = { sens: 1, vol: 0.7, bodycam: false, helmcam: false, vfx: 2, mtype: 'hostage', tod: 'base', weather: 'clear', mates: 2, loadout: Object.assign({}, LO_DEF) };
 try { const st = JSON.parse(localStorage.getItem('welevfps.settings') || '{}'); Object.assign(settings, st, { loadout: Object.assign({}, LO_DEF, st.loadout || {}) }); if ((st.vfx || 0) < 2) settings.bodycam = false; settings.vfx = 2; } catch (e) {}
 if ([8, 1].includes(settings.loadout.p)) { settings.loadout.sn = settings.loadout.p; settings.loadout.p = 0; } // 예전 저장: 저격총을 주무기로 골랐으면 3번 칸으로
 if (![0, 6, 2, 7, 3, 10].includes(settings.loadout.p)) settings.loadout.p = 0;
@@ -577,7 +589,7 @@ try { bestTraining = +(localStorage.getItem('welevfps.best') || 0); bestAlley = 
    Audio (all synthesized — no files)
    ========================================================= */
 const sfx = (() => {
-  let ctx = null, master = null, nbuf = null;
+  let ctx = null, master = null, nbuf = null, rev = null, wet = 0, room = 0;
   function init() {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
     try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
@@ -586,6 +598,12 @@ const sfx = (() => {
     master.connect(comp); comp.connect(ctx.destination);
     nbuf = ctx.createBuffer(1, ctx.sampleRate * 3, ctx.sampleRate);
     const d = nbuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    try {
+      // 실내 울림: 짧은 초기 반사 + 1.3초 꼬리 (직접 만든 임펄스 응답)
+      const len = Math.floor(ctx.sampleRate * 1.3), ir = ctx.createBuffer(2, len, ctx.sampleRate);
+      for (let c = 0; c < 2; c++) { const a = ir.getChannelData(c); for (let i = 0; i < len; i++) { const t = i / len; a[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 3.2) * (t < 0.012 ? t / 0.012 : 1); } for (const ms of [11, 19, 29, 41, 57]) { const k = Math.floor(ctx.sampleRate * ms / 1000) + c * 37; if (k < len) a[k] += c ? -0.5 : 0.55; } }
+      rev = ctx.createConvolver(); rev.buffer = ir; const rg = ctx.createGain(); rg.gain.value = 0.9; rev.connect(rg); rg.connect(master);
+    } catch (e) { rev = null; }
   }
   function out(pan) {
     if (pan && ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = clamp(pan, -1, 1); p.connect(master); return p; }
@@ -600,6 +618,7 @@ const sfx = (() => {
     g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t + attack);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     src.connect(f); f.connect(g); g.connect(out(pan));
+    if (wet > 0 && rev) { const sg = ctx.createGain(); sg.gain.value = wet; g.connect(sg); sg.connect(rev); }
     src.start(t, Math.random() * 1.5); src.stop(t + dur + 0.05);
   }
   function tone({ t0 = 0, dur = 0.1, type = 'sine', freq = 440, freqEnd, gain = 0.3, attack = 0.003, pan = 0 }) {
@@ -609,13 +628,19 @@ const sfx = (() => {
     const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t + attack);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    if (wet > 0 && rev) { const sg = ctx.createGain(); sg.gain.value = wet; g.connect(sg); sg.connect(rev); }
     o.connect(g); g.connect(out(pan)); o.start(t); o.stop(t + dur + 0.05);
   }
   return {
     init,
     setVol(v) { if (master) master.gain.value = v; },
+    setRoom(k) { room = k; },
     shot(kind, dist = 0, pan = 0) {
       if (!ctx) return;
+      wet = rev ? (0.07 + 0.55 * room) * (dist > 30 ? 0.6 : 1) : 0;
+      try { this._shot(kind, dist, pan); } finally { wet = 0; }
+    },
+    _shot(kind, dist = 0, pan = 0) {
       const far = clamp(1 / (1 + dist / 9), 0.07, 1);
       const lp = dist > 0 ? clamp(4200 * 12 / (dist + 12), 700, 4200) : 4200;
       if (kind === 'sniper') {
@@ -680,8 +705,8 @@ const sfx = (() => {
       src.connect(f); f.connect(g); g.connect(master); src.start(); this._rain = src;
     },
     ring() { tone({ dur: 1.6, freq: 3900, gain: 0.05, attack: 0.02 }); },
-    bang() { noise({ dur: 0.5, freq: 1800, freqEnd: 300, gain: 0.95 }); tone({ dur: 0.35, freq: 90, freqEnd: 35, gain: 0.7 }); tone({ t0: 0.05, dur: 2.2, freq: 4200, gain: 0.04, attack: 0.05 }); },
-    boom() { noise({ dur: 0.9, freq: 900, freqEnd: 120, gain: 1.0 }); tone({ dur: 0.6, freq: 70, freqEnd: 28, gain: 0.85 }); },
+    bang() { wet = rev ? 0.1 + 0.5 * room : 0; noise({ dur: 0.5, freq: 1800, freqEnd: 300, gain: 0.95 }); tone({ dur: 0.35, freq: 90, freqEnd: 35, gain: 0.7 }); tone({ t0: 0.05, dur: 2.2, freq: 4200, gain: 0.04, attack: 0.05 }); wet = 0; },
+    boom() { wet = rev ? 0.1 + 0.45 * room : 0; noise({ dur: 0.9, freq: 900, freqEnd: 120, gain: 1.0 }); tone({ dur: 0.6, freq: 70, freqEnd: 28, gain: 0.85 }); wet = 0; },
     beep() { tone({ dur: 0.07, freq: 1900, type: 'square', gain: 0.06 }); },
     door() { noise({ dur: 0.35, freq: 420, freqEnd: 260, gain: 0.12 }); tone({ dur: 0.3, freq: 180, freqEnd: 140, type: 'sawtooth', gain: 0.025 }); },
     cuff() { noise({ dur: 0.04, freq: 3200, gain: 0.18 }); noise({ t0: 0.12, dur: 0.04, freq: 3000, gain: 0.18 }); tone({ t0: 0.2, dur: 0.12, freq: 660, type: 'triangle', gain: 0.08 }); },
@@ -689,6 +714,11 @@ const sfx = (() => {
     pin() { noise({ dur: 0.05, freq: 3500, gain: 0.1 }); tone({ t0: 0.03, dur: 0.05, freq: 2400, type: 'square', gain: 0.03 }); },
     warn() { tone({ dur: 0.22, freq: 330, type: 'square', gain: 0.09 }); tone({ t0: 0.24, dur: 0.3, freq: 247, type: 'square', gain: 0.09 }); },
     rescue() { [660, 880, 1320].forEach((f, i) => tone({ t0: i * 0.09, dur: 0.22, freq: f, type: 'triangle', gain: 0.18 })); },
+    breath(k) { noise({ dur: 0.42, type: 'bandpass', freq: 1250, freqEnd: 800, q: 0.8, gain: 0.035 + 0.05 * k, attack: 0.12 }); noise({ t0: 0.5, dur: 0.55, type: 'bandpass', freq: 700, freqEnd: 380, q: 0.7, gain: 0.045 + 0.06 * k, attack: 0.06 }); },
+    crack(pan) { noise({ dur: 0.035, type: 'highpass', freq: 3600, gain: 0.3, pan }); tone({ dur: 0.03, freq: 2100, freqEnd: 900, type: 'triangle', gain: 0.06, pan }); },
+    thump() { noise({ dur: 0.16, freq: 260, freqEnd: 120, gain: 0.55 }); tone({ dur: 0.14, freq: 80, freqEnd: 50, gain: 0.35 }); },
+    nvg(on) { tone({ dur: on ? 0.9 : 0.25, freq: on ? 900 : 5200, freqEnd: on ? 7800 : 600, gain: 0.025, attack: 0.05 }); },
+    wedge() { noise({ dur: 0.06, freq: 900, gain: 0.25 }); tone({ t0: 0.03, dur: 0.09, freq: 240, freqEnd: 160, type: 'triangle', gain: 0.12 }); },
     siren() { for (let i = 0; i < 4; i++) tone({ t0: i * 0.42, dur: 0.4, freq: i % 2 ? 960 : 720, type: 'sawtooth', gain: 0.045 }); },
   };
 })();
@@ -1568,7 +1598,7 @@ function buildCityHall() {
   const L = newLevel('cityhall', {
     bounds: { x0: -16.5, x1: 44, z0: -32, z1: 13 }, nav: { x0: -14.75, x1: 43.25, z0: -30.25, z1: 11.75, step: 1.5, pad: 0.45, epad: 0.38 },
     ground: 'stone', dmgMul: 0.85, orbit: { cx: 12, cz: -9, r: 27, h: 28 }, zones: CH_ZONES, exits: CH_EXITS, walk: CH_WALK, pickup: [41, -8.5], reinf: [[27, -24, Math.PI / 2], [-12.5, -2, Math.PI / 2]], escapeVan: [40.6, -10.3, 0], escapeBoss: [41, -7.2], extract: [3, 9.4],
-    defend: { x: 5.5, z: -12.5, r: 7, spawn: [5.5, -10.5, Math.PI], spawns: [[-13, -29], [27, -29.5], [42, -8.5], [-13, 9.5], [27, 9.5], [37, -29.5]] }, indoor: [[-6.35, 17.35, -26.7, -16.15], [32.65, 39.85, -26.35, -13.8]],
+    defend: { x: 5.5, z: -12.5, r: 7, spawn: [5.5, -10.5, Math.PI], spawns: [[-13, -29], [27, -29.5], [42, -8.5], [-13, 9.5], [27, 9.5], [37, -29.5]] }, indoor: [[-6.35, 17.35, -26.7, -16.15], [32.65, 39.85, -26.35, -13.8]], dark: [[-6.35, 17.35, -26.7, -16.15, -1, 6]],
     env: { skyTop: 0x3f7fc6, skyMid: 0xa6c8e8, skyBot: 0xf0e4cc, fog: 0xcdd7e0, fogNear: 60, fogFar: 210, hemiSky: 0xe8f1ff, hemiGround: 0x8a7f6c, hemiI: 1.2, sunColor: 0xffe2bc, sunI: 2.5, sunOff: [-16, 34, 36], exposure: 1.04 },
     miniDraw: (g, tx, tz) => {
       const r = (x0, x1, z0, z1) => g.fillRect(tx(x0), tz(z0), tx(x1) - tx(x0), tz(z1) - tz(z0));
@@ -3673,7 +3703,7 @@ function buildYTower() {
     exits: [[-19, 25], [19, 25], [0, 26.4]], walk: [[-12, 15], [-6, 22], [6, 22], [12, 15], [0, 13], [-16, 24], [16, 24], [0, 6], [0, -1.7], [-8, -1.7], [8, -1.7]],
     pickup: [-14.8, 17.5], reinf: [[-17.5, 24.5, 0], [17.5, 24.5, 0]], escapeVan: [-16.9, 17.5, Math.PI / 2], escapeBoss: [-14.9, 19.6], extract: [0, 24],
     defend: { x: 0, z: 2, r: 5, spawn: [0, 3, Math.PI], spawns: [[-17, 24], [17, 24], [0, 26], [-12, 26], [12, 26]] },
-    indoor: [[-15, 15, -10, 10]],
+    indoor: [[-15, 15, -10, 10]], roofY: 14.1, dark: [[-15.2, 15.2, -10.2, 10.2, 6.9, 10.75]],
     env: { skyTop: 0x4a7fc0, skyMid: 0xb5cde4, skyBot: 0xf1dfc4, fog: 0xd3d9df, fogNear: 50, fogFar: 160, hemiSky: 0xf2f4fa, hemiGround: 0x9a8e7c, hemiI: 1.95, sunColor: 0xffdcb0, sunI: 2.3, sunOff: [-26, 40, 30], exposure: 1.05 },
     miniLabels: [[0, 18.5, '시계탑'], [-13.2, -6.5, 'A계단'], [13.2, -6.5, 'B계단'], [0, -8.6, '엘베']],
   });
@@ -3707,7 +3737,7 @@ function buildYTower() {
     stool: std({ color: 0x8b1d1d, roughness: 0.6 }), sofa: std({ color: 0x7a1f5c, roughness: 0.7 }), sofa2: std({ color: 0x23314d, roughness: 0.7 }),
     shelf: std({ color: 0xdedad2, roughness: 0.6 }), goods: std({ map: canvasTex(128, (g, w, h) => { const cs = ['#e53935', '#fdd835', '#43a047', '#1e88e5', '#fb8c00', '#8e24aa']; for (let y = 0; y < 4; y++) for (let x = 0; x < 8; x++) { g.fillStyle = cs[(x * 3 + y) % cs.length]; g.fillRect(x * 16 + 2, y * 32 + 6, 12, 24); } }), roughness: 0.6 }),
     part: std({ color: 0x8c96a3, roughness: 0.8 }), desk: std({ color: 0xbfb6a5, roughness: 0.55 }),
-    panel: new THREE.MeshBasicMaterial({ color: 0xfffaf0 }),
+    panel: new THREE.MeshBasicMaterial({ color: 0xfffaf0 }), panelOff: new THREE.MeshBasicMaterial({ color: 0x34373c }),
     roof: std({ map: canvasTex(256, (g, w, h) => { g.fillStyle = '#7f8a86'; g.fillRect(0, 0, w, h); grain(g, w, h, 30); }), roughness: 0.95 }),
     plaza: std({ map: tileTex('#bdb3a2', 'rgba(70,60,50,.35)', 4), roughness: 0.85 }),
   };
@@ -3848,13 +3878,15 @@ function buildYTower() {
     floorPlane(-14.7, 14.7, -3, -0.4, y, f === 0 ? M.lobby : M.tile, 2); floorPlane(-3, 3, -7.6, -3, y, M.lobby, 2);
     floorPlane(-11.6, -3.1, -9.7, -3.1, y, M.tile, 2); floorPlane(3.1, 11.6, -9.7, -3.1, y, M.tile, 2);
     for (const st of TW.STAIRS) floorPlane(st.x0, st.x1, -3.6, -3, y, M.stair, 1);
+    const panelOn = M.panel; if (f === 2) M.panel = M.panelOff; // 3층 정전
     ceilPanels(-14.7, 14.7, -3, -0.4, y + H); ceilPanels(-11.6, -3, -9.7, -3, y + H); ceilPanels(3, 11.6, -9.7, -3, y + H);
     // 층 이름 판 (계단 앞)
     const sg = textTex(256, 128, (g, w, hh) => { g.fillStyle = '#1b2a3a'; g.fillRect(0, 0, w, hh); g.fillStyle = '#fff'; g.font = `900 64px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(`${f + 1}F`, w / 2, hh / 2 + 4); });
     signPlane(sg, 0.8, 0.4, -10.4, y + 2.4, -2.88, 'pz'); signPlane(sg, 0.8, 0.4, 10.4, y + 2.4, -2.88, 'pz'); signPlane(sg, 0.8, 0.4, 0, y + 3.0, -7.58, 'pz');
     // 층별 앞쪽 공간
     [ROOMS_1F, ROOMS_2F, ROOMS_3F, ROOMS_4F][f](y);
-    const pl = new THREE.PointLight(0xfff1dc, 3.2, 24, 2); pl.position.set(0, y + 3.0, 1); BL.group.add(pl);
+    M.panel = panelOn;
+    if (f !== 2) { const pl = new THREE.PointLight(0xfff1dc, 3.2, 24, 2); pl.position.set(0, y + 3.0, 1); BL.group.add(pl); }
   }
 
   // 층마다 방 꾸미기 (좌석·숨는 자리는 TW.HIDE에 모은다)
@@ -4122,7 +4154,7 @@ function setWeaponVisible(i) { GUNVM.forEach((g, k) => { g.group.visible = k ===
 const MISSIONS = {
   alley: {
     level: 'alley', time: 360, spawn: [0, 13.4, 0], sTime: 150, setup: () => setupAlley(), title: '한옥골목 강도 진압', timeMsg: '제한 시간 6분이 지났어요.',
-    hint: 'V 투항 명령 → E 체포(+500) · G 섬광탄 · 문 앞 E 길게: 폭약 돌파 · 시민 −500 · T 드론', start: '작전 개시 — 강도·두목 제압 · 시민 보호',
+    hint: '제압 사격 → V 투항 → E 체포 +500(사살의 2배) · G 섬광탄 · 문 앞 E 길게: 폭약 돌파 · 시민 −500 · T 드론', start: '작전 개시 — 강도·두목 제압 · 시민 보호',
   },
   cityhall: {
     level: 'cityhall', time: 420, spawn: [4, 10.2, 0], sTime: 180, setup: () => setupCityHall(), title: '서울시청 강도 진압', timeMsg: '제한 시간 7분이 지났어요.',
@@ -4143,7 +4175,7 @@ const MAP_NAMES = { alley: '한옥골목', cityhall: '서울시청', yeongtong: 
 const MISSION_PLACE = { alley: '온담 솥밥', cityhall: '서울도서관', yeongtong: '청명은행', ytower: '시계탑 빌딩' };
 function missionName() { return `${MAP_NAMES[mode] || ''} ${TYPE_NAMES[MS.type] || ''}`; }
 const TYPE_HINTS = {
-  hostage: 'V 투항 → E 체포 · G 섬광탄 · 문 앞 E 길게: 폭약 · Z/X/H 팀 명령 · T 드론',
+  hostage: '제압 사격 → V 투항 → E 체포(사살의 2배) · Y 문 잠금 · J 야간투시경 · G 섬광탄 · Z/X/H 팀',
   escape: '도주 차량 타이어 2개를 쏘거나 두목을 제압 · V 투항 → E 체포 · G 섬광탄 · T 드론',
   defend: '파란 원 안으로 강도가 6초 이상 들어오면 실패 · 공격 사이에 섬광탄 +1 · Z/X 팀 명령',
   escort: '요인을 구출해 가까이 가면 따라와요 · 초록 원까지 호송 · 요인이 3번 맞으면 실패',
@@ -4171,7 +4203,7 @@ function startGame(m) {
   $('tB').classList.remove('warn');
   document.querySelectorAll('.kf').forEach((n) => n.remove());
   for (const m of mates) { m.active = false; m.root.visible = false; m.tagS.visible = false; }
-  tacticalReset();
+  tacticalReset(); phase1Reset();
   $('tTl').textContent = '남은 시간';
   if (mode === 'training') {
     timeLeft = 60; training.spawnCd = 0.6; training.recent = [];
@@ -4201,7 +4233,7 @@ function startGame(m) {
     $('tAl').textContent = '강도'; $('tBl').textContent = '시민 부상';
   }
   resolveConditions(); if (NET.on) { COND.night = false; COND.weather = 'clear'; } applyConditions();
-  if (isMission()) { if (NET.on) enIntro(); else { spawnMates(); missionIntro(); } }
+  if (isMission()) { if (NET.on) enIntro(); else { spawnMates(); missionIntro(); } const rid = roundId; setTimeout(() => { if (rid === roundId && state === 'playing') ctrlSay('rules'); }, 6500); }
   updateGearHUD();
   $('death').classList.remove('on');
   $('menu').classList.add('hidden'); $('results').classList.add('hidden'); $('pause').classList.add('hidden');
@@ -4209,7 +4241,7 @@ function startGame(m) {
   $('hud').classList.remove('hidden');
   $('mini').classList.toggle('hidden', mode === 'training');
   if (mode === 'bots') { mini.pings.length = 0; mini.droneT = 0; mini.droneCd = 0; }
-  $('hint').textContent = NET.on ? 'V 투항 → E 체포 · G 섬광탄 · 문 앞 E 길게: 폭약 · T 드론 · Tab 대원 목록 · ESC 메뉴(게임은 계속돼요)'
+  $('hint').textContent = NET.on ? '제압 → V 투항 → E 체포(사살의 2배) · J 야간투시경 · Y 문 잠금 · G 섬광탄 · T 드론 · Tab 대원 목록'
     : isMission()
     ? TYPE_HINTS[MS.type] || MISSIONS[mode].hint
     : 'WASD 이동 · Shift 달리기 · 우클릭 조준 · R 재장전 · 1/2/3 무기 · N 조정간 · ESC 일시정지';
@@ -4452,7 +4484,7 @@ function placeRobber(b, x, z, yaw, guardR, y = 0) {
   b.state = 'patrol'; b.path = []; b.pathIdx = 0; b.seeT = 0; b.canSee = false; b.alertT = 0; b.burst = 0; b.fireCd = 0.6;
   b.stuckT = 0; b.stuckRef.copy(b.pos); b.flinch = 0; b.torso.rotation.x = 0; b.idleT = rand(1, 3);
   b.guard = guardR > 0 ? { x, z, y, r: guardR } : null; b.hostage = null;
-  b.goal = null; b.stunT = 0; b.autoT = 0; b.surrender = false; b.arrested = false; b.fakeT = -1; b.faked = false; b.flee = false; b.atPickup = false; b.evDropped = false; b.gunG.visible = true; b.bean = 0; b.meleeCd = 0;
+  b.goal = null; b.stunT = 0; b.autoT = 0; b.surrender = false; b.arrested = false; b.fakeT = -1; b.faked = false; b.flee = false; b.atPickup = false; b.evDropped = false; b.gunG.visible = true; b.bean = 0; b.meleeCd = 0; b.supp = 0; b.suppT = -9; b.disarmed = false; b.dispT = 0;
   resetPose(b); setType(b, 'rifle');
 }
 function missionEnd(success, reason) {
@@ -4501,7 +4533,7 @@ function endGame() {
     $('resTitle').textContent = MS.success ? '작전 성공!' : '작전 실패';
     $('resSub').textContent = (MS.success ? `${missionName()} · 난이도 ${{ easy: '쉬움', normal: '보통', hard: '어려움', real: '실전' }[difficulty]} · ${condLabel()}${grade !== 'S' ? ' · S등급: 무사고·쓰러짐 0·체포 3명+' : ''}` : MS.reason);
     html += `<div class="big grade"><span class="g">${grade}</span><div><small>최종 점수${isBest ? '<span class="newbest">최고 기록!</span>' : ''}</small><b>${total.toLocaleString()}</b></div></div>`;
-    html += `<div><small>강도 제압</small><b>${MS.down} / ${MS.total}</b><em>체포 ${MS.arrests} · 사살 ${MS.kills}</em></div>`;
+    html += `<div><small>강도 제압</small><b>${MS.down} / ${MS.total}</b><em>체포 ${MS.arrests} (×500) · 사살 ${MS.kills} (×250)</em></div>`;
     if (MS.type === 'escort') html += `<div class="${MS.vipSafe ? '' : 'bad'}"><small>요인 호송</small><b>${MS.vipSafe ? '성공' : '실패'}</b><em>피격 ${3 - (MS.vipHp ?? 3)}회</em></div>`;
     else if (MS.type === 'defend') html += `<div><small>방어한 공격</small><b>${Math.min(MS.wave, MS.waves.length)} / ${MS.waves.length}</b></div>`;
     else html += `<div class="${hostOk ? '' : 'bad'}"><small>인질 구출</small><b>${MS.hostSaved} / ${MS.hostTotal}</b>${MS.hostHurt ? `<em>부상 ${MS.hostHurt}명</em>` : ''}${MS.type === 'escape' ? `<em>도주 차량 ${MS.vanDown ? '무력화' : '—'}</em>` : ''}</div>`;
@@ -4509,7 +4541,7 @@ function endGame() {
     html += `<div><small>증거물 회수</small><b>${MS.evidence} / ${MS.evTotal}</b></div>`;
     html += `<div><small>보너스 (남은 시간·무사고)</small><b>${(timeBonus + safeBonus).toLocaleString()}</b></div>`;
     html += `<div class="${MS.deaths ? 'bad' : ''}"><small>쓰러진 횟수</small><b>${MS.deaths}번</b></div>`;
-    if (MS.fouls) html += `<div class="bad"><small>투항자 사격</small><b>${MS.fouls}번</b></div>`;
+    if (MS.fouls) html += `<div class="bad"><small>무력 사용 위반 (투항·비무장 사격)</small><b>${MS.fouls}번</b></div>`;
     html += `<div><small>명중률 · 헤드샷</small><b>${acc}% · ${stats.heads}</b></div>`;
   }
   grid.innerHTML = html;
@@ -4518,6 +4550,7 @@ function endGame() {
 }
 function toMenu() {
   if (NET.on) mpLeave();
+  phase1Reset();
   state = 'menu'; document.body.classList.remove('playing');
   if (document.pointerLockElement) document.exitPointerLock();
   $('hud').classList.add('hidden'); $('pause').classList.add('hidden'); $('results').classList.add('hidden'); $('menu').classList.remove('hidden');
@@ -4574,7 +4607,7 @@ document.addEventListener('mousemove', (e) => {
   if (state !== 'playing' || !P.alive || (!locked && !fallbackLook)) return;
   const dx = e.movementX || 0, dy = e.movementY || 0;
   if (Math.abs(dx) > 450 || Math.abs(dy) > 450) return;
-  const k = 0.0021 * settings.sens * (camera.fov / (settings.bodycam ? BC_FOV : BASE_FOV));
+  const k = 0.0021 * settings.sens * (camera.fov / baseFov());
   P.yaw -= dx * k;
   const dp = -dy * k; P.pitch = clamp(P.pitch + dp, -1.45, 1.45);
   if (dp < 0) P.recoil = Math.max(0, P.recoil + dp);
@@ -4613,7 +4646,9 @@ document.addEventListener('keydown', (e) => {
     if (e.code === 'KeyZ') orderMates('follow');
     if (e.code === 'KeyX') orderMates('hold');
     if (e.code === 'KeyH') orderMates('breach');
-    if (e.code === 'KeyB') setBodycam(!settings.bodycam, true);
+    if (e.code === 'KeyB') setView({ normal: 'helm', helm: 'body', body: 'normal' }[viewMode()], true);
+    if (e.code === 'KeyJ') toggleNvg();
+    if (e.code === 'KeyY') wedgeKey();
     if (e.code === 'Escape') pause();
   } else if (state === 'paused' && e.code === 'Enter') resume();
 });
@@ -4729,7 +4764,7 @@ function updatePlayer(dt) {
   vm.crouch = damp(vm.crouch, P.crouch ? 1 : 0, 10, dt);
   if (!(isMission() && difficulty === 'real') && gameTime - P.lastHit > 5 && P.hp < 100) P.hp = Math.min(100, P.hp + 22 * dt);
   if (fallbackLook && !locked) {
-    const ex = mouseX / innerWidth, kk = 2.4 * settings.sens * (camera.fov / (settings.bodycam ? BC_FOV : BASE_FOV)) * dt;
+    const ex = mouseX / innerWidth, kk = 2.4 * settings.sens * (camera.fov / baseFov()) * dt;
     if (ex < 0.05) P.yaw += kk * (1 - ex / 0.05); else if (ex > 0.95) P.yaw -= kk * ((ex - 0.95) / 0.05);
   }
 }
@@ -4767,7 +4802,7 @@ function fire() {
   const w = W(), a = P.ammo[P.cur];
   a.mag--; P.nextFire = gameTime + w.interval; stats.shots++;
   P.burst = gameTime - P.lastShot < w.interval * 1.6 ? P.burst + 1 : 0; P.lastShot = gameTime;
-  const spread = currentSpread(), ang = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * spread;
+  const spread = currentSpread() * (1 + SUP.k * 0.7), ang = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * spread;
   camera.position.set(P.pos.x, P.pos.y + P.eyeH, P.pos.z); camera.rotation.set(P.pitch, P.yaw, 0);
   camera.updateMatrixWorld();
   _o.copy(camera.position);
@@ -4811,6 +4846,7 @@ function fire() {
       else if (u.civ) { if (NET.on && !NET.host) mpClientCiv(u.civ, w); else if (w.type === 'taser' || w.lessLethal) taserCiv(u.civ); else hitCiv(u.civ, hit.point); }
     } else if (wh) { _end.copy(wh.point); impact(wh.point, wh.normal, wh.surface); }
     else _end.copy(_o).addScaledVector(_dir, range);
+    if (pi === 0 && w.type !== 'taser' && !w.lessLethal && (!NET.on || NET.host)) suppressBots(_o, _end, P.pos, true);
     if (pi === 0 && NET.on) { NET.shot = (NET.shot + 1) % 1000; NET.shotEnd = _end.clone(); NET.sendT = Math.min(NET.sendT, 0.03); }
     if (pi < 3) {
       if (w.type === 'taser') spawnWires(_mz, _end);
@@ -4890,13 +4926,13 @@ function killBot(b, head) {
   WEAPONS.forEach((w, i) => { P.ammo[i].reserve = Math.min(w.reserveMax, P.ammo[i].reserve + (w.type === 'auto' ? 30 : w.type === 'semi' ? Math.ceil(w.magSize / 2) : 5)); });
   addFeed('나', b.name, W().short, head);
   if (isMission()) {
-    const foul = b.surrender; // shooting someone who already gave up
+    const foul = b.surrender || b.disarmed, fdis = !!b.disarmed && !b.surrender; b.disarmed = false; // shooting someone who gave up or dropped the gun
     b.surrender = false; b.gunG.visible = false; dropEvidence(b);
-    let pts = (b.boss ? 1500 : 300) + (head ? 150 : 0);
+    let pts = (b.boss ? 1000 : 250) + (head ? 50 : 0);
     if (foul) { pts = -500; MS.fouls++; }
     MS.score += pts; MS.kills++; popup((pts > 0 ? '+' : '') + pts, foul ? 'civ' : head ? 'head' : '');
-    if (foul) centerMsg('투항한 용의자 사격! −500', 'civ', 1.6);
-    else if (b.boss) setTimeout(() => centerMsg('두목 제압! +1500', 'head', 1.8), 50);
+    if (foul) { centerMsg(fdis ? '비무장 용의자 사격! −500' : '투항한 용의자 사격! −500', 'civ', 1.6); ctrlFoul(); }
+    else if (b.boss) setTimeout(() => centerMsg('두목 제압! +1000', 'head', 1.8), 50);
     robberDown(b);
     if (!MS.ended && !b.boss && !foul) centerMsg(head ? '헤드샷!' : '강도 제압!', head ? 'head' : 'kill', 0.9);
     return;
@@ -4936,6 +4972,7 @@ function damagePlayer(dmg, b) {
   const dx = b.pos.x - P.pos.x, dz = b.pos.z - P.pos.z;
   const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw), rx = Math.cos(P.yaw), rz = -Math.sin(P.yaw);
   showDmgDir(Math.atan2(dx * rx + dz * rz, dx * fx + dz * fz));
+  SUP.k = Math.min(1, SUP.k + 0.2); SUP.t = gameTime;
   sfx.hurt();
   if (settings.bodycam) { bc.hit = Math.min(1, bc.hit + 0.55); P.shake = Math.max(P.shake, 0.6); if (dmg > 12 || P.hp < 35) sfx.ring(); }
   if (P.hp <= 0) playerDie(b);
@@ -5004,7 +5041,7 @@ function botCanSee(b) {
   if (P.alive) {
     _pe.copy(camera.position); _pc.set(P.pos.x, P.pos.y + (P.crouch ? 0.7 : 1.05), P.pos.z);
     const d = Math.hypot(_pe.x - _be.x, _pe.z - _be.z);
-    if (d <= maxD && look(_pe.x, _pe.z, d)) {
+    if (d <= (DK.hide ? Math.min(maxD, b.alertT > 0 ? 10 : 6) : maxD) && look(_pe.x, _pe.z, d)) {
       if (losClear(_be, _pc)) { b.aimPoint.copy(_pc); best = 0; bd = d; }
       else if (losClear(_be, _pe)) { b.aimPoint.copy(_pe).y -= 0.12; best = 0; bd = d; }
     }
@@ -5049,6 +5086,7 @@ function botFire(b, d) {
   const pSpeed = Math.hypot(P.vel.x, P.vel.z), T = b.type, atPlayer = !b.tgt;
   let chance = d.acc * (b.boss ? 1.35 : 1) * clamp(14 / dist, 0.3, 1.25) * (atPlayer && pSpeed > 4 ? 0.7 : 1) * (atPlayer && P.crouch ? 0.85 : 1) * (0.5 + 0.5 * Math.min(1, b.seeT / 1.6));
   if (atPlayer && !P.onGround) chance *= 0.7;
+  chance *= 1 - 0.55 * (b.supp || 0); // 제압당한 강도는 잘 못 맞힌다
   if (T === 'shotgun') chance *= dist < 12 ? 1.6 : dist < 22 ? 0.8 : 0.3;
   if (T === 'sniper') chance = d.acc * 1.7 * (0.55 + 0.45 * Math.min(1, b.seeT / 2.5));
   if (T === 'pistol' || T === 'shield') chance *= dist < 15 ? 1.1 : 0.65;
@@ -5072,6 +5110,7 @@ function botFire(b, d) {
     else end = mz.clone().addScaledVector(mdir, 140);
     if (dist < 45 && Math.random() < 0.5) sfx.whiz(-pan);
   }
+  nearMiss(mz, end, b, T);
   b.netFc = ((b.netFc | 0) + 1) % 1000; b.netAim = end; EN.lastShot = gameTime;
   spawnTracer(mz, end, 0xffa36a, 0.07, 0.02);
   if (gameTime - b.lastPing > 0.6) { b.lastPing = gameTime; ping(b.pos.x, b.pos.z, 'fire'); }
@@ -5107,6 +5146,7 @@ function updateBot(b, dt) {
     b.root.updateMatrixWorld(true);
     return;
   }
+  botSuppTick(b, dt);
   const fleeing = b.flee && !b.atPickup;
   b.losT -= dt;
   if (b.losT <= 0) { b.losT = 0.09 + Math.random() * 0.05; b.canSee = botCanSee(b); }
@@ -5146,7 +5186,7 @@ function updateBot(b, dt) {
       if (b.burst <= 0) {
         const T = b.type;
         b.burst = T === 'shotgun' || T === 'sniper' ? 1 : T === 'shield' ? 2 : T === 'pistol' ? 1 + Math.floor(Math.random() * 2) : T === 'smg' ? 6 + Math.floor(Math.random() * 4) : (b.boss ? 6 : 3) + Math.floor(Math.random() * 4);
-        b.fireCd = (T === 'sniper' ? rand(2.0, 2.8) : T === 'shotgun' ? rand(0.85, 1.15) : T === 'pistol' ? rand(0.35, 0.7) : rand(0.45, 0.95)) * d.pause * (b.hostage ? 1.8 : b.boss ? 0.7 : 1);
+        b.fireCd = (T === 'sniper' ? rand(2.0, 2.8) : T === 'shotgun' ? rand(0.85, 1.15) : T === 'pistol' ? rand(0.35, 0.7) : rand(0.45, 0.95)) * d.pause * (b.hostage ? 1.8 : b.boss ? 0.7 : 1) * (1 + (b.supp || 0) * 1.3);
       }
       else { botFire(b, d); b.burst--; b.fireCd = b.type === 'smg' ? 0.075 : b.type === 'pistol' ? 0.26 : 0.12; }
     }
@@ -5161,6 +5201,14 @@ function updateBot(b, dt) {
     const n = b.path[b.pathIdx];
     if (n) { const tx = n.x - b.pos.x, tz = n.z - b.pos.z, tl = Math.hypot(tx, tz); if (tl < 0.6 && Math.abs((n.y || 0) - b.pos.y) < 1.1) b.pathIdx++; else { mx = tx / tl; mz = tz / tl; spd = 3.9; if (!b.canSee) b.targetYaw = Math.atan2(-mx, -mz); } }
     if (b.canSee) { b.targetYaw = Math.atan2(-dx, -dz); canShoot(); }
+  } else if (b.disarmed) {
+    // 무기를 버린 용의자: 손을 든 채 대원들에게서 멀어진다 (쏘지 않음) · 바짝 붙으면 포기하고 엎드린다
+    if (P.alive && Math.hypot(P.pos.x - b.pos.x, P.pos.z - b.pos.z) < 2.2 && Math.abs(P.pos.y - b.pos.y) < 1.5) { surrender(b); b.root.updateMatrixWorld(true); return; }
+    b.fleeT = (b.fleeT || 0) - dt;
+    if (b.pathIdx >= b.path.length || b.fleeT <= 0) { b.fleeT = rand(3, 5); const fn = farNode(b); if (fn) setPath(b, fn.x, fn.z, fn.y || 0); }
+    const n = b.path[b.pathIdx];
+    if (n) { const tx = n.x - b.pos.x, tz = n.z - b.pos.z, tl = Math.hypot(tx, tz); if (tl < 0.6 && Math.abs((n.y || 0) - b.pos.y) < 1.1) b.pathIdx++; else { mx = tx / tl; mz = tz / tl; spd = 3.6; b.targetYaw = Math.atan2(-mx, -mz); } }
+    b.armR.rotation.set(2.85, 0, -0.28); b.armL.rotation.set(2.85, 0, 0.28);
   } else if (b.hostage) {
     // holds position behind the hostage
     if (b.canSee) b.targetYaw = Math.atan2(-dx, -dz);
@@ -5232,7 +5280,7 @@ function separateBots() {
 /* =========================================================
    Tactical gear: doors + breaching charge, flashbangs, compliance shout, arrests, evidence
    ========================================================= */
-const EQ = { flash: 3, charge: 2 };
+const EQ = { flash: 3, charge: 2, wedge: 2 };
 const FAKE = { easy: 0.06, normal: 0.12, hard: 0.22, real: 0.26 };
 function resetPose(b) {
   b.legL.position.y = b.legR.position.y = 0.9; b.torso.position.y = 0.9; b.legL.rotation.x = b.legR.rotation.x = 0; b.torso.rotation.x = 0;
@@ -5246,7 +5294,7 @@ function kneelPose(b, cuffed) {
 // ---- doors
 function doorsReset(L) {
   for (const d of L.doors || []) {
-    d.open = false; d.broken = false; d.anim = 0; d.charge = 0;
+    d.open = false; d.broken = false; d.anim = 0; d.charge = 0; d.closeK = 0; d.shutT = -9; d.wedged = false; if (d.wedgeM) d.wedgeM.visible = false;
     for (const p of d.panels) { p.hinge.rotation.y = 0; p.hinge.visible = true; }
     if (!L.colliders.includes(d.box)) L.colliders.push(d.box);
   }
@@ -5254,7 +5302,8 @@ function doorsReset(L) {
 }
 function doorOpen(d, dur = 0.6, silent) {
   if (d.open) return;
-  d.open = true; d.anim = 0; d.animDur = dur;
+  d.open = true; d.anim = 0; d.animDur = dur; d.closeK = 0;
+  if (d.wedged) setWedge(d, false, 0, true);
   const i = LEVEL.colliders.indexOf(d.box); if (i >= 0) LEVEL.colliders.splice(i, 1);
   // bullet marks that were on the closed door would float in the air
   for (const m of decals) if (m && m.visible && d.box.distanceToPoint(m.position) < 0.12) m.visible = false;
@@ -5270,7 +5319,7 @@ function updateDoors(dt) {
       for (const b of bots) if (b.active && b.alive && !b.surrender && !b.static && b.stunT <= 0 && d.box.distanceToPoint(_dp.set(b.pos.x, b.pos.y + 1, b.pos.z)) < 0.75) { near = true; break; }
       if (!near) for (const m of mates) if (m.active && m.alive && d.box.distanceToPoint(_dp.set(m.pos.x, 1, m.pos.z)) < 0.75) { near = true; break; }
       if (!near) for (const c of civs) if (c.active && (c.state === 'walk' || c.state === 'flee' || c.state === 'follow') && d.box.distanceToPoint(_dp.set(c.pos.x, 1, c.pos.z)) < 0.75) { near = true; break; }
-      if (near) doorOpen(d, 0.7);
+      if (near) { if (d.wedged) doorBlocked(d); else doorOpen(d, 0.7); }
     }
     if (d.charge > 0) {
       const prev = d.charge; d.charge -= dt;
@@ -5292,7 +5341,7 @@ function plantCharge(d) {
   if (NET.on) mpAll({ t: 'bc', i: LEVEL.doors.indexOf(d), x: rd2(chargeMesh.position.x), y: rd2(chargeMesh.position.y), z: rd2(chargeMesh.position.z), ry: rd3(chargeMesh.rotation.y) });
 }
 function breachExplode(d) {
-  d.charge = 0; chargeMesh.visible = false; d.broken = true;
+  d.charge = 0; chargeMesh.visible = false; d.broken = true; if (d.wedged) setWedge(d, false, 0, true);
   doorOpen(d, 0.01, true); for (const p of d.panels) p.hinge.visible = false;
   const c = V3(d.cx, 1.2, d.cz);
   emit(c, 40, { speed: [3, 9], spread: 1.6, life: [0.3, 0.9], grav: 9, color: [0.45, 0.32, 0.22] });
@@ -5414,6 +5463,8 @@ function shoutAt(eye, fwd, pos, q) {
     if (fwd.dot(to) < 0.55 || !losClear(eye, head)) continue;
     let ch = 0.1 + (b.stunT > 0 ? 0.62 : 0) + (b.hp < b.maxHp * 0.5 ? 0.22 : 0) + (isEndless() ? 0.15 : 0.3 * (MS.down / Math.max(1, MS.total))) + (!b.canSee ? 0.15 : 0) + (left <= 2 ? 0.12 : 0);
     if (b.boss) ch = b.stunT > 0 && b.hp < b.maxHp * 0.5 ? 0.4 : 0.02;
+    ch += (b.boss ? 0.12 : 0.35) * (b.supp || 0); // 제압된 강도는 투항하기 쉽다
+    if (b.disarmed) ch = 0.9;
     if (b.hostage) ch *= 0.6;
     if (b.static) ch *= 0.75;
     ch *= { easy: 1.2, normal: 1, hard: 0.8, real: 0.7 }[difficulty];
@@ -5430,9 +5481,10 @@ function shoutAt(eye, fwd, pos, q) {
   else if (ducked) setTimeout(() => popup(`시민 ${ducked}명 엎드림`, 'civ'), 300);
 }
 function surrender(b) {
+  const wasDis = !!b.disarmed; b.disarmed = false;
   b.surrender = true; b.stunT = 0; b.state = 'surrender'; b.canSee = false; b.path = []; b.pathIdx = 0; b.burst = 0; b.vel.set(0, 0, 0);
   b.gunG.visible = false; b.flash.visible = false; b.shieldOn = false; b.shieldG.visible = false; b.laser.visible = false; kneelPose(b, false); dropEvidence(b);
-  b.fakeT = !b.boss && !b.faked && Math.random() < FAKE[difficulty] ? rand(3, 7) : -1;
+  b.fakeT = !b.boss && !b.faked && !wasDis && Math.random() < FAKE[difficulty] ? rand(3, 7) : -1;
   if (b.hostage) freeHostage(b);
   if (b.boss) MS.escapeT = 0;
   if (isEndless()) mpHostEvent({ k: 'surr', e: bots.indexOf(b), by: HIT_BY || NET.id }); else addFeed(b.name, '투항', '', false);
@@ -5463,7 +5515,7 @@ function arrest(b) {
   MS.score += pts; popup('+' + pts + ' 체포', 'head'); sfx.cuff();
   addFeed('나', b.name, '체포', false);
   robberDown(b);
-  if (!MS.ended) centerMsg(b.boss ? '두목 체포! +2000' : '체포 완료! +500', 'head', 1.2);
+  if (!MS.ended) { centerMsg(b.boss ? '두목 체포! +2000 (사살의 2배)' : '체포 완료! +500 (사살의 2배)', 'head', 1.3); ctrlSay('arrest'); }
 }
 // shared bookkeeping when a robber is out of the fight (killed or arrested)
 function robberDown(b) {
@@ -5518,9 +5570,9 @@ function findInteract() {
   }
   if (best) return best;
   for (const d of LEVEL.doors || []) {
-    if (d.open) continue;
+    if (d.open && d.broken) continue;
     const dx = d.cx - P.pos.x, dz = d.cz - P.pos.z, dist = Math.hypot(dx, dz);
-    if (dist < 2.5 && (fwd.x * dx + fwd.z * dz) / (dist || 1) > 0.3 && dist < bd) { bd = dist; best = { type: 'door', d }; }
+    if (dist < 2.5 && (fwd.x * dx + fwd.z * dz) / (dist || 1) > 0.3 && dist < bd) { bd = dist; best = { type: d.open ? 'close' : 'door', d }; }
   }
   return best;
 }
@@ -5537,22 +5589,26 @@ function updateInteract(dt) {
           else { prog = ia.t / 0.6; show = `<b>체포 중…</b> ${tg.b.name}`; if (ia.t >= 0.6) { arrest(tg.b); ia.done = true; ia.target = null; } }
         } else if (tg.type === 'door') {
           if (tg.d.open) { ia.target = null; ia.done = true; }
-          else if (EQ.charge > 0 && tg.d.charge <= 0) { prog = clamp((ia.t - 0.25) / 0.6, 0, 1); show = ia.t > 0.25 ? '<b>폭약 설치 중…</b>' : `<b>E</b> 문 열기 · 길게: 폭약 (${EQ.charge})`; if (ia.t >= 0.85) { plantCharge(tg.d); ia.done = true; ia.target = null; } }
+          else if (EQ.charge > 0 && tg.d.charge <= 0 && !tg.d.wedged) { prog = clamp((ia.t - 0.25) / 0.6, 0, 1); show = ia.t > 0.25 ? '<b>폭약 설치 중…</b>' : `<b>E</b> 문 열기 · 길게: 폭약 (${EQ.charge})`; if (ia.t >= 0.85) { plantCharge(tg.d); ia.done = true; ia.target = null; } }
         }
       }
     } else {
-      if (ia.target && ia.target.type === 'door' && !ia.done && ia.t < 0.85 && !ia.target.d.open && ia.target.d.charge <= 0) { doorOpen(ia.target.d, 0.55); if (NET.on) mpAll({ t: 'dr', i: LEVEL.doors.indexOf(ia.target.d) }); }
+      if (ia.target && ia.target.type === 'door' && !ia.done && ia.t < 0.85 && !ia.target.d.open && ia.target.d.charge <= 0) {
+        if (ia.target.d.wedged) centerMsg('도어 웨지로 잠긴 문 — Y로 빼고 여세요', 'info', 1.2);
+        else { doorOpen(ia.target.d, 0.55); if (NET.on) mpAll({ t: 'dr', i: LEVEL.doors.indexOf(ia.target.d) }); }
+      } else if (ia.target && ia.target.type === 'close' && !ia.done && ia.t < 0.85 && ia.target.d.open) tryCloseDoor(ia.target.d);
       ia.target = null; ia.done = false; ia.t = 0;
       const f = findInteract();
       if (f && f.type === 'arrest') show = `<b>E</b> 길게 눌러 체포 · ${f.b.name}`;
-      else if (f && f.type === 'door' && f.d.charge <= 0) show = EQ.charge > 0 ? `<b>E</b> 문 열기 · 길게 누르면 폭약 돌파 (${EQ.charge})` : '<b>E</b> 문 열기';
+      else if (f && f.type === 'door' && f.d.charge <= 0) show = f.d.wedged ? '<b>Y</b> 도어 웨지 빼기 · 잠긴 문' : (EQ.charge > 0 ? `<b>E</b> 문 열기 · 길게: 폭약 (${EQ.charge})` : '<b>E</b> 문 열기') + (EQ.wedge > 0 ? ` · <b>Y</b> 잠그기 (웨지 ${EQ.wedge})` : '');
+      else if (f && f.type === 'close') show = '<b>E</b> 문 닫기' + (EQ.wedge > 0 ? ` · <b>Y</b> 닫고 잠그기 (웨지 ${EQ.wedge})` : '');
     }
   }
   const el = $('prompt');
   if (show) { if (hudCache.prompt !== show) { hudCache.prompt = show; $('promptTxt').innerHTML = show; } el.style.display = 'block'; $('promptBar').style.width = (clamp(prog, 0, 1) * 100).toFixed(0) + '%'; $('promptBar').parentNode.style.visibility = prog > 0 ? 'visible' : 'hidden'; }
   else el.style.display = 'none';
 }
-function updateGearHUD() { $('gear').innerHTML = mode === 'training' ? '' : `섬광탄 <b>${EQ.flash}</b>` + (isMission() ? ` · 폭약 <b>${EQ.charge}</b>` : ''); }
+function updateGearHUD() { $('gear').innerHTML = mode === 'training' ? '' : `섬광탄 <b>${EQ.flash}</b>` + (isMission() ? ` · 폭약 <b>${EQ.charge}</b> · 웨지 <b>${EQ.wedge}</b>` : ''); }
 // ---- smoke (boss escape)
 const smokeTex = canvasTex(64, (g, w) => { const gr = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); gr.addColorStop(0, 'rgba(200,200,196,.85)'); gr.addColorStop(0.6, 'rgba(180,180,176,.45)'); gr.addColorStop(1, 'rgba(170,170,166,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, w); }, false);
 const smokes = [];
@@ -5611,7 +5667,7 @@ function callReinforcements() {
   addFeed('무전', `증원 ${n}명 도착`, '', false);
 }
 function tacticalReset() {
-  EQ.flash = 3 + (settings.loadout.sp === 'flash' ? 2 : 0); EQ.charge = mode === 'training' ? 0 : 2 + (settings.loadout.sp === 'charge' ? 2 : 0); shoutCd = 0; P.blind = 0; ia.target = null; ia.done = false;
+  EQ.flash = 3 + (settings.loadout.sp === 'flash' ? 2 : 0); EQ.charge = mode === 'training' ? 0 : 2 + (settings.loadout.sp === 'charge' ? 2 : 0); EQ.wedge = mode === 'training' ? 0 : 2; shoutCd = 0; P.blind = 0; ia.target = null; ia.done = false;
   for (const n of nades) scene.remove(n.m); nades.length = 0; flashSprite.visible = false;
   for (const e of evPool) { e.active = false; e.g.visible = false; }
   for (const s of smokes) s.sp.visible = false;
@@ -5713,7 +5769,7 @@ function updateMusic(dt) {
 const _l1 = V3();
 function updateLasers() {
   for (const b of bots) {
-    const on = b.active && b.alive && b.type === 'sniper' && !b.surrender && b.stunT <= 0 && b.canSee;
+    const on = b.active && b.alive && b.type === 'sniper' && !b.surrender && !b.disarmed && b.stunT <= 0 && b.canSee;
     b.laser.visible = on;
     if (on) { b.muzzle.getWorldPosition(_l1); const len = _l1.distanceTo(b.aimPoint); b.laser.position.copy(_l1).lerp(b.aimPoint, 0.5); b.laser.lookAt(b.aimPoint); b.laser.scale.set(1, 1, len); }
   }
@@ -5848,7 +5904,7 @@ function mateTarget(m) {
   const role = mateRole(m), fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw);
   let best = null, bs = 1e9;
   for (const b of bots) {
-    if (!b.active || !b.alive || b.surrender) continue;
+    if (!b.active || !b.alive || b.surrender || b.disarmed) continue;
     const d = Math.hypot(b.pos.x - m.pos.x, b.pos.z - m.pos.z);
     if (d >= 34) continue;
     const ax = b.pos.x - P.pos.x, az = b.pos.z - P.pos.z, al = Math.hypot(ax, az) || 1, dot = (ax * fx + az * fz) / al;
@@ -5918,6 +5974,7 @@ function updateMate(m, dt) {
   else if (!tgt && isMission()) {
     for (const b of bots) if (b.active && b.alive && b.surrender && b.pos.y < 3.9 && Math.hypot(b.pos.x - m.pos.x, b.pos.z - m.pos.z) < 10) { arrestee = b; break; }
     if (arrestee) goal = [arrestee.pos.x, arrestee.pos.z];
+    else mateShoutDisarmed(m);
   }
   if (!goal) goal = mateGoal(m);
   let mx = 0, mz = 0, spd = 0;
@@ -6289,9 +6346,9 @@ function addFeed(a, b, w, hs, meDied, civ) {
   setTimeout(() => { el.style.opacity = 0; setTimeout(() => el.remove(), 450); }, 4500);
 }
 const ddirs = [...document.querySelectorAll('.ddir')].map((el) => ({ el, t: 0 }));
-function showDmgDir(angle) {
-  const d = ddirs.reduce((a, b) => (a.t < b.t ? a : b)); d.t = 1;
-  d.el.style.transform = `rotate(${angle}rad)`; d.el.style.opacity = 1;
+function showDmgDir(angle, s = 1) {
+  const d = ddirs.reduce((a, b) => (a.t < b.t ? a : b)); d.t = s;
+  d.el.style.transform = `rotate(${angle}rad)`; d.el.style.opacity = s;
 }
 function updateSlots() { document.querySelectorAll('#slots span').forEach((s) => { const k = P.slots[+s.dataset.i]; s.textContent = `${+s.dataset.i + 1} · ${SLOT_HUD[k] || WEAPONS[k].short}`; s.classList.toggle('on', k === P.cur); }); }
 const xT = document.querySelector('#xhair .t'), xB = document.querySelector('#xhair .b'), xL = document.querySelector('#xhair .l'), xR = document.querySelector('#xhair .r');
@@ -6360,9 +6417,16 @@ function updateCamera(dt) {
     bPitch = Math.sin(vm.bobT * 2) * 0.006 * amp - vm.land * 0.05 + Math.sin(gameTime * 1.3) * 0.0025;
     const fx = Math.cos(P.yaw), fz = -Math.sin(P.yaw);
     camera.position.x += fx * bx; camera.position.z += fz * bx; camera.position.y += by;
+  } else if (settings.helmcam) {
+    // helmet-mounted camera: a little above and right of the eyes, the head's bob, no lens tricks — the picture stays sharp
+    const amp = (1 - vm.ads * 0.85) * vm.move, off = 1 - vm.ads;
+    by = 0.05 * off - Math.abs(Math.cos(vm.bobT)) * 0.022 * amp; bx = 0.035 * off + Math.sin(vm.bobT) * 0.012 * amp;
+    bRoll = Math.sin(vm.bobT) * 0.006 * amp; bPitch = Math.sin(vm.bobT * 2) * 0.003 * amp - vm.land * 0.03;
+    const fx = Math.cos(P.yaw), fz = -Math.sin(P.yaw);
+    camera.position.x += fx * bx; camera.position.z += fz * bx; camera.position.y += by;
   }
   camera.rotation.set(P.pitch + rand(-sh, sh) + scopedBreath + bPitch + vma.camOut.x, P.yaw + rand(-sh, sh) + scopedBreath * 0.6 + vma.camOut.y, P.roll + bRoll + vma.camOut.z);
-  camera.fov = lerp(settings.bodycam ? BC_FOV : BASE_FOV, w.adsFov, ease(vm.ads)) + vm.sprint * 4;
+  camera.fov = lerp(baseFov(), w.adsFov, ease(vm.ads)) + vm.sprint * 4;
   camera.updateProjectionMatrix();
   muzzleLight.intensity = Math.max(0, muzzleLight.intensity - dt * 600);
 }
@@ -7442,6 +7506,292 @@ function playerSafety(dt) {
   SAFE.t -= dt;
   if (SAFE.t <= 0 && P.onGround && !stuck) { SAFE.t = 0.25; SAFE.x = P.pos.x; SAFE.y = P.pos.y; SAFE.z = P.pos.z; SAFE.ok = true; SAFE.lvl = LEVEL; }
 }
+/* =========================================================
+   1단계 몰입·전술 (검토보고서 1단계)
+   · 제압: 근처를 스치는 총알 → 화면 가장자리 어두워짐(가운데는 깨끗) · 숨소리 · 조준 흔들림 · 탄퍼짐 증가
+           내가 강도 근처로 쏘면 강도가 위축(명중률↓·사격 간격↑·투항 쉬움) → 오래 제압되면 무기를 버리고 달아남
+   · 실내 총성 울림 · 통제관 음성 · 헬멧캠 시점(흐림 없음)
+   · 체포는 사살의 2배 · 투항·비무장 사격 감점 + 통제관 경고(3번이면 작전 철수)
+   · 문 닫기 · 도어 웨지 · 야간투시경 · 정전 층
+   ========================================================= */
+const SUP = { k: 0, t: -9, o: '', sp: 0, sy: 0, breathT: 0, popT: -9 };
+const LX = { hemi: 1, sun: 1 };
+const DK = { k: 0, in: false, hide: false, told: false, lm: 1 };
+const NV = { on: false };
+const ACX = { room: 0 };
+const HC = { stampT: 0 };
+const HC_FOV = 88;
+const _sbx = V3(), _dp2 = V3(), _mh = V3(), _bh = V3();
+
+function segDist(p, a, b) {
+  const abx = b.x - a.x, aby = b.y - a.y, abz = b.z - a.z, l2 = abx * abx + aby * aby + abz * abz || 1;
+  const t = clamp(((p.x - a.x) * abx + (p.y - a.y) * aby + (p.z - a.z) * abz) / l2, 0, 1);
+  return Math.hypot(a.x + abx * t - p.x, a.y + aby * t - p.y, a.z + abz * t - p.z);
+}
+// ---- 내가 제압당함
+function suppressPlayer(a, ang) {
+  if (!P.alive || state !== 'playing' || gameTime < P.protect) return;
+  SUP.k = Math.min(1, SUP.k + a); SUP.t = gameTime;
+  if (ang != null) showDmgDir(ang, 0.5);
+  if (SUP.k > 0.75 && isMission()) ctrlSay('suppressed');
+}
+// 강도가 쏜 총알이 내 머리 근처를 지나갔는지
+function nearMiss(from, end, b, T) {
+  if (!P.alive || !b) return;
+  const cam = camera.position;
+  if (from.distanceTo(cam) < 2.5) return;
+  const d = segDist(cam, from, end);
+  if (d > 2.4) return;
+  const base = T === 'sniper' ? 0.42 : T === 'shotgun' ? 0.24 : T === 'smg' ? 0.11 : 0.15;
+  const dx = b.pos.x - P.pos.x, dz = b.pos.z - P.pos.z;
+  const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw), rx = Math.cos(P.yaw), rz = -Math.sin(P.yaw);
+  suppressPlayer(base * (1 - d / 2.4) + 0.04, Math.atan2(dx * rx + dz * rz, dx * fx + dz * fz));
+  if (d < 1.3) sfx.crack(-clamp((dx * rx + dz * rz) / (Math.hypot(dx, dz) || 1), -1, 1) * 0.7);
+}
+function updateSuppression(dt) {
+  if (gameTime - SUP.t > 0.8 || !P.alive) SUP.k = Math.max(0, SUP.k - dt * (P.alive ? 0.42 : 2));
+  const o = (SUP.k * 0.9).toFixed(2);
+  if (o !== SUP.o) { SUP.o = o; $('supp').style.opacity = o; }
+  // 조준 자체가 흔들린다 (화면 가운데 조준점과 총알이 어긋나지 않게 시선을 직접 움직였다 되돌림)
+  const amp = 0.0055 * SUP.k * (vm.ads > 0.5 ? 0.7 : 1);
+  const sp = Math.sin(gameTime * 6.1) * amp + Math.sin(gameTime * 13.7) * amp * 0.35, sy = Math.cos(gameTime * 4.7) * amp * 0.8;
+  if (P.alive) { P.pitch += sp - SUP.sp; P.yaw += sy - SUP.sy; }
+  SUP.sp = sp; SUP.sy = sy;
+  SUP.breathT -= dt;
+  if (SUP.k > 0.4 && SUP.breathT <= 0 && P.alive) { SUP.breathT = lerp(1.6, 0.95, SUP.k); sfx.breath(SUP.k); }
+}
+// ---- 강도가 제압당함 (내 총알이 근처를 지나감)
+function suppressBots(from, end, by, mine) {
+  for (const x of bots) {
+    if (!x.active || !x.alive || x.surrender || x.disarmed) continue;
+    _sbx.set(x.pos.x, x.pos.y + 1.25, x.pos.z);
+    const d = segDist(_sbx, from, end);
+    if (d > 1.9) continue;
+    const prev = x.supp || 0;
+    x.supp = Math.min(1, prev + 0.2 * (1 - d / 1.9) + 0.07); x.suppT = gameTime;
+    x.flinch = Math.max(x.flinch || 0, 0.5); x.alertT = 3; if (by) x.hearPos.copy(by);
+    if (mine && prev < 0.7 && x.supp >= 0.7 && isMission()) {
+      if (gameTime - SUP.popT > 2.5) { SUP.popT = gameTime; popup('제압!', ''); }
+      ctrlSay('enemySupp');
+    }
+  }
+}
+function botSuppTick(b, dt) {
+  if (!b.supp) return;
+  if (gameTime - b.suppT > 1.1) b.supp = Math.max(0, b.supp - dt * 0.32);
+  if (!isMission() || b.boss || b.hostage || b.flee || b.disarmed || b.type === 'knife') return;
+  b.dispT = (b.dispT || 0) - dt;
+  if (b.supp < 0.72 || b.dispT > 0) return;
+  b.dispT = 1.5;
+  let ch = 0.16 + (b.hp < b.maxHp * 0.6 ? 0.18 : 0);
+  ch *= { easy: 1.3, normal: 1, hard: 0.75, real: 0.65 }[difficulty] || 1;
+  if (Math.random() < ch) disarmBot(b);
+}
+// 겁먹은 강도가 총을 버리고 손을 든 채 달아난다 → 쏘면 비무장 사격(감점), V로 투항시키면 체포 +500
+function disarmBot(b) {
+  b.disarmed = true; b.static = false; b.guard = null; b.burst = 0; b.fireCd = 1;
+  b.gunG.visible = false; b.flash.visible = false; b.shieldOn = false; b.shieldG.visible = false; b.laser.visible = false;
+  b.path = []; b.pathIdx = 0; b.fleeT = 0; b.supp = 0.4;
+  dropEvidence(b);
+  if (isEndless()) mpHostEvent({ k: 'dis', e: bots.indexOf(b) });
+  else { addFeed(b.name, '무기 버림', '', false); disarmNotice(b); }
+}
+function disarmNotice(b) {
+  if (!b || Math.hypot(b.pos.x - P.pos.x, b.pos.z - P.pos.z) > 32) return;
+  centerMsg('용의자가 무기를 버렸어요 — 쏘지 말고 V로 투항시키세요', 'head', 2.0); ctrlSay('disarm');
+}
+function farNode(b) {
+  const cops = [P.pos];
+  for (const m of mates) if (m.active && m.alive) cops.push(m.pos);
+  if (NET.on) for (const r of remotes) if (r.active && r.alive) cops.push(r.pos);
+  let best = null, bs = -1;
+  for (let i = 0; i < 18 && nodes.length; i++) {
+    const n = nodes[(Math.random() * nodes.length) | 0];
+    if (!n || Math.abs((n.y || 0) - b.pos.y) > 4) continue;
+    const dn = Math.hypot(n.x - b.pos.x, n.z - b.pos.z); if (dn > 30 || dn < 5) continue;
+    let near = 1e9; for (const c of cops) near = Math.min(near, Math.hypot(n.x - c.x, n.z - c.z));
+    if (near > bs) { bs = near; best = n; }
+  }
+  return best || (nodes.length ? nodes[(Math.random() * nodes.length) | 0] : null);
+}
+// AI 팀원: 무기 버린 용의자를 보면 "엎드려!" 하고 투항시킨다
+function mateShoutDisarmed(m) {
+  if (m.shoutCd > 0) return;
+  for (const b of bots) {
+    if (!b.active || !b.alive || !b.disarmed) continue;
+    const d = Math.hypot(b.pos.x - m.pos.x, b.pos.z - m.pos.z);
+    if (d > 12 || Math.abs(b.pos.y - m.pos.y) > 2) continue;
+    if (!losClear(_mh.set(m.pos.x, m.pos.y + 1.6, m.pos.z), _bh.set(b.pos.x, b.pos.y + 1.4, b.pos.z))) continue;
+    m.shoutCd = 1.8;
+    if (Math.random() < 0.7) { surrender(b); addFeed(m.name, b.name, '투항시킴', false); }
+    return;
+  }
+}
+
+// ---- 통제관 음성
+const CT = { last: -99, keyT: {}, fouls: 0 };
+const CT_LINES = {
+  rules: ['통제관이다. 생포 우선. 체포는 사살 점수의 두 배다.', '통제관이다. 가능하면 생포해라. 체포 점수가 사살의 두 배다.'],
+  suppressed: ['제압 사격 받고 있다. 엄폐해!', '사격이 집중된다. 머리 숙여!'],
+  enemySupp: ['용의자가 위축됐다. 투항 명령 내려.', '제압됐다. 지금 투항시켜.'],
+  disarm: ['용의자가 무기 버렸다. 사격 금지, 생포해.'],
+  arrest: ['생포 확인. 잘했다.', '체포 확인. 좋다.'],
+  dark: ['그 구역은 정전이다. 야간투시경 써라. 손전등은 위치가 드러난다.'],
+  foul1: ['사격 중지! 저항하지 않는 용의자다. 감점한다.'],
+  foul2: ['마지막 경고다. 한 번 더 어기면 작전에서 뺀다.'],
+  foul3: ['규칙 위반이다. 작전에서 철수해.'],
+  wedge: ['문 잠갔다. 그쪽 통로는 막혔다.'],
+};
+const CT_CD = { rules: 0, suppressed: 22, enemySupp: 30, disarm: 12, arrest: 35, dark: 9999, foul1: 0, foul2: 0, foul3: 0, wedge: 40 };
+function ctrlSay(k) {
+  if (!isMission() || (state !== 'playing' && state !== 'paused') || !CT_LINES[k]) return;
+  const urgent = k.startsWith('foul');
+  if (!urgent && gameTime - CT.last < 5) return;
+  if (gameTime - (CT.keyT[k] ?? -1e5) < CT_CD[k]) return;
+  CT.keyT[k] = gameTime; CT.last = gameTime;
+  const line = pick(CT_LINES[k]);
+  addFeed('통제관', line, '', false); sfx.squelch();
+  setTimeout(() => {
+    try {
+      if (!window.speechSynthesis || settings.vol <= 0) return;
+      const u = new SpeechSynthesisUtterance(line); u.lang = 'ko-KR'; u.rate = 1.12; u.pitch = 0.82; u.volume = Math.min(1, settings.vol);
+      if (urgent) speechSynthesis.cancel(); speechSynthesis.speak(u);
+    } catch (e) {}
+  }, 140);
+}
+function ctrlFoul() {
+  CT.fouls++;
+  if (CT.fouls === 1) ctrlSay('foul1');
+  else if (CT.fouls === 2 || isEndless()) ctrlSay('foul2');
+  else {
+    ctrlSay('foul3');
+    if (isMission() && !MS.ended) { const rid = roundId; setTimeout(() => { if (rid === roundId && !MS.ended) missionEnd(false, '무력 사용 규칙 위반 3회 — 통제관이 작전에서 철수시켰어요.'); }, 1600); }
+  }
+}
+
+// ---- 헬멧캠 시점 (어안·흐림 없이 깨끗한 화면 + 녹화 표시)
+function baseFov() { return settings.bodycam ? BC_FOV : settings.helmcam ? HC_FOV : BASE_FOV; }
+function viewMode() { return settings.bodycam ? 'body' : settings.helmcam ? 'helm' : 'normal'; }
+function setView(v, announce) {
+  if (!['normal', 'helm', 'body'].includes(v)) v = 'normal';
+  settings.helmcam = v === 'helm'; setBodycam(v === 'body', false);
+  document.body.classList.toggle('helmcam', settings.helmcam);
+  setTxt('bcName', settings.helmcam ? 'WELEV HELMET CAM H2' : 'WELEV BODYCAM X9');
+  document.querySelectorAll('.viewSeg button').forEach((b) => b.classList.toggle('sel', b.dataset.v === v));
+  if (announce && state === 'playing') centerMsg({ normal: '기본 시점', helm: '헬멧캠 시점 (흐림 없음)', body: '바디캠 시점' }[v], 'info', 1);
+}
+function stampNow() { const d = new Date(), p2 = (v) => String(v).padStart(2, '0'); return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())} KST`; }
+
+// ---- 야간투시경 · 정전 구역
+function levelLights() {
+  if (!LEVEL._pls) { LEVEL._pls = []; if (LEVEL.group) LEVEL.group.traverse((o) => { if (o.isPointLight) LEVEL._pls.push([o, o.intensity]); }); }
+  return LEVEL._pls;
+}
+function inDark(x, y, z) { for (const r of LEVEL.dark || []) if (x > r[0] && x < r[1] && z > r[2] && z < r[3] && y > r[4] && y < r[5]) return true; return false; }
+function toggleNvg(force) {
+  const on = force != null ? !!force : !NV.on;
+  if (on === NV.on) return;
+  NV.on = on; document.body.classList.toggle('nvg', on);
+  if (on && bc.light) toggleFlashlight(false);
+  if (force == null) { sfx.nvg(on); if (state === 'playing') centerMsg(on ? '야간투시경 켜짐 (적에게 안 들켜요)' : '야간투시경 꺼짐', 'info', 1); }
+}
+
+// ---- 문 닫기 · 도어 웨지
+const wedgeGeo = new THREE.BoxGeometry(0.16, 0.07, 0.26), wedgeMat = new THREE.MeshStandardMaterial({ color: 0xd8b13a, roughness: 0.6 });
+function doorClear(d) {
+  const bx = d.box, pad = 0.45;
+  const inside = (p) => p.x > bx.min.x - pad && p.x < bx.max.x + pad && p.z > bx.min.z - pad && p.z < bx.max.z + pad && p.y < bx.max.y && p.y + 1.8 > bx.min.y;
+  if (inside(P.pos)) return false;
+  for (const b of bots) if (b.active && b.alive && inside(b.pos)) return false;
+  for (const m of mates) if (m.active && m.alive && inside(m.pos)) return false;
+  for (const c of civs) if (c.active && c.state !== 'gone' && inside(c.pos)) return false;
+  for (const r of remotes) if (r.active && inside(r.pos)) return false;
+  return true;
+}
+function doorClose(d, silent) {
+  if (!d.open || d.broken) return false;
+  d.open = false; d.closeK = 1; d.anim = 1; d.shutT = gameTime;
+  if (!LEVEL.colliders.includes(d.box)) LEVEL.colliders.push(d.box);
+  if (!silent && Math.hypot(d.cx - P.pos.x, d.cz - P.pos.z) < 30) sfx.door();
+  return true;
+}
+function setWedge(d, on, side, silent) {
+  d.wedged = !!on;
+  if (on) {
+    if (!d.wedgeM) { d.wedgeM = new THREE.Mesh(wedgeGeo, wedgeMat); d.wedgeM.castShadow = true; (d.panels[0] ? d.panels[0].hinge.parent : scene).add(d.wedgeM); }
+    const s = side || 1, ox = d.alongX ? 0 : s * 0.2, oz = d.alongX ? s * 0.2 : 0;
+    d.wedgeM.position.set(d.cx + ox, 0.035, d.cz + oz); d.wedgeM.rotation.set(0, d.alongX ? 0 : Math.PI / 2, 0); d.wedgeM.visible = true;
+  } else if (d.wedgeM) d.wedgeM.visible = false;
+  if (!silent) sfx.wedge();
+}
+// 웨지로 잠긴 문 앞에 강도가 오면 문을 두드리고 다른 길을 찾는다
+function doorBlocked(d) {
+  for (const b of bots) {
+    if (!b.active || !b.alive || b.surrender || d.box.distanceToPoint(_dp2.set(b.pos.x, b.pos.y + 1, b.pos.z)) > 0.9) continue;
+    if (gameTime - (d.bangT || -9) > 1.1) { d.bangT = gameTime; if (Math.hypot(d.cx - P.pos.x, d.cz - P.pos.z) < 28) sfx.thump(); }
+    if (gameTime - (b.wedgeT || -9) > 2.5) { b.wedgeT = gameTime; b.path = []; b.pathIdx = 0; b.idleT = rand(0.4, 1.2); if (b.state === 'hunt') b.state = 'patrol'; if (b.disarmed) b.fleeT = 0; }
+  }
+}
+function findDoor() {
+  const fwd = V3(0, 0, -1).applyQuaternion(camera.quaternion); fwd.y = 0; fwd.normalize();
+  let best = null, bd = 9;
+  for (const d of LEVEL.doors || []) {
+    if (d.broken) continue;
+    const dx = d.cx - P.pos.x, dz = d.cz - P.pos.z, dist = Math.hypot(dx, dz);
+    if (dist < 2.6 && (fwd.x * dx + fwd.z * dz) / (dist || 1) > 0.3 && dist < bd) { bd = dist; best = d; }
+  }
+  return best;
+}
+function tryCloseDoor(d) {
+  if (!doorClear(d)) { centerMsg('문 앞을 비워야 닫을 수 있어요', 'info', 1.1); return false; }
+  doorClose(d); if (NET.on) mpAll({ t: 'dc', i: LEVEL.doors.indexOf(d) });
+  return true;
+}
+function wedgeKey() {
+  if (state !== 'playing' || !P.alive || !isMission()) return;
+  const d = findDoor();
+  if (!d) { centerMsg('잠글 문을 바라보고 Y를 누르세요', 'info', 1.1); return; }
+  const i = LEVEL.doors.indexOf(d);
+  if (d.wedged) { setWedge(d, false); EQ.wedge++; updateGearHUD(); centerMsg('도어 웨지를 뺐어요', 'info', 0.9); if (NET.on) mpAll({ t: 'wg', i, on: 0 }); return; }
+  if (EQ.wedge <= 0) { centerMsg('남은 도어 웨지가 없어요', 'info', 1); return; }
+  if (d.charge > 0) return;
+  if (d.open && !tryCloseDoor(d)) return;
+  const side = d.alongX ? Math.sign(P.pos.z - d.cz) || 1 : Math.sign(P.pos.x - d.cx) || 1;
+  setWedge(d, true, side); EQ.wedge--; updateGearHUD();
+  centerMsg('도어 웨지 설치 — 강도는 이 문을 못 열어요', 'head', 1.4); ctrlSay('wedge');
+  if (NET.on) mpAll({ t: 'wg', i, on: 1, s: side });
+}
+function updateDoorClose(dt) {
+  for (const d of LEVEL.doors || []) {
+    if (d.open || !(d.closeK > 0)) continue;
+    d.closeK = Math.max(0, d.closeK - dt / 0.4); const k = ease(d.closeK);
+    for (const p of d.panels) p.hinge.rotation.y = p.target * k;
+  }
+}
+
+// ---- 매 프레임 · 판마다 초기화
+function phase1Tick(dt) {
+  const din = inDark(P.pos.x, P.pos.y + 0.5, P.pos.z);
+  DK.in = din; DK.k = damp(DK.k, din ? 1 : 0, 2.2, dt); DK.hide = din && !bc.light;
+  let hm = lerp(1, 0.13, DK.k), sm = 1;
+  if (NV.on) { hm *= lerp(2.1, 7.5, DK.k); sm = 1.2; }
+  LX.hemi = hm; LX.sun = sm;
+  // 정전 구역에 있으면 지도 안 전등도 꺼진다 (전등 빛은 바닥을 뚫고 위층까지 새므로)
+  const lm = lerp(1, 0.06, DK.k);
+  if (Math.abs(lm - DK.lm) > 0.004) { DK.lm = lm; for (const [l, i0] of levelLights()) l.intensity = i0 * lm; }
+  if (din && !DK.told && state === 'playing' && isMission()) { DK.told = true; centerMsg('정전 구역 — J 야간투시경 · F 손전등은 적에게 위치가 드러나요', 'info', 2.6); ctrlSay('dark'); }
+  const ind = isIndoor(P.pos.x, P.pos.z) && !(LEVEL.roofY && P.pos.y > LEVEL.roofY);
+  ACX.room = damp(ACX.room, ind ? 1 : 0, 3, dt); sfx.setRoom(ACX.room);
+  updateSuppression(dt); updateDoorClose(dt);
+  if (settings.helmcam && !settings.bodycam) { HC.stampT -= dt; if (HC.stampT <= 0) { HC.stampT = 0.5; setTxt('bcTime', stampNow()); } }
+}
+function phase1Reset() {
+  SUP.k = 0; SUP.t = -9; SUP.sp = SUP.sy = 0; SUP.o = ''; const s = $('supp'); if (s) s.style.opacity = 0;
+  DK.k = 0; DK.in = false; DK.hide = false; DK.told = false; LX.hemi = 1; LX.sun = 1; ACX.room = 0;
+  if (DK.lm !== 1) { DK.lm = 1; for (const L of Object.values(LEVELS)) for (const [l, i0] of L._pls || []) l.intensity = i0; }
+  toggleNvg(false); CT.last = -99; CT.keyT = {}; CT.fouls = 0;
+}
+
 function update(dt) {
   gameTime += dt; timeLeft -= dt;
   if (LEVEL.elev) elevUpdate(LEVEL.elev, dt);
@@ -7455,7 +7805,7 @@ function update(dt) {
   if (mode !== 'training') { if (sim) { for (const b of bots) if (b.active) updateBot(b, dt); separateBots(); } else mpReplicaBots(dt); }
   if (isMission()) { if (sim) { for (const c of civs) updateCiv(c, dt); } else mpReplicaCivs(dt); for (const m of mates) updateMate(m, dt); separateMates(); alleyDirector(dt); updateEvidence(dt); }
   if (NET.on) mpTick();
-  updateDoors(dt); updateNades(dt); updateSmoke(dt); updateInteract(dt); updateLasers(); updateWeather(dt); updateMusic(dt);
+  updateDoors(dt); updateNades(dt); updateSmoke(dt); updateInteract(dt); updateLasers(); updateWeather(dt); updateMusic(dt); phase1Tick(dt);
   if (shoutCd > 0) shoutCd -= dt; if (P.blind > 0) P.blind -= dt;
   updateCharacters(dt);
   if (mini.droneT > 0) mini.droneT -= dt; if (mini.droneCd > 0) mini.droneCd -= dt;
@@ -7498,7 +7848,7 @@ function frame(now) {
     if (drawGun) { renderer.clearDepth(); renderer.render(vmScene, vmCam); }
     renderer.setRenderTarget(null); renderer.clear(); renderer.render(bcScene, bcCam);
   } else {
-    if (curEnv) hemi.intensity = curEnv.hemiI;
+    if (curEnv) { hemi.intensity = curEnv.hemiI * LX.hemi; sun.intensity = curEnv.sunI * LX.sun; }
     renderer.clear();
     renderer.render(scene, camera);
     if (drawGun) { renderer.clearDepth(); renderer.render(vmScene, vmCam); }
@@ -7517,7 +7867,7 @@ function updateBodycam(dt) {
   const vf = THREE.MathUtils.degToRad(camera.fov);
   u.uBlur.value.set(clamp(-dy / hf * 0.2, -0.012, 0.012), clamp(dp / vf * 0.2, -0.012, 0.012));
   bc.indoor = damp(bc.indoor, isIndoor(P.pos.x, P.pos.z) ? 1 : 0, 1.4, dt);
-  hemi.intensity = curEnv.hemiI * lerp(1, 0.16, bc.indoor);
+  hemi.intensity = curEnv.hemiI * lerp(1, 0.16, bc.indoor) * LX.hemi; sun.intensity = curEnv.sunI * LX.sun;
   u.uExposure.value = lerp(1, 1.4, bc.indoor) * (1 + Math.sin(gameTime * 7.3) * 0.006);
   bc.hit = Math.max(0, bc.hit - dt * 1.3);
   u.uHit.value = Math.max(bc.hit, P.alive ? clamp((35 - P.hp) / 35, 0, 1) * 0.5 : 0.8);
@@ -7530,6 +7880,7 @@ function updateBodycam(dt) {
 }
 function toggleFlashlight(force) {
   bc.light = force != null ? force : !bc.light;
+  if (bc.light && NV.on) toggleNvg(false);
   flashlight.intensity = bc.light ? 45 : 0;
   setTxt('bcLight', bc.light ? 'LIGHT ON' : 'LIGHT OFF'); $('bcLight').classList.toggle('on', bc.light);
   if (force == null) sfx.flick();
@@ -7808,6 +8159,8 @@ function mpRecv(from, m) {
     case 'dn': addFeed(mpSafe(m.by, 16) || '강도', q.n, '', false, false, false); break;
     case 'fl': mpOnFlash(m); break;
     case 'dr': { const d = (LEVEL.doors || [])[m.i | 0]; if (d && !d.open) doorOpen(d, 0.55); break; }
+    case 'dc': { const d = (LEVEL.doors || [])[m.i | 0]; if (d) doorClose(d, false); break; }
+    case 'wg': { const d = (LEVEL.doors || [])[m.i | 0]; if (d) { if (m.on && !d.broken) { if (d.open) doorClose(d, true); setWedge(d, true, (m.s | 0) || 1, true); } else if (!m.on) setWedge(d, false, 0, true); } break; }
     case 'bc': { const d = (LEVEL.doors || [])[m.i | 0]; if (d && !d.open && d.charge <= 0) { d.charge = 2.2; chargeMesh.position.set(fnum(m.x), fnum(m.y, 1.15), fnum(m.z)); chargeMesh.rotation.y = fnum(m.ry); chargeMesh.visible = true; } break; }
     case 'bye': if (q.seenP) mpDropPeer(q, true); else NET.peers.delete(q.id); break;
     case 'hit': if (NET.host) mpHostHit(q, m); break;
@@ -7867,6 +8220,7 @@ function mpRemoteShot(q, end) {
   else { spawnTracer(_bs, end, 0xffdf9e, 0.045, 0.013); r.flashT = 0.05; r.flash.material.rotation = rand(0, 6); }
   const dist = P.pos.distanceTo(r.pos), pan = clamp(((r.pos.x - P.pos.x) * Math.cos(P.yaw) - (r.pos.z - P.pos.z) * Math.sin(P.yaw)) / (dist || 1), -1, 1) * 0.8;
   if (w.type === 'taser') sfx.zap(); else sfx.shot(w.snd, dist, -pan);
+  if (NET.host && w.type !== 'taser' && !w.lessLethal) suppressBots(_bs, end, r.pos, false);
   if (NET.host && w.type !== 'taser') {
     // 방장 쪽 강도들도 총소리를 듣는다
     const hearR = w.quiet ? 13 : 42;
@@ -7894,7 +8248,7 @@ function mpSnapshot() {
   const b = [];
   bots.forEach((x, i) => {
     if (!x.active) return;
-    const fl = (x.alive ? 1 : 0) | (x.surrender ? 2 : 0) | (x.arrested ? 4 : 0) | (x.stunT > 0 ? 8 : 0) | (x.canSee || x.state === 'engage' ? 16 : 0) | (x.shieldOn ? 32 : 0);
+    const fl = (x.alive ? 1 : 0) | (x.surrender ? 2 : 0) | (x.arrested ? 4 : 0) | (x.stunT > 0 ? 8 : 0) | (x.canSee || x.state === 'engage' ? 16 : 0) | (x.shieldOn ? 32 : 0) | (x.disarmed ? 64 : 0);
     const e = [i, rd2(x.pos.x), rd2(x.pos.y), rd2(x.pos.z), rd3(x.yaw), fl, Math.max(0, Math.round(x.hp)), Math.round(x.maxHp || 100), Math.max(0, BT.indexOf(x.type)), x.netFc | 0];
     if (x.netAim) e.push(rd2(x.netAim.x), rd2(x.netAim.y), rd2(x.netAim.z));
     b.push(e);
@@ -7931,7 +8285,7 @@ function mpOnWorld(q, m) {
     for (const e of m.c) { if (!Array.isArray(e)) continue; const i = e[0] | 0, c = civs[i]; if (!c) continue; seen.add(i); mpApplyCiv(c, e, t); }
     for (let i = 0; i < civs.length; i++) if (!seen.has(i) && civs[i].active) { civs[i].active = false; civs[i].root.visible = false; civs[i].netBuf = null; }
   }
-  if (Array.isArray(m.dr) && LEVEL.doors) for (const i of m.dr) { const d = LEVEL.doors[i | 0]; if (d && !d.open) doorOpen(d, 0.4, true); }
+  if (Array.isArray(m.dr) && LEVEL.doors) for (const i of m.dr) { const d = LEVEL.doors[i | 0]; if (d && !d.open && !d.wedged && gameTime - (d.shutT ?? -9) > 2.5) doorOpen(d, 0.4, true); }
 }
 function mpHideBot(b) { b.active = false; b.alive = false; b.root.visible = false; b.laser.visible = false; b.flash.visible = false; b.netBuf = null; }
 function mpApplyBot(b, i, e, t) {
@@ -7950,6 +8304,7 @@ function mpApplyBot(b, i, e, t) {
     else if (!surr && b.surrender) { b.surrender = false; resetPose(b); b.gunG.visible = true; }
     b.stunT = fl & 8 ? 0.5 : 0; b.canSee = !!(fl & 16); b.state = b.canSee ? 'engage' : 'patrol';
     b.shieldOn = !!(fl & 32) && !b.surrender; b.shieldG.visible = b.shieldOn;
+    b.disarmed = !!(fl & 64) && !b.surrender; if (b.disarmed) { b.gunG.visible = false; b.armR.rotation.set(2.85, 0, -0.28); b.armL.rotation.set(2.85, 0, 0.28); }
   }
   if (!pred || hp < b.hp) b.hp = hp; b.maxHp = mhp;
   if (fc !== b.netFc) { b.netFc = fc; if (e.length >= 13 && b.alive) mpBotShot(b, fnum(e[10]), fnum(e[11]), fnum(e[12])); }
@@ -7961,6 +8316,7 @@ function mpBotShot(b, ax, ay, az) {
   const dist = P.pos.distanceTo(b.pos), pan = clamp(((b.pos.x - P.pos.x) * Math.cos(P.yaw) - (b.pos.z - P.pos.z) * Math.sin(P.yaw)) / (dist || 1), -1, 1) * 0.8, T = b.type;
   sfx.shot(T === 'sniper' ? 'sniper' : T === 'shotgun' ? 'shotgun' : T === 'pistol' || T === 'shield' ? 'pistol' : 'rifle', dist, -pan);
   if (P.alive && end.distanceTo(camera.position) < 2.2 && dist < 45) sfx.whiz(-pan);
+  nearMiss(_bs, end, b, T);
   if (gameTime - (b.lastPing || -9) > 0.6) { b.lastPing = gameTime; ping(b.pos.x, b.pos.z, 'fire'); }
 }
 function mpApplyCiv(c, e, t) {
@@ -8071,14 +8427,17 @@ function mpEvent(ev) {
       WEAPONS.forEach((w, i) => { P.ammo[i].reserve = Math.min(w.reserveMax, P.ammo[i].reserve + (w.type === 'auto' ? 30 : w.type === 'semi' ? Math.ceil(w.magSize / 2) : 5)); });
       const pts = fnum(ev.p);
       popup((pts > 0 ? '+' : '') + pts, ev.f ? 'civ' : ev.h ? 'head' : '');
-      if (ev.f) centerMsg('투항한 용의자 사격! 팀 점수 −500', 'civ', 1.6);
-      else if (b && b.boss) centerMsg('두목 제압! +1500', 'head', 1.8);
+      if (ev.f) { centerMsg(ev.f === 2 ? '비무장 용의자 사격! 팀 점수 −500' : '투항한 용의자 사격! 팀 점수 −500', 'civ', 1.6); ctrlFoul(); }
+      else if (b && b.boss) centerMsg('두목 제압! +1000', 'head', 1.8);
       else centerMsg(ev.h ? '헤드샷!' : '강도 제압!', ev.h ? 'head' : 'kill', 0.9);
       break;
     }
     case 'arr':
       addFeed(nm, bn, '체포', false);
-      if (byMe) { NET.arrests++; sfx.cuff(); popup('+' + fnum(ev.p) + ' 체포', 'head'); centerMsg(b && b.boss ? '두목 체포! +2000' : '체포 완료! +500', 'head', 1.2); }
+      if (byMe) { NET.arrests++; sfx.cuff(); popup('+' + fnum(ev.p) + ' 체포', 'head'); centerMsg(b && b.boss ? '두목 체포! +2000 (사살의 2배)' : '체포 완료! +500 (사살의 2배)', 'head', 1.3); ctrlSay('arrest'); }
+      break;
+    case 'dis':
+      if (b) { addFeed(bn, '무기 버림', '', false); if (!NET.host) { b.disarmed = true; b.gunG.visible = false; } disarmNotice(b); }
       break;
     case 'surr':
       addFeed(bn, '투항', '', false);
@@ -8307,12 +8666,12 @@ function enDirector(dt) {
   }
 }
 function enKill(b, head) {
-  const by = HIT_BY || NET.id, foul = b.surrender;
+  const by = HIT_BY || NET.id, fdis = !!b.disarmed && !b.surrender, foul = b.surrender || b.disarmed; b.disarmed = false;
   b.alive = false; b.deadT = 0; b.surrender = false; b.gunG.visible = false; b.shieldG.visible = false; b.laser.visible = false;
-  let pts = (b.boss ? 1500 : 300) + (head ? 150 : 0); if (foul) { pts = -500; MS.fouls++; }
+  let pts = (b.boss ? 1000 : 250) + (head ? 50 : 0); if (foul) { pts = -500; MS.fouls++; }
   MS.score += pts; MS.kills++; MS.down++;
   const q = by !== NET.id ? NET.peers.get(by) : null;
-  mpHostEvent({ k: 'kill', e: bots.indexOf(b), by, h: head ? 1 : 0, p: pts, f: foul ? 1 : 0, w: (q ? WEAPONS[q.w] || WEAPONS[0] : W()).short });
+  mpHostEvent({ k: 'kill', e: bots.indexOf(b), by, h: head ? 1 : 0, p: pts, f: foul ? (fdis ? 2 : 1) : 0, w: (q ? WEAPONS[q.w] || WEAPONS[0] : W()).short });
 }
 function enArrest(b) {
   const by = HIT_BY || NET.id;
@@ -8501,7 +8860,7 @@ function syncPrep() {
   const lo = settings.loadout;
   document.querySelectorAll('#prep .cards[data-k]').forEach((cd) => cd.querySelectorAll('button').forEach((b) => b.classList.toggle('sel', cd.dataset.k === 'mods' ? !!lo[b.dataset.v] : b.dataset.v === String(lo[cd.dataset.k]))));
   $('prepTitle').textContent = `${MAP_NAMES[mode]} 작전 · ${TYPE_NAMES[settings.mtype]}`;
-  $('prepBrief').innerHTML = '<b>경찰특공대 출동.</b> ' + PREP_BRIEF[settings.mtype](mode) + '<br>매판 강도 배치가 바뀌고, 체포는 사살보다 점수가 높아요(S등급: 무사고·쓰러짐 0·체포 3명 이상).';
+  $('prepBrief').innerHTML = '<b>경찰특공대 출동.</b> ' + PREP_BRIEF[settings.mtype](mode) + '<br>매판 강도 배치가 바뀌고, 체포 +500은 사살 +250의 2배예요 · 제압 사격으로 겁을 주면 투항하거나 무기를 버려요(S등급: 무사고·쓰러짐 0·체포 3명 이상).';
   $('prepNote').textContent = difficulty === 'real' ? '실전: 몇 발에 쓰러지고 다시 일어날 수 없어요. 체력도 회복되지 않아요.' : '쓰러지면 그 자리에서 다시 일어나요(−300점).';
   document.querySelectorAll('#diffSeg button').forEach((x) => x.classList.toggle('sel', x.dataset.d === difficulty));
   if (NET.prepMp) { $('prepTitle').textContent = '같이하기 · 장비 고르기'; $('prepBrief').innerHTML = '<b>무한 작전.</b> 들어오는 대로 합류하고, 시간이 갈수록·대원이 많을수록 강도단이 늘어나요. 쓰러지면 3초 뒤 그 자리에서 다시 일어나요. 장비를 고르고 출동하세요.'; }
@@ -8577,8 +8936,8 @@ function syncSliders() {
     $(id).value = settings[key]; $(out).textContent = fmt(settings[key]);
   }
 }
-document.querySelectorAll('.bcSeg button').forEach((b) => b.addEventListener('click', () => { setBodycam(b.dataset.v === '1'); sfx.init(); sfx.ui(); }));
-setBodycam(settings.bodycam);
+document.querySelectorAll('.viewSeg button').forEach((b) => b.addEventListener('click', () => { setView(b.dataset.v); sfx.init(); sfx.ui(); }));
+setView(viewMode());
 bindSlider('sens', 'sens'); bindSlider('sens2', 'sens'); bindSlider('vol', 'vol'); bindSlider('vol2', 'vol');
 syncSliders();
 if (window.matchMedia && matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches) {
@@ -8591,7 +8950,7 @@ window.__fps = {
   get nodes() { return nodes; }, useLevel, mini, damagePlayer, mates, COND, settings, orderMates, escapeVan, tireMeshes, get LEVEL() { return LEVEL; }, EQ, shout, throwFlash, arrest, surrender, doorOpen, bossFlee, callReinforcements, evPool, boss, nades, setDifficulty: (d) => { difficulty = d; },
   look: (yaw, pitch) => { P.yaw = yaw; P.pitch = pitch; }, fire: () => { P.clicked = true; }, setMouse: (l, r) => { mouseL = l; mouseR = r; }, endGame, switchWeapon,
   sim: (sec) => { const n = Math.round(sec * 60); for (let i = 0; i < n && state === 'playing'; i++) { update(1 / 60); updateCamera(1 / 60); } },
-  place: (x, z) => { P.pos.set(x, 0, z); }, WEAPONS, GUNVM, applyLoadout, cycleMode, curMode, beanbagBot, CHR, loadCharacters, setType, GUNS, GUN_MESH, loadGuns, RES, FP, FP_GRIP, vmScene, vmCam, holder, vmTick: (dt) => { updateViewmodel(dt); updateFPBody(dt); }, updateCharacters, NET, EN, remotes, mpJoin, mpLeave, mpOpenLobby, losClear, V3, vma, vmaInspect, startReload, keys, scene, camera, get HIT_BY() { return HIT_BY; },
+  place: (x, z) => { P.pos.set(x, 0, z); }, WEAPONS, GUNVM, applyLoadout, cycleMode, curMode, beanbagBot, CHR, loadCharacters, setType, GUNS, GUN_MESH, loadGuns, RES, FP, FP_GRIP, vmScene, vmCam, holder, vmTick: (dt) => { updateViewmodel(dt); updateFPBody(dt); }, updateCharacters, NET, EN, remotes, mpJoin, mpLeave, mpOpenLobby, losClear, V3, vma, vmaInspect, startReload, keys, scene, camera, get HIT_BY() { return HIT_BY; }, SUP, NV, DK, LX, CT, ACX, toggleNvg, wedgeKey, setView, suppressBots, nearMiss, disarmBot, doorClose, setWedge, findDoor, killBotT: (b, h) => killBot(b, h), get gameTime() { return gameTime; }, hemi, sun, sfx, bc, toggleFlashlight, ctrlSay,
 };
 </script>
 </body>
