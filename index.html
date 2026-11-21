@@ -239,7 +239,7 @@ body.bodycam #xhair{display:none}
 body.nvg #game canvas{filter:grayscale(1) sepia(1) hue-rotate(72deg) saturate(2.4) brightness(1.3) contrast(1.12)}
 body.nvg #nvgOv,body.nvg #nvgTag{display:block}
 body.helmcam #bcam{display:block}
-.viewSeg button{white-space:nowrap}
+.viewSeg button,.qSeg button{white-space:nowrap}
 .ddir{position:absolute;left:50%;top:50%;width:240px;height:240px;margin:-120px 0 0 -120px;opacity:0}
 .ddir:before{content:'';position:absolute;left:50%;top:0;width:86px;height:22px;margin-left:-43px;
   border-radius:50% 50% 0 0/100% 100% 0 0;background:linear-gradient(180deg,rgba(255,40,40,.95),rgba(255,40,40,0))}
@@ -406,6 +406,7 @@ body.helmcam #bcam{display:block}
       <div class="slider"><span>마우스 감도</span><input id="sens" type="range" min="0.3" max="3" step="0.05"><output id="sensOut"></output></div>
       <div class="slider"><span>소리 크기</span><input id="vol" type="range" min="0" max="1" step="0.05"><output id="volOut"></output></div>
       <div class="row tog"><label>화면 시점 (B로 바꾸기)</label><div class="seg viewSeg"><button data-v="normal">기본</button><button data-v="helm">헬멧캠</button><button data-v="body">바디캠</button></div></div>
+      <div class="row tog"><label>화질 (자동: 느릴 때만 잠깐 낮춤)</label><div class="seg qSeg"><button data-v="auto">자동</button><button data-v="high">선명하게</button></div></div>
       <div class="guns">
         <div class="gun"><b>장비 바꾸기</b><small>작전 준비·같이하기의 장비 화면, 그리고 게임 중 ESC → 장비 바꾸기에서 언제든 총을 바꿀 수 있어요.</small></div>
         <div class="gun"><b>총기 11종 · 4칸</b><small>주무기 6 · 권총 · 저격총 2 · 비살상 2 + 조준경·소음기·손잡이 + 섬광탄/폭약/방탄복</small></div>
@@ -500,6 +501,7 @@ body.helmcam #bcam{display:block}
     <div class="slider"><span>마우스 감도</span><input id="sens2" type="range" min="0.3" max="3" step="0.05"><output id="sensOut2"></output></div>
     <div class="slider"><span>소리 크기</span><input id="vol2" type="range" min="0" max="1" step="0.05"><output id="volOut2"></output></div>
     <div class="row tog"><label>화면 시점</label><div class="seg viewSeg"><button data-v="normal">기본</button><button data-v="helm">헬멧캠</button><button data-v="body">바디캠</button></div></div>
+    <div class="row tog"><label>화질</label><div class="seg qSeg"><button data-v="auto">자동</button><button data-v="high">선명하게</button></div></div>
     <div class="btns">
       <button class="btn2 pri" id="resumeBtn">계속하기</button>
       <button class="btn2" id="gearLiveBtn">장비 바꾸기</button>
@@ -575,7 +577,7 @@ const EN_LVL = 75; // 위협 단계가 오르는 간격(초)
 const isEndless = () => NET.on && MS.type === 'endless';
 
 const LO_DEF = { p: 0, sn: 8, nl: 4, sp: 'flash', opt: 'dot', sup: false, grip: false };
-const settings = { sens: 1, vol: 0.7, bodycam: false, helmcam: false, vfx: 2, mtype: 'hostage', tod: 'base', weather: 'clear', mates: 2, loadout: Object.assign({}, LO_DEF) };
+const settings = { sens: 1, vol: 0.7, bodycam: false, helmcam: false, quality: 'auto', vfx: 2, mtype: 'hostage', tod: 'base', weather: 'clear', mates: 2, loadout: Object.assign({}, LO_DEF) };
 try { const st = JSON.parse(localStorage.getItem('welevfps.settings') || '{}'); Object.assign(settings, st, { loadout: Object.assign({}, LO_DEF, st.loadout || {}) }); if ((st.vfx || 0) < 2) settings.bodycam = false; settings.vfx = 2; } catch (e) {}
 if ([8, 1].includes(settings.loadout.p)) { settings.loadout.sn = settings.loadout.p; settings.loadout.p = 0; } // 예전 저장: 저격총을 주무기로 골랐으면 3번 칸으로
 if (![0, 6, 2, 7, 3, 10].includes(settings.loadout.p)) settings.loadout.p = 0;
@@ -739,9 +741,21 @@ function trackRes(ms) {
   if (ms > 5000) return; // back from another tab
   RES.t += Math.min(ms, 400); RES.acc += Math.min(ms, 400); RES.n++;
   if (RES.t < 2000) return;
-  const avg = RES.acc / RES.n; RES.t = RES.acc = RES.n = 0;
-  if (avg > 24 && RES.scale > 0.5) { RES.scale = Math.max(0.5, RES.scale * 0.82); applyRes(); }
-  else if (avg < 12.5 && RES.scale < 1) { RES.scale = Math.min(1, RES.scale * 1.12); applyRes(); }
+  const avg = RES.acc / RES.n; RES.t = RES.acc = RES.n = 0; RES.avg = avg;
+  if (avg > 28) {
+    // 느려지면 먼저 비·눈 알갱이를 줄이고, 그래도 느리면 해상도를 조금만 낮춘다 (최저 0.7 · '선명하게'면 안 낮춤)
+    if (wx.kind && wx.q > 0.45) { wx.q = Math.max(0.45, wx.q * 0.75); return; }
+    if (settings.quality !== 'high' && RES.scale > 0.7) { RES.scale = Math.max(0.7, RES.scale * 0.88); applyRes(); }
+  } else if (avg < 19) {
+    // 60Hz 화면(16.7ms)에서도 다시 선명해진다 — 예전엔 12.5ms 아래여야 돌아와서 한 번 낮아지면 판 내내 흐렸다
+    if (RES.scale < 1) { RES.scale = Math.min(1, RES.scale * 1.1); applyRes(); }
+    else if (wx.q < 1) wx.q = Math.min(1, wx.q * 1.15);
+  }
+}
+function setQuality(v) {
+  settings.quality = v === 'high' ? 'high' : 'auto'; saveSettings();
+  if (settings.quality === 'high' && RES.scale < 1) { RES.scale = 1; applyRes(); }
+  document.querySelectorAll('.qSeg button').forEach((b) => b.classList.toggle('sel', b.dataset.v === settings.quality));
 }
 applyRes();
 renderer.shadowMap.enabled = true;
@@ -3843,6 +3857,7 @@ function buildYTower() {
     for (let f = 0; f < 4; f++) { const p = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.3), mat); p.position.set(0, FY[f] + 2.6, -7.58); p.userData.keep = true; BL.group.add(p); const b2 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.16, 0.03), M.dark); b2.position.set(1.45, FY[f] + 1.1, -7.58); deco(b2, false); }
   }
   L.elev = E;
+  L.nightLights = [[-9, 14], [9, 14], [0, 22]].map(([x, z]) => { const l = new THREE.PointLight(0xffd8a0, 0, 20, 1.6); l.position.set(x, 4.5, z); BL.group.add(l); return l; });
 
   // ---- 바깥벽 · 앞면 유리 · 층마다 방
   const glassPane = (x0, x1, y0, y1, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, y1 - y0, 0.05), M.glass); m.position.set((x0 + x1) / 2, (y0 + y1) / 2, z); m.userData.keep = true; m.renderOrder = 2; BL.group.add(m); addCollider(x0, y0, z - 0.03, x1, y1, z + 0.03, 'glass'); };
@@ -5682,7 +5697,7 @@ function tacticalReset() {
    Mission conditions (time of day, weather), radio voice, tension heartbeat
    ========================================================= */
 const COND = { night: false, weather: 'clear' };
-const NIGHT_ENV = { skyTop: 0x04060c, skyMid: 0x0b1222, skyBot: 0x1a2133, fog: 0x0a0e17, fogNear: 22, fogFar: 105, hemiSky: 0x7384ac, hemiGround: 0x1b1d26, hemiI: 0.55, sunColor: 0x9db4ff, sunI: 0.45, exposure: 1.22 };
+const NIGHT_ENV = { skyTop: 0x060a14, skyMid: 0x111a2e, skyBot: 0x232c42, fog: 0x161e2e, fogNear: 30, fogFar: 125, hemiSky: 0x8292bb, hemiGround: 0x2a2d38, hemiI: 0.85, sunColor: 0xa8bcff, sunI: 0.7, exposure: 1.36 };
 function resolveConditions() {
   COND.night = false; COND.weather = 'clear';
   if (!isMission()) return;
@@ -5692,43 +5707,50 @@ function resolveConditions() {
 function applyConditions() {
   const e = Object.assign({}, LEVEL.env);
   if (COND.night) Object.assign(e, NIGHT_ENV);
-  if (COND.weather === 'rain') Object.assign(e, { fogNear: e.fogNear * 0.5, fogFar: e.fogFar * 0.55, sunI: e.sunI * 0.35, hemiI: e.hemiI * 0.85, fog: COND.night ? 0x0b0f16 : 0x8a939c, skyMid: COND.night ? e.skyMid : 0x8c96a2, skyBot: COND.night ? e.skyBot : 0x9aa2ab, skyTop: COND.night ? e.skyTop : 0x5d6a78 });
-  if (COND.weather === 'snow') Object.assign(e, { fogNear: e.fogNear * 0.45, fogFar: e.fogFar * 0.5, sunI: e.sunI * 0.5, hemiGround: 0xc8ccd2, fog: COND.night ? 0x1a1f2a : 0xc9cfd6, skyMid: COND.night ? e.skyMid : 0xc3cad2, skyBot: COND.night ? e.skyBot : 0xd6dbe0, skyTop: COND.night ? e.skyTop : 0x8f9aa8 });
+  if (COND.weather === 'rain') Object.assign(e, { fogNear: e.fogNear * 0.8, fogFar: e.fogFar * 0.75, sunI: e.sunI * (COND.night ? 0.8 : 0.5), hemiI: e.hemiI * 0.95, fog: COND.night ? 0x141b28 : 0x8a939c, skyMid: COND.night ? e.skyMid : 0x8c96a2, skyBot: COND.night ? e.skyBot : 0x9aa2ab, skyTop: COND.night ? e.skyTop : 0x5d6a78 });
+  if (COND.weather === 'snow') Object.assign(e, { fogNear: e.fogNear * 0.75, fogFar: e.fogFar * 0.7, sunI: e.sunI * 0.65, hemiGround: 0xc8ccd2, fog: COND.night ? 0x1f2532 : 0xbfc6cf, skyMid: COND.night ? e.skyMid : 0xc3cad2, skyBot: COND.night ? e.skyBot : 0xd6dbe0, skyTop: COND.night ? e.skyTop : 0x8f9aa8 });
+  // 어떤 날씨여도 강도를 알아볼 수 있는 시야는 남긴다 (지도 한쪽 끝~반대쪽 끝 정도)
+  e.fogNear = Math.max(e.fogNear, 22); e.fogFar = Math.max(e.fogFar, 85);
   applyEnv(e);
   for (const m of LEVEL.nightMats || []) m.emissiveIntensity = COND.night ? 0.95 : 0;
   for (const l of LEVEL.nightLights || []) l.intensity = COND.night ? 16 : 0;
   wx.kind = COND.weather === 'clear' ? null : COND.weather;
-  rainLines.visible = wx.kind === 'rain'; snowPts.visible = wx.kind === 'snow';
+  rainLines.visible = wx.kind === 'rain'; snowPts.visible = wx.kind === 'snow'; wx.q = 1;
+  rainLines.material.opacity = COND.night ? 0.2 : 0.3;
   sfx.rain(wx.kind);
 }
 function condLabel() { return `${COND.night ? '야간' : '주간'} · ${{ clear: '맑음', rain: '비', snow: '눈' }[COND.weather]}`; }
 // ---- precipitation around the camera
 const RAIN_N = 1300, SNOW_N = 1500, WX_R = 26;
-const wx = { kind: null, rx: new Float32Array(RAIN_N * 3), sx: new Float32Array(SNOW_N * 3) };
+const wx = { kind: null, q: 1, rx: new Float32Array(RAIN_N * 3), sx: new Float32Array(SNOW_N * 3) };
+// 눈앞(카메라 둘레)은 비워서 큰 줄기·덩어리가 화면을 가리지 않게
+function wxSpot(r, i, near) { let x, z; do { x = rand(-WX_R, WX_R); z = rand(-WX_R, WX_R); } while (x * x + z * z < near * near); r[i * 3] = x; r[i * 3 + 2] = z; }
+const flakeTex = canvasTex(32, (g, w) => { const gr = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.45, 'rgba(255,255,255,.8)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, w); }, false);
 const rainGeo = new THREE.BufferGeometry(); rainGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(RAIN_N * 6), 3));
-const rainLines = new THREE.LineSegments(rainGeo, new THREE.LineBasicMaterial({ color: 0xa9bccf, transparent: true, opacity: 0.5, depthWrite: false }));
+const rainLines = new THREE.LineSegments(rainGeo, new THREE.LineBasicMaterial({ color: 0xa9bccf, transparent: true, opacity: 0.3, depthWrite: false }));
 rainLines.frustumCulled = false; rainLines.visible = false; scene.add(rainLines);
 const snowGeo = new THREE.BufferGeometry(); snowGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(SNOW_N * 3), 3));
-const snowPts = new THREE.Points(snowGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.07, transparent: true, opacity: 0.9, depthWrite: false }));
+const snowPts = new THREE.Points(snowGeo, new THREE.PointsMaterial({ color: 0xffffff, map: flakeTex, size: 0.09, transparent: true, opacity: 0.8, depthWrite: false, alphaTest: 0.02 }));
 snowPts.frustumCulled = false; snowPts.visible = false; scene.add(snowPts);
-for (let i = 0; i < RAIN_N; i++) { wx.rx[i * 3] = rand(-WX_R, WX_R); wx.rx[i * 3 + 1] = rand(0, 22); wx.rx[i * 3 + 2] = rand(-WX_R, WX_R); }
-for (let i = 0; i < SNOW_N; i++) { wx.sx[i * 3] = rand(-WX_R, WX_R); wx.sx[i * 3 + 1] = rand(0, 18); wx.sx[i * 3 + 2] = rand(-WX_R, WX_R); }
+for (let i = 0; i < RAIN_N; i++) { wxSpot(wx.rx, i, 2); wx.rx[i * 3 + 1] = rand(0, 22); }
+for (let i = 0; i < SNOW_N; i++) { wxSpot(wx.sx, i, 1.6); wx.sx[i * 3 + 1] = rand(0, 18); }
 function updateWeather(dt) {
   if (!wx.kind) return;
   const cx = camera.position.x, cz = camera.position.z;
   if (wx.kind === 'rain') {
-    const a = rainGeo.attributes.position.array, r = wx.rx;
-    for (let i = 0; i < RAIN_N; i++) {
-      let y = r[i * 3 + 1] - 21 * dt; if (y < 0) { y += 22; r[i * 3] = rand(-WX_R, WX_R); r[i * 3 + 2] = rand(-WX_R, WX_R); }
+    const a = rainGeo.attributes.position.array, r = wx.rx, n = Math.floor(RAIN_N * wx.q);
+    for (let i = 0; i < n; i++) {
+      let y = r[i * 3 + 1] - 21 * dt; if (y < 0) { y += 22; wxSpot(r, i, 2); }
       r[i * 3 + 1] = y; r[i * 3] += 1.2 * dt;
       const x = cx + r[i * 3], z = cz + r[i * 3 + 2];
-      a[i * 6] = x; a[i * 6 + 1] = y; a[i * 6 + 2] = z; a[i * 6 + 3] = x - 0.03; a[i * 6 + 4] = y + 0.55; a[i * 6 + 5] = z;
+      a[i * 6] = x; a[i * 6 + 1] = y; a[i * 6 + 2] = z; a[i * 6 + 3] = x - 0.025; a[i * 6 + 4] = y + 0.42; a[i * 6 + 5] = z;
     }
-    rainGeo.attributes.position.needsUpdate = true;
+    rainGeo.setDrawRange(0, n * 2); rainGeo.attributes.position.needsUpdate = true;
   } else {
-    const a = snowGeo.attributes.position.array, r = wx.sx;
-    for (let i = 0; i < SNOW_N; i++) {
-      let y = r[i * 3 + 1] - 1.1 * dt; if (y < 0) { y += 18; r[i * 3] = rand(-WX_R, WX_R); r[i * 3 + 2] = rand(-WX_R, WX_R); }
+    const a = snowGeo.attributes.position.array, r = wx.sx, n = Math.floor(SNOW_N * wx.q);
+    snowGeo.setDrawRange(0, n);
+    for (let i = 0; i < n; i++) {
+      let y = r[i * 3 + 1] - 1.1 * dt; if (y < 0) { y += 18; wxSpot(r, i, 1.6); }
       r[i * 3 + 1] = y; r[i * 3] += Math.sin(gameTime * 0.7 + i) * 0.4 * dt;
       a[i * 3] = cx + r[i * 3]; a[i * 3 + 1] = y; a[i * 3 + 2] = cz + r[i * 3 + 2];
     }
@@ -7684,7 +7706,7 @@ function stampNow() { const d = new Date(), p2 = (v) => String(v).padStart(2, '0
 
 // ---- 야간투시경 · 정전 구역
 function levelLights() {
-  if (!LEVEL._pls) { LEVEL._pls = []; if (LEVEL.group) LEVEL.group.traverse((o) => { if (o.isPointLight) LEVEL._pls.push([o, o.intensity]); }); }
+  if (!LEVEL._pls) { LEVEL._pls = []; if (LEVEL.group) LEVEL.group.traverse((o) => { if (o.isPointLight && !(LEVEL.nightLights || []).includes(o)) LEVEL._pls.push([o, o.intensity]); }); }
   return LEVEL._pls;
 }
 function inDark(x, y, z) { for (const r of LEVEL.dark || []) if (x > r[0] && x < r[1] && z > r[2] && z < r[3] && y > r[4] && y < r[5]) return true; return false; }
@@ -8937,7 +8959,9 @@ function syncSliders() {
   }
 }
 document.querySelectorAll('.viewSeg button').forEach((b) => b.addEventListener('click', () => { setView(b.dataset.v); sfx.init(); sfx.ui(); }));
+document.querySelectorAll('.qSeg button').forEach((b) => b.addEventListener('click', () => { setQuality(b.dataset.v); sfx.init(); sfx.ui(); }));
 setView(viewMode());
+setQuality(settings.quality);
 bindSlider('sens', 'sens'); bindSlider('sens2', 'sens'); bindSlider('vol', 'vol'); bindSlider('vol2', 'vol');
 syncSliders();
 if (window.matchMedia && matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches) {
@@ -8950,7 +8974,7 @@ window.__fps = {
   get nodes() { return nodes; }, useLevel, mini, damagePlayer, mates, COND, settings, orderMates, escapeVan, tireMeshes, get LEVEL() { return LEVEL; }, EQ, shout, throwFlash, arrest, surrender, doorOpen, bossFlee, callReinforcements, evPool, boss, nades, setDifficulty: (d) => { difficulty = d; },
   look: (yaw, pitch) => { P.yaw = yaw; P.pitch = pitch; }, fire: () => { P.clicked = true; }, setMouse: (l, r) => { mouseL = l; mouseR = r; }, endGame, switchWeapon,
   sim: (sec) => { const n = Math.round(sec * 60); for (let i = 0; i < n && state === 'playing'; i++) { update(1 / 60); updateCamera(1 / 60); } },
-  place: (x, z) => { P.pos.set(x, 0, z); }, WEAPONS, GUNVM, applyLoadout, cycleMode, curMode, beanbagBot, CHR, loadCharacters, setType, GUNS, GUN_MESH, loadGuns, RES, FP, FP_GRIP, vmScene, vmCam, holder, vmTick: (dt) => { updateViewmodel(dt); updateFPBody(dt); }, updateCharacters, NET, EN, remotes, mpJoin, mpLeave, mpOpenLobby, losClear, V3, vma, vmaInspect, startReload, keys, scene, camera, get HIT_BY() { return HIT_BY; }, SUP, NV, DK, LX, CT, ACX, toggleNvg, wedgeKey, setView, suppressBots, nearMiss, disarmBot, doorClose, setWedge, findDoor, killBotT: (b, h) => killBot(b, h), get gameTime() { return gameTime; }, hemi, sun, sfx, bc, toggleFlashlight, ctrlSay,
+  place: (x, z) => { P.pos.set(x, 0, z); }, WEAPONS, GUNVM, applyLoadout, cycleMode, curMode, beanbagBot, CHR, loadCharacters, setType, GUNS, GUN_MESH, loadGuns, RES, FP, FP_GRIP, vmScene, vmCam, holder, vmTick: (dt) => { updateViewmodel(dt); updateFPBody(dt); }, updateCharacters, NET, EN, remotes, mpJoin, mpLeave, mpOpenLobby, losClear, V3, vma, vmaInspect, startReload, keys, scene, camera, get HIT_BY() { return HIT_BY; }, wx, setQuality, SUP, NV, DK, LX, CT, ACX, toggleNvg, wedgeKey, setView, suppressBots, nearMiss, disarmBot, doorClose, setWedge, findDoor, killBotT: (b, h) => killBot(b, h), get gameTime() { return gameTime; }, hemi, sun, sfx, bc, toggleFlashlight, ctrlSay,
 };
 </script>
 </body>
