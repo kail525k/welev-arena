@@ -2590,7 +2590,7 @@ function startDefense() {
   $('ctrlHint').textContent = 'WASD 이동 · 좌클릭 사격 · R 재장전 · Shift+WASD 지원 요청 · C 집중 사격 · SPC 구르기 · Enter 다음 웨이브 · ESC 일시정지';
   buildHud();
   $('ov').hidden = true; $('ov').classList.remove('art'); $('hud').hidden = false;
-  G.state = 'play'; clock.getDelta(); musicStart(); ambStart();
+  G.state = 'play'; clock.getDelta(); musicStart(); ambStart(); voxLoad();
   radio('통제실', '알파1, 네 길목에 경계조를 세워 뒀다. 침투조가 사방에서 온다. 병력을 더 요청해 막아라.');
   showPick(true);
 }
@@ -3807,22 +3807,28 @@ function ambTick(dt) {
   SND.wind.g.gain.setTargetAtTime(w, AC.currentTime, 0.4); SND.wind.fl.frequency.setTargetAtTime(380 + WX.snow * 260 + Math.sin(G.t * 0.5) * 80, AC.currentTime, 0.5);
   if (D.on && D.st === 'wave' && Math.random() < dt * 0.22) distantShots();
 }
-// --- 무전 음성: 한국어 음성 합성 (통제실은 낮고 차분하게, 분대원은 빠르게)
-const VO = { v: null, pri: 0, until: 0 };
-function voPick() { try { const vs = speechSynthesis.getVoices(); VO.v = vs.find((v) => /ko[-_]KR/i.test(v.lang) && /Google/i.test(v.name)) || vs.find((v) => /^ko/i.test(v.lang)) || null; } catch (e) { VO.v = null; } }
-try { if (window.speechSynthesis) { voPick(); speechSynthesis.addEventListener('voiceschanged', voPick); } } catch (e) { /* no speech */ }
-const VOICE_P = { 통제실: [0.82, 1.05], 분대장: [1.0, 1.18] };
-function voSay(text, who, pri) {
+// --- 무전 음성: ElevenLabs로 녹음한 목소리 (목록에 있는 대사만 재생, 무전은 무전기 필터)
+const VOX = { base: 'https://tozyoprymcvznkeqmrqp.supabase.co/storage/v1/object/public/uw-voice/', map: null, buf: {}, cur: null, pri: 0, until: 0 };
+const VOX_RADIO = /통제실|경찰관|적 무전|알파\d|분대장|의무병/;
+function voxLoad() { if (VOX.map) return; VOX.map = {}; fetch(VOX.base + 'manifest.json?t=' + Math.floor(Date.now() / 6e5)).then((r) => (r.ok ? r.json() : {})).then((m) => { VOX.map = m || {}; }).catch(() => { /* no voice pack */ }); }
+const voxKey = (t) => String(t).replace(/\s+/g, ' ').trim();
+async function voSay(text, who, pri) {
   try {
-    if (!window.speechSynthesis || MUS.muted || document.hidden || G.state !== 'play') return;
+    if (MUS.muted || document.hidden || G.state !== 'play' || !VOX.map) return;
+    const f = VOX.map[voxKey(text)]; if (!f || !sndInit()) return;
     pri = pri || 1; const now = performance.now();
-    if (speechSynthesis.speaking || speechSynthesis.pending) { if (pri <= VO.pri && now < VO.until) return; speechSynthesis.cancel(); }
-    if (!VO.v) voPick(); if (!VO.v) return;
-    const clean = String(text).replace(/\[[^\]]*\]/g, '').replace(/[·…]/g, ', ');
-    const u = new SpeechSynthesisUtterance(clean); u.voice = VO.v; u.lang = VO.v.lang;
-    const p = VOICE_P[who] || [0.94 + (String(who || '').length % 3) * 0.07, 1.22]; u.pitch = p[0]; u.rate = p[1]; u.volume = 0.95;
-    VO.pri = pri; VO.until = now + clean.length * 105 + 700; speechSynthesis.speak(u);
-  } catch (e) { /* speech blocked */ }
+    if (VOX.cur && now < VOX.until) { if (pri <= VOX.pri) return; try { VOX.cur.stop(); } catch (e) { /* already stopped */ } }
+    VOX.pri = pri; VOX.until = now + 400;
+    let b = VOX.buf[f]; if (!b) { const r = await fetch(VOX.base + f); b = VOX.buf[f] = await AC.decodeAudioData(await r.arrayBuffer()); }
+    const s = AC.createBufferSource(); s.buffer = b; const g = AC.createGain(); g.gain.value = 1.15;
+    if (VOX_RADIO.test(who || '') && pri >= 2) {
+      const hp = AC.createBiquadFilter(), lp = AC.createBiquadFilter(), ws = AC.createWaveShaper(), c = new Float32Array(256);
+      hp.type = 'highpass'; hp.frequency.value = 320; lp.type = 'lowpass'; lp.frequency.value = 3300;
+      for (let i = 0; i < 256; i++) { const x = i / 128 - 1; c[i] = Math.tanh(x * 1.8); } ws.curve = c;
+      s.connect(hp); hp.connect(lp); lp.connect(ws); ws.connect(g);
+    } else { s.connect(g); sSend(g, 0.25); }
+    g.connect(SND.bus); s.start(); VOX.cur = s; VOX.until = now + b.duration * 1000 + 150;
+  } catch (e) { /* voice unavailable */ }
 }
 // --- 외침: 아군이 방향을 알려 줌, 수류탄 경고
 function callout(a, text, pri) { if (!a) return; dnum(a.x, 2.95, a.z, text, 'tag'); voSay(text, a.player ? '분대장' : a.name || '아군', pri || 1); }
