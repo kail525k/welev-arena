@@ -262,6 +262,14 @@ button{font:inherit;color:inherit}
 .route i.cur{opacity:1;border-color:#ffd24a;box-shadow:0 0 0 1px #ffd24a inset}
 #capW{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);padding:5px 14px;border-radius:999px;background:rgba(5,8,18,.8);border:1px solid currentColor;font:700 14px 'Noto Sans KR';white-space:nowrap}
 #capW[hidden]{display:none}
+#hist{position:absolute;left:50%;top:62px;transform:translateX(-50%);width:min(560px,60vw);padding:10px 16px;border-radius:6px;background:rgba(38,30,18,.88);border:1px solid #a88f60;color:#f3e6c8;font:14px/1.55 'Noto Sans KR';box-shadow:0 6px 18px rgba(0,0,0,.5);opacity:0;transition:opacity .7s;pointer-events:none;z-index:2}
+#hist.show{opacity:1}
+#hist small{display:block;font:700 12px 'Noto Sans KR';color:#e0b864;letter-spacing:.04em;margin-bottom:2px}
+#hist p{margin:0}
+body.touch #hist{top:112px;width:min(460px,56vw);font-size:12px;line-height:1.45;padding:6px 10px}
+.histEnd{margin-top:12px;padding:10px 14px;border-radius:8px;background:rgba(38,30,18,.85);border:1px solid #a88f60;color:#f3e6c8;font-size:13px;line-height:1.6}
+.histEnd b{color:#e0b864}
+.histEnd p{margin:4px 0 0}
 
 /* ---- 모바일(터치): 콜오브듀티 모바일식 배치 */
 body.touch{--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px)}
@@ -269,7 +277,7 @@ body.touch{--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0
 #tc .zone{position:absolute;top:20%;bottom:0;pointer-events:auto;touch-action:none}
 #tcL{left:0;width:45%}
 #tcR{left:45%;right:0}
-#tc.place .zone,#tc.place .stick,#tc.place .act,#tc.place #tcSt,#tc.menu .act,#tc.menu #tcSt,#tc.menu .stick{display:none}
+#tc.place .zone,#tc.place .stick,#tc.place .tact,#tc.place #tcSt,#tc.menu .tact,#tc.menu #tcSt,#tc.menu .stick{display:none}
 body.touch #pick{z-index:5}
 .stick{position:absolute;width:124px;height:124px;margin:-62px 0 0 -62px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:radial-gradient(circle,rgba(255,255,255,.07),rgba(0,0,0,.22) 72%);pointer-events:none;opacity:.6;transition:opacity .12s}
 .stick.on{opacity:1}
@@ -277,15 +285,15 @@ body.touch #pick{z-index:5}
 .stick.look{width:96px;height:96px;margin:-48px 0 0 -48px;opacity:0;border-style:dashed}
 .stick.look i{width:34px;height:34px;background:rgba(255,255,255,.3)}
 .stick.look.on{opacity:.75}
-.act{position:absolute;display:grid;place-items:center;align-content:center;width:52px;height:52px;border-radius:50%;border:2px solid rgba(255,255,255,.34);background:rgba(10,14,24,.45);color:#fff;pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;padding:0;font:700 9.5px 'Noto Sans KR';text-shadow:0 1px 2px #000}
-.act[hidden]{display:none}
-.act svg{width:22px;height:22px}
-.act span{line-height:1;margin-top:2px}
-.act em{position:absolute;inset:-2px;display:grid;place-items:center;border-radius:50%;font:700 18px Rajdhani;font-style:normal;color:#fff;background:rgba(0,0,0,.58);opacity:0;pointer-events:none}
-.act.cd em{opacity:1}
-.act.on{background:rgba(255,255,255,.3);border-color:#fff;transform:scale(.94)}
-.act.fire{border-color:rgba(255,150,120,.85);background:rgba(150,28,18,.4)}
-.act.fire.on{background:rgba(255,80,50,.55)}
+.tact{position:absolute;display:grid;place-items:center;align-content:center;width:52px;height:52px;border-radius:50%;border:2px solid rgba(255,255,255,.34);background:rgba(10,14,24,.45);color:#fff;pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;padding:0;font:700 9.5px 'Noto Sans KR';text-shadow:0 1px 2px #000}
+.tact[hidden]{display:none}
+.tact svg{width:22px;height:22px}
+.tact span{line-height:1;margin-top:2px}
+.tact em{position:absolute;inset:-2px;display:grid;place-items:center;border-radius:50%;font:700 18px Rajdhani;font-style:normal;color:#fff;background:rgba(0,0,0,.58);opacity:0;pointer-events:none}
+.tact.cd em{opacity:1}
+.tact.on{background:rgba(255,255,255,.3);border-color:#fff;transform:scale(.94)}
+.tact.fire{border-color:rgba(255,150,120,.85);background:rgba(150,28,18,.4)}
+.tact.fire.on{background:rgba(255,80,50,.55)}
 #tFire{right:calc(26px + var(--sar));bottom:24px;width:92px;height:92px}
 #tFire svg{width:46px;height:46px}
 #tDodge{right:calc(10px + var(--sar));bottom:140px;width:60px;height:60px}
@@ -764,6 +772,7 @@ function makeBody(key, opt) {
     const ring = new THREE.Mesh(new THREE.RingGeometry(r0, r0 + 0.13, 32), new THREE.MeshBasicMaterial({ color: opt.ring, transparent: true, opacity: opt.ringA || 0.85, depthWrite: false }));
     ring.rotation.x = -Math.PI / 2; ring.position.y = 0.03; root.add(ring); ch.ring = ring;
   }
+  if (opt.skin) applySkin(ch, opt.skin);
   return ch;
 }
 const FALLBACK = { walkGun: 'walk', runGun: 'run', aim: 'idle', kneel: 'idle', kneelAim: 'aim', fall: 'die', stun: 'hit', throw: 'aim', die2: 'die', crouch: 'walk' };
@@ -966,6 +975,7 @@ function inTele(a) { for (const t of G.teles) { if (t.friendly || t.done) contin
 // ================= telegraphs
 const teleMat = (c, o) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, depthWrite: false, side: THREE.DoubleSide });
 function addTele(o) {
+  if (!o.friendly && o.kind === 'circle' && P.a && D.on && Math.hypot(o.x - P.a.x, o.z - P.a.z) < 6.5 && rl('nadeC', 7000)) callout(nearAlly(P.a.x, P.a.z) || P.a, o.r <= 3.2 ? '수류탄! 피해!' : '포탄 온다! 피해!', 2);
   const g = new THREE.Group(); g.position.set(o.x, 0.05, o.z); g.rotation.y = o.yaw || 0; scene.add(g);
   const col = o.blue ? '#4fb6ff' : o.friendly ? '#ff9a3a' : '#ff3b2e';
   let edgeM, fill;
@@ -1068,7 +1078,7 @@ function updateRadio(dt) {
   if (!rCur && RQ.length) {
     rCur = RQ.shift(); const el = $('radio');
     $('rWho').textContent = '📻 ' + rCur.who; $('rWho').style.color = SPEAK[rCur.who] || '#fff'; el.style.borderLeftColor = SPEAK[rCur.who] || '#fff';
-    $('rTxt').textContent = rCur.text; el.classList.add('show'); SFX.radio();
+    $('rTxt').textContent = rCur.text; el.classList.add('show'); SFX.radio(); voSay(rCur.text, rCur.who, 2);
     const fp = FACE[rCur.who]; el.classList.toggle('noface', !fp); if (fp) $('rFace').style.backgroundPosition = fp;
   }
   if (rCur) { rCur.t += dt; if (rCur.t >= rCur.dur) { rCur = null; if (!RQ.length) $('radio').classList.remove('show'); } }
@@ -1187,6 +1197,7 @@ function fire(from, yaw, o) {
   m.position.set(sx, 1.3, sz);
   G.bullets.push(Object.assign({ m, x: sx, z: sz, vx: fwdX(yaw) * o.spd, vz: fwdZ(yaw) * o.spd, team: from.team, life: o.range / o.spd, hit: new Set(), pierce: 1, src: from.player ? 'player' : from.team === FRIEND ? 'ally' : 'foe', by: from.name }, o));
   spark(sx, 1.35, sz, from.team === FRIEND ? '#fff1b0' : '#ffb08a', 2);
+  if (!from.player && rl('emz', 70)) emzFlash(sx, sz);
 }
 function updateBullets(dt) {
   for (const b of G.bullets) {
@@ -1200,7 +1211,9 @@ function updateBullets(dt) {
       const t = clamp(((a.x - x0) * dx + (a.z - z0) * dz) / L2, 0, 1);
       if (t > tHit) continue;
       const px = x0 + dx * t, pz = z0 + dz * t;
-      if ((a.x - px) ** 2 + (a.z - pz) ** 2 <= a.r * a.r) {
+      const dd2 = (a.x - px) ** 2 + (a.z - pz) ** 2; if (b.team === FRIEND && a.team === FOE && dd2 < 2.6 && dd2 > a.r * a.r) suppress(a, 0.22);
+      if (dd2 <= a.r * a.r) {
+        if (b.team === FRIEND && a.team === FOE) suppress(a, 0.45);
         if (D.on && a.player && b.team === FOE && P.dodge && P.dodge.inv > 0) { b.hit.add(a.id); perfectDodge(a); continue; }
         b.hit.add(a.id);
         hurt(a, D.on ? bulletDmg(b, a, px, pz) : b.dmg, b.src, { kb: [b.vx * 0.012, b.vz * 0.012], stag: b.stag || 0, canCrit: b.team === FRIEND, by: b.by });
@@ -1213,7 +1226,7 @@ function updateBullets(dt) {
     }
     if (D.on && b.team === FOE && !b.dead && !b.wz && tHit > 1) nearMiss(b, x0, z0, dx, dz, L2);
     if (!b.dead && tHit <= 1) { if (hitO && hitO.brl && b.src === 'player') barrelHit(hitO.brl); b.dead = true; spark(x0 + dx * tHit, 1.3, z0 + dz * tHit, '#cfd6e6', 3); if (rl('dustB', 45)) dust(x0 + dx * tHit, z0 + dz * tHit, 0.8); }
-    if (b.life <= 0) { b.dead = true; if (b.src === 'player' && rl('dustL', 70)) dust(b.x, b.z, 0.6); }
+    if (b.life <= 0) { b.dead = true; if (b.src === 'player' && rl('dustL', 70)) dust(b.x, b.z, 0.6); if (b.team === FRIEND && rl('snowH', 45)) snowHit(b.x, b.z); }
     if (b.dead) scene.remove(b.m); else b.m.position.set(b.x, 1.3, b.z);
   }
   G.bullets = G.bullets.filter((b) => !b.dead);
@@ -1790,8 +1803,10 @@ function updateEnemy(e, dt) {
     } else { advance(D.on && (d > e.range * 0.75 || !los)); e.yaw = angLerp(e.yaw, angTo(spd ? mvx : dx, spd ? mvz : dz), 1 - Math.exp(-6 * dt)); }
   }
   if (D.on && spd) spd *= wireSlow(e);
+  if (e.supT > 0) { e.supT -= dt; if (e.cov && Math.hypot(e.cov.x - e.x, e.cov.z - e.z) > 0.5) { const cx = e.cov.x - e.x, cz = e.cov.z - e.z, cl = Math.hypot(cx, cz); mvx = cx / cl; mvz = cz / cl; spd = e.run * 0.85; } else spd *= 0.2; }
   if (e.st === 'dash') { e.x += mvx * spd * dt; e.z += mvz * spd * dt; collide(e); } else steer(e, mvx, mvz, spd, dt);
-  if (e.ch.lockT <= 0) {
+  if (e.supT > 0 && spd < 1 && e.ch.lockT <= 0) play(e.ch, 'kneelAim');
+  else if (e.ch.lockT <= 0) {
     if (e.st === 'aim' || e.st === 'burst' || e.st === 'wind' || e.st === 'shoot') play(e.ch, e.type === 'sniper' ? 'kneelAim' : 'aim');
     else if (e.st === 'rest') play(e.ch, 'stun');
     else if (spd > 0.2) play(e.ch, spd > 3.5 ? (e.type === 'rusher' ? 'run' : 'runGun') : 'walkGun', spd / (spd > 3.5 ? NAT.runGun : NAT.walkGun));
@@ -1957,7 +1972,7 @@ function spawnEnemy(type, zone) {
   if (type === 'sniper' && !anchor) anchor = { x, z };
   const hpm = (type === 'boss' ? (D.on ? 0.75 : 1) : (1 + (D.on ? D.wave * 0.07 : Math.max(0, M.step) * 0.1)) * (D.on ? D.mods.hp : 1)) * DIFF[R.diff].hp;
   const a = newActor({ type, x, z, team: FOE, hp: T.hp * hpm, maxhp: T.hp * hpm, spd: T.spd * rand(0.92, 1.08), run: T.run, range: T.range * rand(0.88, 1.05), r: type === 'boss' ? 0.65 : 0.45, boss: type === 'boss', lane: rand(-12, 12), anchor, counted: !T.grunt, grunt: !!T.grunt, name: type === 'boss' ? T.name : type === 'runner' ? '돌파조' : T.grunt ? '북한군 경보병' : '침투조 ' + T.name, pingT: T.grunt ? 1.5 : 3, yaw: 0, strT: 0 });
-  a.ch = makeBody(T.key[Math.floor(Math.random() * T.key.length)], { noShadow: !!T.grunt, gun: T.gun, scale: T.scale, ring: type === 'runner' ? '#ff9a3a' : '#ff4b3a', ringA: type === 'runner' ? 0.95 : T.grunt ? 0.5 : 0.8, ringR: type === 'boss' ? 0.8 : T.grunt ? 0.42 : 0.52 });
+  const bk = T.key[Math.floor(Math.random() * T.key.length)]; a.ch = makeBody(bk, { skin: SKIN.foe[bk], noShadow: !!T.grunt, gun: T.gun, scale: T.scale, ring: type === 'runner' ? '#ff9a3a' : '#ff4b3a', ringA: type === 'runner' ? 0.95 : T.grunt ? 0.5 : 0.8, ringR: type === 'boss' ? 0.8 : T.grunt ? 0.42 : 0.52 });
   play(a.ch, 'runGun');
   if (type === 'shield') { addShieldMesh(a); if (D.on) HST.shield++; }
   if (a.boss) { G.boss = a; a.pi = 0; a.patT = 3; a.phases = [0.62, 0.28]; a.plant = null; a.groggyT = 0; a.counterT = 0; $('boss').hidden = false; SFX.horn(); }
@@ -2252,7 +2267,7 @@ function renderPick() {
     '<div class="pbtns"><button class="btn sm" data-pk="reroll"' + (D.pts < cost ? ' disabled' : '') + '>재요청 · 보급 점수 ' + cost + '</button>' + (D.wave > 0 ? '<button class="btn sm" data-pk="skip">건너뛰기 · 보급 점수 +3</button>' : '') + '<span class="sub">숫자 1·2·3으로도 고를 수 있어요</span></div>';
 }
 $('pick').addEventListener('click', (e) => { const b = e.target.closest('[data-pk]'); if (b && !b.disabled) pickAction(b.dataset.pk); const m = e.target.closest('[data-mp]'); if (m) mapChoose(+m.dataset.mp); const v = e.target.closest('[data-ev]'); if (v) eventChoose(+v.dataset.ev); });
-function showPick(unitsOnly) { D.st = 'pick'; D.supply = false; D.unitsOnly = !!unitsOnly; D.special = !unitsOnly && (D.nextSpecial || D.node === 'elite' || D.node === 'counter' || D.wave === 1); D.nextSpecial = false; D.offer = rollOffer(unitsOnly, D.special); D.rerolls = 0; renderPick(); mouse.down = false; }
+function showPick(unitsOnly) { if (D.on) histCard(D.wave); D.st = 'pick'; D.supply = false; D.unitsOnly = !!unitsOnly; D.special = !unitsOnly && (D.nextSpecial || D.node === 'elite' || D.node === 'counter' || D.wave === 1); D.nextSpecial = false; D.offer = rollOffer(unitsOnly, D.special); D.rerolls = 0; renderPick(); mouse.down = false; }
 function pickAction(v) {
   if (D.st !== 'pick') return;
   if (v === 'reroll') { const cost = rerollCost(); if (D.pts < cost) return; D.pts -= cost; D.rerolls++; D.offer = rollOffer(D.unitsOnly, D.special, D.supply ? 4 : 3); renderPick(); SFX.radio(); return; }
@@ -2337,7 +2352,7 @@ function spawnGarrison() {
   for (const [x, z, k] of GARRISON) {
     const c = CARDS[k];
     const a = newActor({ name: '경계 ' + c.n, tag: '경계', role: k, x, z, yaw: Math.atan2(x, z), team: FRIEND, ally: true, unit: true, garrison: true, post: { x, z }, hp: c.hp, maxhp: c.hp, downT: 0, healCd: 3, face: FACT[c.f].face, slot: [0, 0] });
-    a.ch = makeBody(c.body ? c.body[0] : 'swat', { gun: c.gun, ring: '#7cc8ff' });
+    a.ch = makeBody(c.body ? c.body[0] : 'swat', { gun: c.gun, ring: '#7cc8ff', skin: c.body ? null : SKIN.unit[k] });
     play(a.ch, 'aim'); addLabel(a, 'nm', '경계 ' + c.n);
   }
 }
@@ -2347,7 +2362,7 @@ function spawnUnit(k, x, z) {
   for (let i = 0; i < n; i++) {
     const ox = n > 1 ? (i - (n - 1) / 2) * 1.3 : 0, px = clamp(x + ox, BOUNDS.x0 + 0.5, BOUNDS.x1 - 0.5);
     const a = newActor({ name: c.n, tag: FACT[c.f].n, role: k, x: px, z, yaw: Math.PI, team: FRIEND, ally: true, unit: true, post: { x: px, z }, hp: c.hp, maxhp: c.hp, downT: 0, healCd: 3, face: FACT[c.f].face, slot: [0, 0] });
-    a.ch = makeBody(c.body ? c.body[i % c.body.length] : 'swat', { gun: c.gun, ring: FACT[c.f].c });
+    const cb = c.body && !SKIN.unit[k] ? c.body[i % c.body.length] : 'swat'; a.ch = makeBody(cb, { gun: c.gun, ring: FACT[c.f].c, skin: cb === 'swat' ? SKIN.unit[k] : null });
     play(a.ch, 'aim');
     addLabel(a, 'nm', unitLabel(k));
     grp.push(a);
@@ -2405,7 +2420,7 @@ function unitFire(a, tg, dt) {
   a.burst = (a.burst || 0) + 1; a.cd = W.burst && a.burst % W.burst === 0 ? 0.7 : W.cd;
   const fm = D.tac.firemg && a.role === 'mg';
   fire(a, yaw + rand(-W.spread, W.spread), { spd: W.spd, range: W.range + 2, dmg: W.dmg * mul, stag: 1, long: W.long, pierce: (W.pierce || 1) + (fm ? 2 : 0), burn: fm, fireT: fm });
-  if (W.long) SFX.snipe(); else if (rl('ashot', 85)) noise(0.05, 0.035, 2200, 'highpass');
+  if (W.long) SFX.snipe(); else SFX.ashot();
 }
 function unitHeal(a) {
   if (a.healCd > 0) return;
@@ -2532,13 +2547,13 @@ function startDefense() {
   Object.assign(M, { step: -1, t: 0, sub: 0, sched: [], list: [], mortars: [], mortarsDown: 0, civQ: 0, civT: 0, civSaved: 0, civLost: 0, policeLost: 0, police: [], bossSpawned: false, gap: 0, next: 0, truck: null, truckDone: false, truckHit: false, xpGain: 0, loot: [], lv0: R.lv });
   ST = calcStats();
   spawnPlayerOnly(ARENA.home[0], ARENA.home[1]);
-  spawnGarrison();
+  spawnGarrison(); HISTS.last = -1; WX.tSnow = 0.6; WX.tWind = 0.2;
   camX = ARENA.home[0]; camZ = ARENA.home[1];
   $('actTxt').textContent = '1막 · 청와대 방어전'; $('kiaTxt').innerHTML = '정예 처치 <b id="kiaN">0</b> · 총 제압 <b id="killN">0</b>';
   $('ctrlHint').textContent = 'WASD 이동 · 좌클릭 사격 · R 재장전 · Shift+WASD 지원 요청 · C 집중 사격 · SPC 구르기 · Enter 다음 웨이브 · ESC 일시정지';
   buildHud();
   $('ov').hidden = true; $('ov').classList.remove('art'); $('hud').hidden = false;
-  G.state = 'play'; clock.getDelta(); musicStart();
+  G.state = 'play'; clock.getDelta(); musicStart(); ambStart();
   radio('통제실', '알파1, 네 길목에 경계조를 세워 뒀다. 침투조가 사방에서 온다. 병력을 더 요청해 막아라.');
   showPick(true);
 }
@@ -2650,7 +2665,7 @@ function defResultHTML(win, why, rew, unlock) {
   const squad = '<div class="rew"><b>이번 분대</b> ' + units + '</div><div class="rew"><b>지나온 작전</b> ' + D.taken.map((t, i) => '<i style="color:' + NODE[t].c + '">' + (i + 1) + ' ' + NODE[t].n + '</i>').join('') + (D.sortiesDone ? '<i style="color:#ffd24a">출격 임무 성공 ' + D.sortiesDone + '회</i>' : '') + '</div>';
   const btns = '<div class="btns"><button class="btn pri" id="again">다시 출동 · ' + DIFF[R.diff].n + '</button><button class="btn" data-act="gopen:over">재정비 (장비·스킬)</button>' + (win && R.maxDiff > R.diff ? '<button class="btn" id="harder">' + DIFF[R.diff + 1].n + ' 난이도로 출동</button>' : '') + '<button class="btn" id="toTitle">타이틀</button></div>';
   return '<div class="panel"><div class="kick">' + (win ? '방어 성공' : '방어 실패') + '</div><h1>' + (win ? '청와대 <span>사수</span>' : why) + '</h1><div class="rank"><i>' + rank + '</i><h2>' + (win ? '12단계 돌파 · 침투조 지휘관 제압' : '웨이브 ' + D.wave + ' · ' + WAVES[Math.max(0, D.wave - 1)].name + '에서 무너졌습니다') + '</h2></div>' + stats + squad + rew +
-    (nu ? '<p class="note">레벨이 오르면 새 보급 카드가 열려요 · 다음 해금: ' + nu + '</p>' : '') + btns + '</div>';
+    (nu ? '<p class="note">레벨이 오르면 새 보급 카드가 열려요 · 다음 해금: ' + nu + '</p>' : '') + '<div class="histEnd"><b>실제 1·21 사태</b><p>' + HIST_END + '</p></div>' + btns + '</div>';
 }
 
 // ================= 실감 연출: 연기, 충격파, 먼지, 총구 화염
@@ -3496,7 +3511,7 @@ function tcBuild() {
   document.body.classList.add('touch');
   const el = document.createElement('div'); el.id = 'tc'; el.hidden = true;
   el.innerHTML = '<div class="zone" id="tcL"></div><div class="zone" id="tcR"></div><div class="stick" id="stL"><i></i></div><div class="stick look" id="stR"><i></i></div>' +
-    TC_ACTS.map((b) => '<button class="act' + (b.a === 'fire' ? ' fire' : '') + '" id="' + b.id + '" data-a="' + b.a + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + b.ic + '</svg>' + (b.n ? '<span>' + b.n + '</span>' : '') + '<em></em></button>').join('') +
+    TC_ACTS.map((b) => '<button class="tact' + (b.a === 'fire' ? ' fire' : '') + '" id="' + b.id + '" data-a="' + b.a + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + b.ic + '</svg>' + (b.n ? '<span>' + b.n + '</span>' : '') + '<em></em></button>').join('') +
     '<div id="tcSt"></div><div id="tcGate"><span>청와대 방어선 <b>100%</b></span><i><u></u></i></div><button id="tcGo" hidden></button><button id="tcPause" aria-label="일시정지">Ⅱ</button>';
   $('hud').appendChild(el);
   const rot = document.createElement('div'); rot.id = 'tcRot'; rot.innerHTML = '<div>📱↻</div><b>가로 화면으로 돌려 주세요</b><span>UNFINISHED WAR는 가로 화면에서 플레이해요</span>'; document.body.appendChild(rot);
@@ -3523,7 +3538,7 @@ function tcBuild() {
   const upR = (e) => { if (!TC.look || TC.look.id !== e.pointerId) return; TC.look = null; stR.classList.remove('on'); TC.manT = 1.6; };
   zR.addEventListener('pointerup', upR); zR.addEventListener('pointercancel', upR);
   // 사격 버튼: 누르고 있으면 사격, 누른 채 끌면 그 방향으로 조준
-  for (const b of el.querySelectorAll('.act')) {
+  for (const b of el.querySelectorAll('.tact')) {
     b.addEventListener('pointerdown', (e) => {
       e.preventDefault(); e.stopPropagation();
       if (b.dataset.a !== 'fire') { tcAct(b.dataset.a); b.classList.add('on'); setTimeout(() => b.classList.remove('on'), 140); return; }
@@ -3603,7 +3618,7 @@ function tcUI() {
   if (place && TC.ind) { TC.ind.g.visible = false; TC.ind.lock.visible = false; }
   const go = $('tcGo'), gt = D.on && D.st === 'prep' ? '▶ 전투 시작' : place ? '자동 배치' : '';
   go.hidden = !gt; if (gt && go.textContent !== gt) go.textContent = gt;
-  for (const b of tc.querySelectorAll('.act')) {
+  for (const b of tc.querySelectorAll('.tact')) {
     const d = TC_ACTS.find((q) => q.id === b.id); let t = 0, hide = false;
     if (d.cd) t = P.cd[d.cd] || 0;
     if (d.a === 'r') { hide = !D.on; t = D.on ? A.rT : 0; }
@@ -3663,6 +3678,229 @@ function updateBarrels(dt) {
   }
 }
 
+// ================= 실감 2: 복장 · 소리 · 빛과 눈 · 움직임 · 실제 사건
+// --- 복장: 적은 북한 침투조(어두운 올리브·갈색), 아군은 부대별 무늬 (특전사 화강암·해병 디지털·향토 개구리·경찰 남색)
+const SKIN = { cache: {}, unit: { rifle: 'granite', sniper: 'granite', demo: 'granite', mg: 'marine', marine: 'marine', flame: 'marine', police: 'police', reserve: 'frog', medic: 'frog' }, foe: { robA: 'kpa_a', robC: 'kpa_c', robB: 'kpa_b' } };
+function skinTex(n) { if (!SKIN.cache[n]) { const t = new THREE.TextureLoader().load('img/chr_' + n + '.jpg'); t.flipY = false; t.colorSpace = THREE.SRGBColorSpace; SKIN.cache[n] = t; } return SKIN.cache[n]; }
+function applySkin(ch, n) { if (!n || !ch.mats || !ch.model) return; const t = skinTex(n); for (const m of ch.mats) if (m.map) { m.map = t; m.needsUpdate = true; } }
+
+// --- 소리: 총기별 총성(파열음·몸통·저음·노리쇠) + 북악산 메아리(잔향) + 폭발 + 바람·먼 총성·사이렌
+const SND = { bus: null, rev: null, wind: null };
+function sndInit() {
+  const a = ac(); if (!a) return null; if (SND.bus) return SND.bus;
+  try {
+    SND.bus = a.createGain(); SND.bus.gain.value = 0.9; SND.bus.connect(a.destination);
+    const sr = a.sampleRate, len = Math.floor(sr * 2.6), ir = a.createBuffer(2, len, sr);
+    for (let c = 0; c < 2; c++) {
+      const d = ir.getChannelData(c), echoes = [[0.11 + c * 0.013, 0.9], [0.29 + c * 0.021, 0.55], [0.52, 0.32], [0.86 - c * 0.03, 0.2]];
+      for (let i = 0; i < len; i++) {
+        const t = i / sr; let v = (Math.random() * 2 - 1) * Math.pow(1 - t / 2.6, 3.2) * 0.45;
+        for (const [et, eg] of echoes) { const q = Math.abs(t - et); if (q < 0.014) v += (Math.random() * 2 - 1) * eg * (1 - q / 0.014); }
+        d[i] = v;
+      }
+    }
+    SND.rev = a.createConvolver(); SND.rev.buffer = ir; const rg = a.createGain(); rg.gain.value = 0.5; SND.rev.connect(rg); rg.connect(SND.bus);
+  } catch (e) { SND.bus = null; }
+  return SND.bus;
+}
+function sSend(g, send) { if (!send || !SND.rev) return; const sg = AC.createGain(); sg.gain.value = send; g.connect(sg); sg.connect(SND.rev); }
+function sNoise(t0, d, v, type, f, q, f2, send) {
+  try {
+    const a = AC, s = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain();
+    s.buffer = NOISE; s.loop = true; s.playbackRate.value = 0.9 + Math.random() * 0.2;
+    fl.type = type; fl.frequency.setValueAtTime(f, t0); if (f2) fl.frequency.exponentialRampToValueAtTime(f2, t0 + d); fl.Q.value = q || 0.7;
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, v), t0 + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    s.connect(fl); fl.connect(g); g.connect(SND.bus); sSend(g, send); s.start(t0, Math.random() * 0.4); s.stop(t0 + d + 0.05);
+  } catch (e) { /* audio busy */ }
+}
+function sOsc(t0, d, v, type, f, f2, send) {
+  try {
+    const a = AC, o = a.createOscillator(), g = a.createGain(); o.type = type; o.frequency.setValueAtTime(f, t0); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + d);
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, v), t0 + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    o.connect(g); g.connect(SND.bus); sSend(g, send); o.start(t0); o.stop(t0 + d + 0.05);
+  } catch (e) { /* audio busy */ }
+}
+const GUN_SND = { rifle: [0.26, 1300, 150, 0.22, 0.32], smg: [0.18, 1700, 190, 0.12, 0.26], sniper: [0.36, 900, 110, 0.32, 0.6], mg: [0.3, 1100, 120, 0.26, 0.36], foe: [0.13, 820, 130, 0.1, 0.45] };
+function gunSnd(kind, k) {
+  if (!sndInit()) return; const t = AC.currentTime + 0.004, [v, bf, th, tv, send] = GUN_SND[kind]; k = k || 1;
+  sNoise(t, 0.018, v * 1.4 * k, 'highpass', 3200, 0.7, null, send * 0.3);
+  sNoise(t, kind === 'sniper' ? 0.2 : 0.11, v * k, 'bandpass', bf * (0.92 + Math.random() * 0.16), 0.9, bf * 0.55, send);
+  sOsc(t, kind === 'sniper' ? 0.16 : 0.09, tv * k, 'sine', th, 45, send * 0.5);
+  if (kind !== 'foe') sOsc(t + 0.02, 0.012, 0.022 * k, 'square', 2600 + Math.random() * 400, null, 0);
+}
+function boomSnd(v) {
+  if (!sndInit()) return; const t = AC.currentTime + 0.004, k = Math.min(1.6, (v || 0.32) / 0.32);
+  sOsc(t, 1.3, 0.42 * k, 'sine', 75, 24, 0.5);
+  sNoise(t, 1.6, 0.5 * k, 'lowpass', 1400, 0.5, 120, 0.8);
+  sNoise(t, 0.06, 0.42 * k, 'highpass', 1800, 0.7, null, 0.4);
+  for (let i = 0; i < 6; i++) sNoise(t + 0.08 + Math.random() * 0.5, 0.03, 0.07 * k, 'bandpass', 2500 + Math.random() * 2000, 1.5, null, 0.3);
+}
+Object.assign(SFX, {
+  shot: () => rl('shot', 55) && gunSnd(ST && ST.w && ST.w.model === 'mp5' ? 'smg' : 'rifle'),
+  snipe: () => rl('snipe', 110) && gunSnd('sniper'),
+  eshot: () => rl('eshot', 60) && gunSnd('foe', 0.75),
+  mg: () => rl('mg', 50) && gunSnd('mg'),
+  ashot: () => rl('ashot', 80) && gunSnd('rifle', 0.32),
+  boom: (v) => rl('boom', 60) && boomSnd(v)
+});
+function ambStart() {
+  if (!sndInit() || SND.wind) return;
+  try {
+    const a = AC, len = a.sampleRate * 3, b = a.createBuffer(1, len, a.sampleRate), d = b.getChannelData(0); let l = 0;
+    for (let i = 0; i < len; i++) { l = l * 0.985 + (Math.random() * 2 - 1) * 0.015; d[i] = l * 6; }
+    const s = a.createBufferSource(); s.buffer = b; s.loop = true; const fl = a.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = 500; const g = a.createGain(); g.gain.value = 0.03;
+    s.connect(fl); fl.connect(g); g.connect(SND.bus); s.start(); SND.wind = { g, fl };
+  } catch (e) { /* no ambience */ }
+}
+function distantShots() { if (!sndInit()) return; const n = 3 + Math.floor(Math.random() * 6), t = AC.currentTime; for (let i = 0; i < n; i++) sNoise(t + i * (0.09 + Math.random() * 0.05), 0.1, 0.03, 'lowpass', 700, 0.7, null, 1.2); }
+function siren(dur) {
+  if (!sndInit()) return;
+  try {
+    const a = AC, t = a.currentTime, o = a.createOscillator(), l = a.createOscillator(), lg = a.createGain(), g = a.createGain(), f = a.createBiquadFilter();
+    o.type = 'sawtooth'; o.frequency.value = 640; l.frequency.value = 0.12; lg.gain.value = 240; l.connect(lg); lg.connect(o.frequency);
+    f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 0.8;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.03, t + 2); g.gain.setValueAtTime(0.03, t + dur - 2); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(f); f.connect(g); g.connect(SND.bus); sSend(g, 0.9); o.start(t); l.start(t); o.stop(t + dur + 0.1); l.stop(t + dur + 0.1);
+  } catch (e) { /* no siren */ }
+}
+function ambTick(dt) {
+  if (!SND.wind || !AC) return;
+  const w = G.state === 'play' ? Math.max(0.006, 0.02 + WX.snow * 0.03 + Math.sin(G.t * 0.37) * 0.012 + Math.sin(G.t * 0.11) * 0.01) : 0.0001;
+  SND.wind.g.gain.setTargetAtTime(w, AC.currentTime, 0.4); SND.wind.fl.frequency.setTargetAtTime(380 + WX.snow * 260 + Math.sin(G.t * 0.5) * 80, AC.currentTime, 0.5);
+  if (D.on && D.st === 'wave' && Math.random() < dt * 0.22) distantShots();
+}
+// --- 무전 음성: 한국어 음성 합성 (통제실은 낮고 차분하게, 분대원은 빠르게)
+const VO = { v: null, pri: 0, until: 0 };
+function voPick() { try { const vs = speechSynthesis.getVoices(); VO.v = vs.find((v) => /ko[-_]KR/i.test(v.lang) && /Google/i.test(v.name)) || vs.find((v) => /^ko/i.test(v.lang)) || null; } catch (e) { VO.v = null; } }
+try { if (window.speechSynthesis) { voPick(); speechSynthesis.addEventListener('voiceschanged', voPick); } } catch (e) { /* no speech */ }
+const VOICE_P = { 통제실: [0.82, 1.05], 분대장: [1.0, 1.18] };
+function voSay(text, who, pri) {
+  try {
+    if (!window.speechSynthesis || MUS.muted || document.hidden || G.state !== 'play') return;
+    pri = pri || 1; const now = performance.now();
+    if (speechSynthesis.speaking || speechSynthesis.pending) { if (pri <= VO.pri && now < VO.until) return; speechSynthesis.cancel(); }
+    if (!VO.v) voPick(); if (!VO.v) return;
+    const clean = String(text).replace(/\[[^\]]*\]/g, '').replace(/[·…]/g, ', ');
+    const u = new SpeechSynthesisUtterance(clean); u.voice = VO.v; u.lang = VO.v.lang;
+    const p = VOICE_P[who] || [0.94 + (String(who || '').length % 3) * 0.07, 1.22]; u.pitch = p[0]; u.rate = p[1]; u.volume = 0.95;
+    VO.pri = pri; VO.until = now + clean.length * 105 + 700; speechSynthesis.speak(u);
+  } catch (e) { /* speech blocked */ }
+}
+// --- 외침: 아군이 방향을 알려 줌, 수류탄 경고
+function callout(a, text, pri) { if (!a) return; dnum(a.x, 2.95, a.z, text, 'tag'); voSay(text, a.player ? '분대장' : a.name || '아군', pri || 1); }
+function nearAlly(x, z) { let best = null, bd = 1e9; for (const a of G.actors) { if (!a.alive || a.team !== FRIEND || a.player || isDown(a)) continue; const d = (a.x - x) ** 2 + (a.z - z) ** 2; if (d < bd) { bd = d; best = a; } } return best; }
+function calloutTick() {
+  if (!D.on || D.st !== 'wave' || !rl('coTick', 450)) return;
+  for (const e of G.actors) {
+    if (!e.alive || e.team !== FOE || e.removed || e.called) continue;
+    if (Math.hypot(e.x - CORE.x, e.z - CORE.z) > 27) continue;
+    e.called = true;
+    const ang = Math.atan2(e.z - CORE.z, e.x - CORE.x), dir = Math.abs(ang) < Math.PI / 4 ? '동쪽' : Math.abs(ang) > Math.PI * 3 / 4 ? '서쪽' : ang > 0 ? '남쪽' : '북쪽';
+    if (!rl('co_' + dir + (e.type === 'runner' ? 'r' : ''), e.type === 'runner' ? 14000 : 24000)) continue;
+    const msg = e.type === 'runner' ? dir + ' 돌파조! 정문으로 달린다!' : e.type === 'truck' ? dir + ' 트럭 돌진!' : pick([dir + ' 적 발견!', dir + '에 적 다수!', '적이다, ' + dir + '!']);
+    callout(nearAlly(e.x, e.z) || P.a, msg, e.type === 'runner' ? 2 : 1); break;
+  }
+}
+// --- 제압·엄폐: 총알이 스치거나 맞으면 엎드리고, 가까운 엄폐물 뒤로 숨음
+function suppress(e, v) {
+  if (!e.alive || e.team !== FOE || e.boss || e.static || e.anchor || e.type === 'runner' || e.type === 'rusher' || e.type === 'shield' || e.type === 'truck' || e.st === 'flare' || e.st === 'dash') return;
+  e.supp = (e.supp || 0) + v;
+  if (e.supp >= 1 && !(e.supT > 0)) { e.supp = 0; e.supT = rand(1.1, 1.9); e.cov = coverPt(e); if (rl('supTag', 1800)) dnum(e.x, 2.6, e.z, '제압', 'tag'); }
+}
+function coverPt(e) {
+  const p = P.a; if (!p) return null; let best = null, bd = 30;
+  for (const o of OBST) {
+    if (o.brl) continue; const cx = (o.x0 + o.x1) / 2, cz = (o.z0 + o.z1) / 2, d2 = (cx - e.x) ** 2 + (cz - e.z) ** 2; if (d2 >= bd) continue;
+    const ux = cx - p.x, uz = cz - p.z, ul = Math.hypot(ux, uz) || 1, hw = Math.abs(ux / ul) * (o.x1 - o.x0) / 2 + Math.abs(uz / ul) * (o.z1 - o.z0) / 2 + 0.7;
+    best = { x: cx + ux / ul * hw, z: cz + uz / ul * hw }; bd = d2;
+  }
+  return best;
+}
+// --- 빛과 눈: 적 총구 섬광 조명, 발자국, 입김, 탄착 눈보라, 단계별 날씨, 빛 번짐(PC)
+const EMZ = [new THREE.PointLight('#ffb070', 0, 6, 2), new THREE.PointLight('#ffb070', 0, 6, 2)]; let emzI = 0; for (const l of EMZ) scene.add(l);
+function emzFlash(x, z) { const l = EMZ[emzI++ % EMZ.length]; l.position.set(x, 1.3, z); l.intensity = 7; }
+const FP = { n: 420, i: 0, mesh: null };
+const _fq = new THREE.Quaternion(), _fe = new THREE.Euler(), _fv = new THREE.Vector3(), _fs = new THREE.Vector3(1, 1, 1), _fm = new THREE.Matrix4();
+function fpInit() {
+  const g = new THREE.CircleGeometry(0.11, 10); g.rotateX(-Math.PI / 2); g.scale(1, 1, 1.7);
+  FP.mesh = new THREE.InstancedMesh(g, new THREE.MeshBasicMaterial({ color: '#56607a', transparent: true, opacity: 0.36, depthWrite: false }), FP.n); FP.mesh.frustumCulled = false;
+  _fm.makeScale(0, 0, 0); for (let i = 0; i < FP.n; i++) FP.mesh.setMatrixAt(i, _fm); scene.add(FP.mesh);
+}
+function footTick() {
+  if (!FP.mesh) fpInit(); let n = 0;
+  for (const a of G.actors) {
+    if (!a.alive || a.static || a.type === 'truck' || !a.ch) continue;
+    if (Math.abs(a.x - camX) > 26 || Math.abs(a.z - camZ) > 22 || a.fpx === undefined) { a.fpx = a.x; a.fpz = a.z; a.fps = 1; continue; }
+    const dx = a.x - a.fpx, dz = a.z - a.fpz, d = Math.hypot(dx, dz); if (d < 0.72) continue;
+    a.fps = -(a.fps || 1); const yaw = Math.atan2(dx, dz), ox = Math.cos(yaw) * 0.14 * a.fps, oz = -Math.sin(yaw) * 0.14 * a.fps;
+    _fe.set(0, yaw, 0); _fq.setFromEuler(_fe); _fv.set(a.x + ox, 0.012, a.z + oz); _fm.compose(_fv, _fq, _fs); FP.mesh.setMatrixAt(FP.i++ % FP.n, _fm); n++;
+    a.fpx = a.x; a.fpz = a.z;
+  }
+  if (n) FP.mesh.instanceMatrix.needsUpdate = true;
+}
+const PF = { list: [], tex: null };
+function pfTex() { return PF.tex || (PF.tex = canvasTex(64, 64, (x, w, h) => { const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,.9)'); g.addColorStop(0.5, 'rgba(255,255,255,.35)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); })); }
+function puff(x, y, z, s, life, vx, vy, vz, op) {
+  let p = PF.list.find((q) => q.t <= 0);
+  if (!p) { if (PF.list.length >= 60) return; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: pfTex(), transparent: true, depthWrite: false, color: '#e8eef8' })); scene.add(sp); p = { sp, t: 0 }; PF.list.push(p); }
+  p.sp.visible = true; p.sp.position.set(x, y, z); p.s0 = s; p.t = p.life = life; p.v = [vx, vy, vz]; p.op = op; p.sp.material.opacity = op; p.sp.scale.setScalar(s);
+}
+function puffTick(dt) {
+  for (const p of PF.list) {
+    if (p.t <= 0) continue; p.t -= dt; const k = 1 - Math.max(0, p.t) / p.life;
+    p.sp.position.x += p.v[0] * dt; p.sp.position.y += p.v[1] * dt; p.sp.position.z += p.v[2] * dt; p.v[1] -= dt * 0.6;
+    p.sp.scale.setScalar(p.s0 * (1 + k * 1.6)); p.sp.material.opacity = p.op * (1 - k); if (p.t <= 0) p.sp.visible = false;
+  }
+}
+function breathTick() {
+  if (!rl('breath', 240)) return;
+  const near = G.actors.filter((a) => a.alive && !a.static && a.ch && a.type !== 'truck' && !isDown(a) && Math.abs(a.x - camX) < 16 && Math.abs(a.z - camZ) < 14);
+  const a = near[Math.floor(Math.random() * near.length)]; if (!a || (a.brT || 0) > G.t) return; a.brT = G.t + rand(1.8, 3.0);
+  const fx = fwdX(a.yaw), fz = fwdZ(a.yaw); puff(a.x + fx * 0.35, 1.6, a.z + fz * 0.35, 0.16, 1.1, fx * 0.35 + WX.wind * 0.6, 0.5, fz * 0.35, 0.42);
+}
+function snowHit(x, z) { for (let i = 0; i < 3; i++) puff(x + rand(-0.15, 0.15), 0.12, z + rand(-0.15, 0.15), 0.12, 0.6, rand(-0.6, 0.6), rand(0.8, 1.6), rand(-0.6, 0.6), 0.75); }
+const WX = { snow: 0.7, fall: 1, wind: 0, tSnow: 0.7, tWind: 0 };
+const WX_W = [0.55, 0.7, 0.85, 0.6, 0.9, 1.0, 0.75, 0.95, 1.1, 1.0, 1.25, 1.45];
+function wxWave(n) { WX.tSnow = WX_W[Math.min(11, Math.max(0, n - 1))]; WX.tWind = (Math.random() < 0.5 ? -1 : 1) * (0.2 + WX.tSnow * 0.9); if (WX.tSnow >= 1.25) feed('눈보라가 거세진다 · 시야가 좁아져요', 'gold'); }
+function wxTick(dt) {
+  const k = Math.min(1, dt * 0.3); WX.snow += (WX.tSnow - WX.snow) * k; WX.wind += (WX.tWind - WX.wind) * k; WX.fall = 0.7 + WX.snow * 0.8;
+  snowGeo.setDrawRange(0, Math.floor(SNOW_N * Math.min(1, 0.35 + WX.snow * 0.55)));
+  if (scene.fog) scene.fog.far = 100 - Math.max(0, WX.snow - 0.6) * 45;
+}
+const BLOOM = { c: null };
+if (!TOUCH) (async () => {
+  try {
+    const [{ EffectComposer }, { RenderPass }, { UnrealBloomPass }, { OutputPass }] = await Promise.all([import('three/addons/postprocessing/EffectComposer.js'), import('three/addons/postprocessing/RenderPass.js'), import('three/addons/postprocessing/UnrealBloomPass.js'), import('three/addons/postprocessing/OutputPass.js')]);
+    const c = new EffectComposer(renderer); c.setPixelRatio(renderer.getPixelRatio()); c.setSize(innerWidth, innerHeight);
+    c.addPass(new RenderPass(scene, camera)); c.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth / 2, innerHeight / 2), 0.5, 0.45, 0.86)); c.addPass(new OutputPass());
+    addEventListener('resize', () => c.setSize(innerWidth, innerHeight)); BLOOM.c = c;
+  } catch (e) { console.warn('bloom off', e); }
+})();
+function realTick(dt) { wxTick(dt); ambTick(dt); calloutTick(); footTick(); breathTick(); puffTick(dt); }
+// --- 실제 사건: 단계 사이 기록 카드 (사실 확인: 한국민족문화대백과·위키백과·코리아헤럴드)
+const HIST = [
+  ['1968년 1월 13일', '북한 124군부대 31명에게 청와대 습격 명령이 내려졌다. 함경도 출신 장교들로 뽑은 특수부대였다.'],
+  ['1968년 1월 17~18일 밤', '침투조는 국군 군복으로 위장한 채 얼어붙은 임진강을 걸어서 건너 휴전선을 넘었다.'],
+  ['1968년 1월 20일 밤', '침투조가 서울로 숨어들었다. 북악산 능선을 타고 청와대 쪽으로 내려왔다.'],
+  ['1968년 1월 21일 밤 10시 · 세검정 고개', '자하문 검문소 앞. 최규식 종로경찰서장이 수상한 무리를 막아 세우고 검문했다.'],
+  ['정체가 드러난 순간', '침투조는 총을 쏘며 흩어졌고, 지나가던 시내버스에 수류탄을 던졌다. 최규식 서장은 이날 밤 목숨을 잃었다.'],
+  ['청와대를 코앞에 두고', '침투조는 청와대 바로 앞까지 다가왔다. 군경이 막아서면서 서울 도심 곳곳에서 총격전이 벌어졌다.'],
+  ['흩어진 침투조', '살아남은 침투조는 북악산·인왕산 쪽 산으로 흩어져 달아났다. 군경의 추격이 시작됐다.'],
+  ['추격', '김신조가 붙잡혔다. 남은 침투조를 쫓는 소탕 작전이 서울 북쪽 산과 경기 북부에서 이어졌다.'],
+  ['1월 말까지', '소탕 작전은 1월 말까지 이어졌다. 달아나는 침투조를 휴전선에서 막다가 미군 4명도 숨졌다.'],
+  ['희생', '이 사건으로 국군·경찰과 시민 수십 명이 죽거나 다쳤다. 버스에 타고 있던 시민들도 희생됐다.'],
+  ['그 뒤', '정부는 비정규전에 대비해 향토예비군 창설을 서둘렀다. 그해 4월 향토예비군이 만들어졌다.'],
+  ['다시, 오늘 밤', '1968년의 그 밤처럼, 침투조 지휘관이 마지막으로 청와대를 노린다.']
+];
+const HIST_END = '1968년 1월 21일 밤, 북한 124군부대 31명이 청와대를 노리고 세검정 고개까지 내려왔습니다. 31명 가운데 김신조만 생포됐고, 나머지는 사살되거나 북으로 달아났습니다. 국군·경찰과 시민 수십 명이 죽거나 다쳤고, 최규식 종로경찰서장도 그날 밤 순직했습니다. 이 사건 뒤 향토예비군이 만들어졌습니다. 이 게임은 그 밤을 현대 장비로 다시 막아 내는 가상 작전입니다.';
+const HISTS = { last: -1, t: 0 };
+function histCard(i) {
+  const h = HIST[i]; if (!h || HISTS.last === i) return; HISTS.last = i;
+  let el = $('hist'); if (!el) { el = document.createElement('div'); el.id = 'hist'; $('hud').appendChild(el); }
+  el.innerHTML = '<small>기록 · ' + h[0] + '</small><p>' + h[1] + '</p>'; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(HISTS.t); HISTS.t = setTimeout(() => el.classList.remove('show'), 9500);
+}
+
 // ================= 헬다이버즈식 전투: 탄창 · 피하는 적 탄 · 끊김 없는 압박 · 지원 요청(코드 입력)
 const lrp = (a, b, k) => a + (b - a) * k;
 const angD = (a, b) => ((a - b + Math.PI) % TAU + TAU) % TAU - Math.PI;
@@ -3707,7 +3945,7 @@ function reload(manual) {
   if (!A.pistol && A.mag >= A.max) return;
   if (manual && A.mag > 0 && !A.pistol) dnum(p.x, 2.6, p.z, '남은 ' + A.mag + '발 버림', 'tag');
   else if (rl('rlTag', 900)) dnum(p.x, 2.6, p.z, '재장전', 'tag');
-  A.rT = A.rDur; A.need = false; SFX.magOut(); HST.reload++;
+  A.rT = A.rDur; A.need = false; SFX.magOut(); HST.reload++; if (manual && rl('rlV', 9000)) voSay('재장전!', '분대장', 1);
 }
 function updateAmmo(dt) {
   if (A.model !== ST.w.model) ammoReset(true);
@@ -4007,6 +4245,7 @@ function hdOnKill(a, by) {
 // ---- 웨이브 흐름: 측면 침투 · 헬기 도착까지 버티기
 const HOLD_ZONES = ['north', 'absN', 'absS', 'absW', 'absE', 'sideW', 'sideE'];
 function hdWaveStart(W) {
+  wxWave(D.wave); if (D.wave === 1 || W.boss) siren(W.boss ? 16 : 12);
   barrelsSpawn(); if (D.wave === 1) setTimeout(() => radio('통제실', '길목마다 기름 드럼통이 있다. 적이 몰리면 쏴서 터뜨려라!'), 2600);
   HD.hold = null; HD.holdDone = false; HD.sweep = null; HD.warn = []; HD.flares = W.boss ? 0 : D.wave >= 8 ? 3 : 2; HD.flareCd = 12;
   HD.flankT = W.boss || D.wave < 2 ? 999 : rand(10, 15);
@@ -4087,7 +4326,7 @@ function updateDown(dt) {
 }
 
 function updateHD(dt) {
-  updateBeams(G.t); if (D.on) updateBarrels(dt);
+  updateBeams(G.t); realTick(dt); if (D.on) updateBarrels(dt);
   const p = P.a; if (!p) return;
   updateAmmo(dt); if (A.pistol) HST.pistolT += dt;
   HD.noFireT = (HD.noFireT || 0) - dt; HD.errT -= dt; P.invT = (P.invT || 0) - dt; P.supT = Math.max(0, (P.supT || 0) - dt);
@@ -4332,7 +4571,7 @@ function frame() {
   const raw = Math.min(0.05, clock.getDelta());
   if (G.slowT > 0) { G.slowT -= raw; if (G.slowT <= 0) G.slowK = 1; }
   P.hm -= raw; P.hmK -= raw; P.streakT -= raw;
-  muzzle.intensity *= Math.exp(-raw * 28); pFlashT -= raw; if (pFlash.visible && pFlashT <= 0) pFlash.visible = false;
+  muzzle.intensity *= Math.exp(-raw * 28); for (const l of EMZ) l.intensity *= Math.exp(-raw * 30); pFlashT -= raw; if (pFlash.visible && pFlashT <= 0) pFlash.visible = false;
   if (G.state === 'play') {
     MUS.want = G.boss ? 2 : G.actors.filter((x) => x.alive && x.team === FOE).length >= 3 ? 1 : 0;
     musicTick(); updateCas(raw);
@@ -4357,15 +4596,15 @@ function frame() {
   if (fireLight) fireLight.intensity = 24 + Math.sin(clock.elapsedTime * 23) * 6 + Math.random() * 6;
   markerGrp.children[0].scale.setScalar(1 + 0.12 * Math.sin(clock.elapsedTime * 4));
   const sp = snowGeo.attributes.position.array;
-  for (let i = 0; i < SNOW_N; i++) { sp[i * 3 + 1] -= raw * 1.6; sp[i * 3] += Math.sin(clock.elapsedTime + i) * raw * 0.3; if (sp[i * 3 + 1] < 0) { sp[i * 3 + 1] = 22; sp[i * 3] = camX + rand(-34, 34); sp[i * 3 + 2] = camZ + rand(-34, 22); } }
+  for (let i = 0; i < SNOW_N; i++) { sp[i * 3 + 1] -= raw * 1.6 * WX.fall; sp[i * 3] += (Math.sin(clock.elapsedTime + i) * 0.3 + WX.wind) * raw; if (sp[i * 3 + 1] < 0) { sp[i * 3 + 1] = 22; sp[i * 3] = camX + rand(-34, 34); sp[i * 3 + 2] = camZ + rand(-34, 22); } }
   snowGeo.attributes.position.needsUpdate = true;
   updateGhost();
   if (G.state === 'play' || G.state === 'pause' || G.state === 'menu') { updateLabels(); placeLootLabels(); drawRadar(); drawEdge(); } else ex.clearRect(0, 0, edge.width, edge.height);
-  renderer.render(scene, camera);
+  if (BLOOM.c) BLOOM.c.render(); else renderer.render(scene, camera);
 }
 
 // ================= screens
-const STORY_DEF = '눈 내리는 1월 21일 밤. 북한 특수부대 침투조와 경보병 부대가 북악산을 넘어 청와대로 내려옵니다. 당신은 특전사 대테러 분대 \'알파\'의 분대장. 무전으로 병력과 화력을 요청해 청와대 정문을 끝까지 지켜야 합니다. 판마다 들어오는 보급이 달라서 매번 다른 방어선이 만들어집니다.';
+const STORY_DEF = '1968년 1월 21일 밤, 북한 124군부대 31명이 청와대를 노리고 북악산을 넘어왔습니다. 그 밤이 오늘 다시 온다면? 당신은 현대 장비를 갖춘 특전사 대테러 분대 \'알파\'의 분대장. 무전으로 병력과 화력을 요청해 청와대 정문을 끝까지 지켜야 합니다. 판마다 들어오는 보급이 달라서 매번 다른 방어선이 만들어집니다.';
 const STORY = '눈 내리는 1월 21일 밤. 휴전선을 넘은 북한 특수부대 침투조 31명과 이들을 엄호하는 경보병 부대가 북악산 능선을 타고 청와대로 내려오고 있습니다. 자하문 검문소의 경찰이 먼저 그들을 막아섰고, 총성이 울렸습니다. 당신은 특전사 대테러 분대 \'알파\'의 분대장. 침투조가 청와대 담장에 닿기 전에 모두 막아 내야 합니다.';
 function titleHTML(loading) {
   const nu = nextUnlock();
