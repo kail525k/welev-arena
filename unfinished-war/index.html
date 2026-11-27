@@ -1106,7 +1106,7 @@ function updateFx(dt) {
 // ================= radio, feed, banner
 // 막(Act): 2막에서는 1막 지명(청와대·자하문·버스…)을 2막 지명으로 바꿔 보여 줌
 let ACT = null;
-const AT_MAP2 = [['청와대 정문', '마을 입구'], ['청와대 방어선', '마을 방어선'], ['청와대 쪽', '마을 쪽'], ['청와대 앞', '마을 앞'], ['청와대 좌표', '마을 좌표'], ['청와대 담장', '마을 담장'], ['청와대', '나곡 마을'], ['자하문 검문소', '해안 초소'], ['자하문 고개', '서쪽 골짜기'], ['자하문', '해안'], ['북악산', '태백 능선'], ['북악', '태백'], ['삼청동', '나곡 해안'], ['효자로', '신작로'], ['시내버스', '정미소'], ['버스 정류장', '정미소'], ['버스', '정미소'], ['승객', '주민'], ['시민', '주민'], ['정문', '마을 입구']];
+const AT_MAP2 = [['북악산 능선', '태백 능선'], ['북악 능선', '태백 능선'], ['정문으로', '마을 입구로'], ['정문은', '마을 입구는'], ['청와대 정문', '마을 입구'], ['청와대 방어선', '마을 방어선'], ['청와대 쪽', '마을 쪽'], ['청와대 앞', '마을 앞'], ['청와대 좌표', '마을 좌표'], ['청와대 담장', '마을 담장'], ['청와대', '나곡 마을'], ['자하문 검문소', '해안 초소'], ['자하문 고개', '서쪽 골짜기'], ['자하문', '해안'], ['북악산', '태백 능선'], ['북악', '태백'], ['삼청동', '나곡 해안'], ['효자로', '신작로'], ['시내버스', '정미소'], ['버스 정류장', '정미소'], ['버스', '정미소'], ['승객', '주민'], ['시민', '주민'], ['정문', '마을 입구']];
 function AT(s) { if (!ACT || ACT.id === 1 || typeof s !== 'string') return s; for (const [a, b] of AT_MAP2) if (s.indexOf(a) >= 0) s = s.split(a).join(b); return s; }
 const SPEAK = { '적 무전': '#ff8a7a', '통제실': '#8fc6ff', '알파2': '#9fe8b8', '알파3': '#9fe8b8', '알파4': '#9fe8b8', '경찰관': '#ffd24a', '분대장': '#ffffff' };
 const RQ = []; let rCur = null;
@@ -4168,7 +4168,7 @@ async function voSay(text, who, pri) {
   } catch (e) { /* voice unavailable */ }
 }
 // --- 외침: 아군이 방향을 알려 줌, 수류탄 경고
-function callout(a, text, pri) { if (!a) return; dnum(a.x, 2.95, a.z, text, 'tag'); voSay(text, a.player ? '분대장' : a.name || '아군', pri || 1); }
+function callout(a, text, pri) { if (!a) return; text = AT(text); dnum(a.x, 2.95, a.z, text, 'tag'); voSay(text, a.player ? '분대장' : a.name || '아군', pri || 1); }
 function nearAlly(x, z) { let best = null, bd = 1e9; for (const a of G.actors) { if (!a.alive || a.team !== FRIEND || a.player || isDown(a)) continue; const d = (a.x - x) ** 2 + (a.z - z) ** 2; if (d < bd) { bd = d; best = a; } } return best; }
 function calloutTick() {
   if (!D.on || D.st !== 'wave' || !rl('coTick', 450)) return;
