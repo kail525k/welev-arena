@@ -262,6 +262,38 @@ button{font:inherit;color:inherit}
 .route i.cur{opacity:1;border-color:#ffd24a;box-shadow:0 0 0 1px #ffd24a inset}
 #capW{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);padding:5px 14px;border-radius:999px;background:rgba(5,8,18,.8);border:1px solid currentColor;font:700 14px 'Noto Sans KR';white-space:nowrap}
 #capW[hidden]{display:none}
+/* ---- 유물 · 무한 침투 · 순위표 · 평가 */
+#relics{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;font-size:16px}
+#relics[hidden]{display:none}
+#relics span{display:grid;place-items:center;width:26px;height:26px;border-radius:7px;background:rgba(224,184,100,.16);border:1px solid rgba(224,184,100,.5)}
+.pc.relic b{font-size:21px}
+.endlessBox{display:flex;align-items:center;gap:12px;margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(255,166,58,.1);border:1px solid rgba(255,166,58,.45)}
+.endlessBox span{font-size:13px;color:#ffd9a8}
+.lb{margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(10,14,28,.7);border:1px solid #2c3656}
+.lbHead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.lbHead em{font:700 18px Rajdhani;font-style:normal;color:#ffd24a}
+.lbForm{display:flex;gap:6px;margin:8px 0}
+.lbForm input,.rate input{flex:1;min-width:0;padding:7px 10px;border-radius:8px;border:1px solid #2c3656;background:#0b1020;color:#eef3ff;font:13px 'Noto Sans KR'}
+#lbList{margin:0;padding-left:22px;display:grid;gap:3px;font-size:13px;max-height:170px;overflow:auto}
+#lbList li{display:grid;grid-template-columns:1fr auto auto;gap:10px}
+#lbList li span{font:700 14px Rajdhani;color:#ffd24a}
+#lbList li small{color:#9aa6c6}
+#lbList li.sub{display:block;color:#9aa6c6}
+.rate{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(10,14,28,.7);border:1px solid #2c3656}
+#rateStars button{border:0;background:none;font-size:22px;color:#3d4766;cursor:pointer;padding:0 1px}
+#rateStars button.on{color:#ffd24a}
+/* ---- 보급 개봉 연출 · 잭팟 · 훈장 */
+.pc.rv{animation:pcIn .5s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes pcIn{0%{opacity:0;transform:perspective(600px) rotateY(85deg) scale(.9)}60%{opacity:1}100%{opacity:1;transform:none}}
+.pc.rv::after{content:'';position:absolute;inset:-2px;border-radius:12px;box-shadow:0 0 0 2px var(--gc),0 0 26px var(--gc);opacity:0;animation:pcGlow 1.1s ease-out both;animation-delay:inherit;pointer-events:none}
+@keyframes pcGlow{0%{opacity:0}30%{opacity:.9}100%{opacity:.22}}
+.pc.epic::after{animation:pcGlow2 1.6s ease-in-out infinite}
+@keyframes pcGlow2{0%,100%{opacity:.35}50%{opacity:.95}}
+.pc.legend{background:linear-gradient(180deg,rgba(84,58,16,.96),rgba(30,24,14,.96))}
+.jackpot{margin:6px 0 2px;padding:8px 12px;border-radius:10px;background:linear-gradient(90deg,#7a4b00,#f0c860,#7a4b00);color:#1a1205;font:400 18px 'Black Han Sans';text-align:center;animation:jp .6s ease-out 3;box-shadow:0 0 22px rgba(255,200,80,.7)}
+@keyframes jp{0%{transform:scale(.92)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
+.pc.medal{min-height:120px}
+body.touch .jackpot{font-size:14px;padding:5px 8px}
 #hist{position:absolute;left:50%;top:62px;transform:translateX(-50%);width:min(560px,60vw);padding:10px 16px;border-radius:6px;background:rgba(38,30,18,.88);border:1px solid #a88f60;color:#f3e6c8;font:14px/1.55 'Noto Sans KR';box-shadow:0 6px 18px rgba(0,0,0,.5);opacity:0;transition:opacity .7s;pointer-events:none;z-index:2}
 #hist.show{opacity:1}
 #hist small{display:block;font:700 12px 'Noto Sans KR';color:#e0b864;letter-spacing:.04em;margin-bottom:2px}
@@ -893,7 +925,7 @@ window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; m
 
 // ================= game state
 const G = { state: 'title', t: 0, gate: 100, kia: 0, kills: 0, pKills: 0, slowT: 0, slowK: 1, zones: [], counters: 0, groggies: 0, taken: 0, actors: [], bullets: [], teles: [], nades: [], fx: [], meds: [], boss: null, shake: 0, timeScale: 1, nid: 1 };
-const D = { on: false, wave: 0, st: 'idle', t: 0, prepT: 0, clearT: 0, sched: [], pts: 0, rerolls: 0, offer: null, placing: null, owned: {}, mines: [], wires: [], wireT: 0, trucks: [], fire: { mortar: 0, k9: 0, air: 0 }, fireT: { mortar: 5, k9: 8 }, airLeft: 0, buff: { atk: 0, rate: 0, hp: 0, crit: 0, pierce: 0, cdr: 0 }, syn: { crit: 0, atk: 0, hp: 0, def: 0, gate: 0, heal: false, fastUp: false }, cnt: null, picks: [], gate0: 100, sumT: 12, cleared: 0, unitsOnly: false, special: false, tac: {}, drones: [], helis: [], heliT: 6, flareT: 3, mineSpots: [], nests: 0, tanks: 0, route: [], taken: [], mapOpts: [], node: 'battle', next: {}, mods: { hp: 1, more: 1, noRun: false }, evUsed: [], ev: null, supply: false, nextSpecial: false, sortie: null, sortieAt: -1, sortiesDone: 0, wdrops: [], rockets: [], counter: null, rescue: null };
+const D = { medals: {}, relics: {}, relicDone: {}, endless: false, gateLog: [], on: false, wave: 0, st: 'idle', t: 0, prepT: 0, clearT: 0, sched: [], pts: 0, rerolls: 0, offer: null, placing: null, owned: {}, mines: [], wires: [], wireT: 0, trucks: [], fire: { mortar: 0, k9: 0, air: 0 }, fireT: { mortar: 5, k9: 8 }, airLeft: 0, buff: { atk: 0, rate: 0, hp: 0, crit: 0, pierce: 0, cdr: 0 }, syn: { crit: 0, atk: 0, hp: 0, def: 0, gate: 0, heal: false, fastUp: false }, cnt: null, picks: [], gate0: 100, sumT: 12, cleared: 0, unitsOnly: false, special: false, tac: {}, drones: [], helis: [], heliT: 6, flareT: 3, mineSpots: [], nests: 0, tanks: 0, route: [], taken: [], mapOpts: [], node: 'battle', next: {}, mods: { hp: 1, more: 1, noRun: false }, evUsed: [], ev: null, supply: false, nextSpecial: false, sortie: null, sortieAt: -1, sortiesDone: 0, wdrops: [], rockets: [], counter: null, rescue: null };
 const FRIEND = 'blue', FOE = 'red';
 const ETYPE = {
   grunt: { hp: 42, spd: 4.5, run: 4.8, range: 9, key: ['robA', 'robC'], gun: 'mp5', name: '경보병', scale: 0.96, grunt: true },
@@ -1107,6 +1139,7 @@ function hurt(a, dmg, src, opt) {
     if (a.player && D.on && R.diff === 0) dmg *= 0.65;
     if (a.police) dmg *= 0.5;
     if (a.ally && D.on) dmg *= 1 - D.syn.def;
+    if (hasMedal(a, 'armor')) dmg *= a.role === 'marine' ? 0.65 : 0.75;
     a.hp -= dmg; a.hitT = 0.12;
     if (a.player) { G.taken += dmg; P.regenT = D.on ? 3.5 : 5.5; G.shake = Math.max(G.shake, 0.25); SFX.hurt(); $('vign').classList.add('hurt'); setTimeout(() => $('vign').classList.remove('hurt'), 160); }
     dnum(a.x, 2.1, a.z, Math.round(dmg), 'hurt');
@@ -1213,7 +1246,7 @@ function updateBullets(dt) {
       const px = x0 + dx * t, pz = z0 + dz * t;
       const dd2 = (a.x - px) ** 2 + (a.z - pz) ** 2; if (b.team === FRIEND && a.team === FOE && dd2 < 2.6 && dd2 > a.r * a.r) suppress(a, 0.22);
       if (dd2 <= a.r * a.r) {
-        if (b.team === FRIEND && a.team === FOE) suppress(a, 0.45);
+        if (b.team === FRIEND && a.team === FOE) { suppress(a, 0.45 * (b.supM || 1)); if (b.stunM && !a.boss && !a.static) a.stunT = Math.max(a.stunT || 0, b.stunM); }
         if (D.on && a.player && b.team === FOE && P.dodge && P.dodge.inv > 0) { b.hit.add(a.id); perfectDodge(a); continue; }
         b.hit.add(a.id);
         hurt(a, D.on ? bulletDmg(b, a, px, pz) : b.dmg, b.src, { kb: [b.vx * 0.012, b.vz * 0.012], stag: b.stag || 0, canCrit: b.team === FRIEND, by: b.by });
@@ -2190,8 +2223,8 @@ const RANKS = ['이병', '일병', '상병', '병장'];
 const BUFF_V = { atk: ['atk', 15], rate: ['rate', 15], hp: ['hp', 45], crit: ['crit', 10], pierce: ['pierce', 1], cdr: ['cdr', 12] };
 const rankMul = (r) => 1 + 0.4 * (r - 1);
 const allyAtk = () => 1 + (D.on ? D.syn.atk : 0);
-const gateMul = () => (D.on ? (1 - D.syn.gate) * (D.wave >= 8 ? 0.85 : 1) * (R.diff === 0 ? 0.8 : 1) : 1);
-const unitLabel = (k) => CARDS[k].n + ' · ' + RANKS[D.owned[k].rank - 1];
+const gateMul = () => (D.on ? (1 - D.syn.gate) * (D.wave >= 8 ? 0.85 : 1) * (R.diff === 0 ? 0.8 : 1) * (hasRelic('wall') ? 0.9 : 1) : 1);
+const unitLabel = (k) => CARDS[k].n + ' · ' + RANKS[D.owned[k].rank - 1] + medalStars(k);
 function nextUnlock() {
   let lv = 99;
   for (const k in CARDS) if (CARDS[k].lv > R.lv) lv = Math.min(lv, CARDS[k].lv);
@@ -2227,6 +2260,7 @@ function cardPool(unitsOnly) {
     const c = CARDS[k];
     if (c.lv > R.lv) return false;
     if (unitsOnly && c.cat !== 'unit') return false;
+    if (c.cat === 'medal' && (D.wave < 1 || !Object.keys(D.owned).some((u) => CARDS[u].cat === 'unit'))) return false;
     if (c.cat === 'unit' && D.owned[k] && D.owned[k].rank >= 4) return false;
     if (k === 'repair' && G.gate >= 92) return false;
     if (c.cat === 'tac' && D.tac[k] && D.tac[k] >= (c.stack || 1)) return false;
@@ -2240,14 +2274,14 @@ function rollOffer(unitsOnly, special, count) {
   if (special) { const tp = pool.filter((k) => CARDS[k].cat === 'tac' || k === 'tank'); if (tp.length) { const k = pick(tp); out.push(k); pool.splice(pool.indexOf(k), 1); } }
   while (out.length < (count || 3) && pool.length) {
     let tot = 0;
-    const w = pool.map((k) => { const c = CARDS[k]; let x = [10, 7, 4, 2, 1.6][c.g]; if (c.cat === 'unit') x *= Object.keys(D.owned).length < 3 ? 1.8 : D.owned[k] ? 1.4 : 1; if (out.some((o) => CARDS[o].cat === c.cat)) x *= 0.55; tot += x; return x; });
+    const w = pool.map((k) => { const c = CARDS[k]; let x = [10, 7, 4, 2, 1.6][c.g]; if (hasRelic('rare') && c.g >= 1) x *= 1.8; if (c.cat === 'medal' && hasRelic('medalist')) x *= 2.5; if (c.cat === 'unit') x *= Object.keys(D.owned).length < 3 ? 1.8 : D.owned[k] ? 1.4 : 1; if (out.some((o) => CARDS[o].cat === c.cat)) x *= 0.55; tot += x; return x; });
     let r = Math.random() * tot, i = 0;
     for (; i < pool.length - 1; i++) { r -= w[i]; if (r <= 0) break; }
     out.push(pool[i]); pool.splice(i, 1);
   }
   return out;
 }
-const rerollCost = () => 2 + D.rerolls;
+const rerollCost = () => (hasRelic('reroll') && D.rerolls === 0 ? 0 : 2 + D.rerolls);
 function cardEl(k, i) {
   const c = CARDS[k], o = D.owned[k], cat = CAT[c.cat], gc = GRADES[c.g].c;
   let foot = '';
@@ -2255,6 +2289,7 @@ function cardEl(k, i) {
   else if (c.cat === 'post') foot = (TOUCH ? '땅을 톡 눌러 ' : '좌클릭으로 ') + '배치';
   else if (c.cat === 'fire') foot = D.fire[k] ? '보유 ' + D.fire[k] + ' → 강화' : '웨이브 중 자동 지원';
   else if (c.cat === 'tac') foot = D.tac[k] ? '보유 ' + D.tac[k] + ' → 강화' : '바로 적용 · 판이 바뀝니다';
+  else if (c.cat === 'medal') foot = '고른 뒤 달아 줄 분대원 선택';
   else foot = '바로 적용';
   const fac = c.f ? ' · <span style="color:' + FACT[c.f].c + '">' + FACT[c.f].n + '</span>' : '';
   return '<button class="pc" data-pk="' + i + '" style="--gc:' + gc + ';--cc:' + cat[1] + '"><span class="pk">' + (i + 1) + '</span><i>' + cat[0] + fac + ' · ' + GRADES[c.g].n + '</i><b>' + c.n + '</b><p>' + c.d + '</p><small>' + foot + '</small></button>';
@@ -2267,10 +2302,10 @@ function renderPick() {
     '<div class="pbtns"><button class="btn sm" data-pk="reroll"' + (D.pts < cost ? ' disabled' : '') + '>재요청 · 보급 점수 ' + cost + '</button>' + (D.wave > 0 ? '<button class="btn sm" data-pk="skip">건너뛰기 · 보급 점수 +3</button>' : '') + '<span class="sub">숫자 1·2·3으로도 고를 수 있어요</span></div>';
 }
 $('pick').addEventListener('click', (e) => { const b = e.target.closest('[data-pk]'); if (b && !b.disabled) pickAction(b.dataset.pk); const m = e.target.closest('[data-mp]'); if (m) mapChoose(+m.dataset.mp); const v = e.target.closest('[data-ev]'); if (v) eventChoose(+v.dataset.ev); });
-function showPick(unitsOnly) { if (D.on) histCard(D.wave); D.st = 'pick'; D.supply = false; D.unitsOnly = !!unitsOnly; D.special = !unitsOnly && (D.nextSpecial || D.node === 'elite' || D.node === 'counter' || D.wave === 1); D.nextSpecial = false; D.offer = rollOffer(unitsOnly, D.special); D.rerolls = 0; renderPick(); mouse.down = false; }
+function showPick(unitsOnly) { if (D.on) histCard(D.wave); if (relicDue()) { D.relicDone[D.wave] = true; relicChoose(() => showPick(unitsOnly)); return; } D.st = 'pick'; D.supply = false; D.unitsOnly = !!unitsOnly; D.special = !unitsOnly && (D.nextSpecial || D.node === 'elite' || D.node === 'counter' || D.wave === 1); D.nextSpecial = false; D.offer = rollOffer(unitsOnly, D.special, hasRelic('radio') ? 4 : 3); D.rerolls = 0; renderPick(); pickFx(true); mouse.down = false; }
 function pickAction(v) {
   if (D.st !== 'pick') return;
-  if (v === 'reroll') { const cost = rerollCost(); if (D.pts < cost) return; D.pts -= cost; D.rerolls++; D.offer = rollOffer(D.unitsOnly, D.special, D.supply ? 4 : 3); renderPick(); SFX.radio(); return; }
+  if (v === 'reroll') { const cost = rerollCost(); if (D.pts < cost) return; D.pts -= cost; D.rerolls++; D.offer = rollOffer(D.unitsOnly, D.special, D.supply || hasRelic('radio') ? 4 : 3); renderPick(); pickFx(false); SFX.radio(); return; }
   if (v === 'skip') { D.pts += 3; $('pick').hidden = true; feed('보급 건너뛰기 · 보급 점수 +3'); afterPick(); return; }
   chooseCard(+v);
 }
@@ -2279,6 +2314,7 @@ function chooseCard(i) {
   const c = CARDS[k];
   $('pick').hidden = true; SFX.pickup(); D.picks.push(k);
   if (c.cat === 'unit' && D.owned[k]) { promote(k); afterPick(); return; }
+  if (c.cat === 'medal') { medalChoose(c.medal); return; }
   if (c.cat === 'unit' || c.cat === 'post') { D.placing = k; D.st = 'place'; showGhost(k); return; }
   if (c.cat === 'tac') { tacPick(k); afterPick(); return; }
   if (c.cat === 'fire') {
@@ -2291,7 +2327,7 @@ function chooseCard(i) {
 function afterPick() {
   D.placing = null; showGhost(null); updateSyn(); D.supply = false;
   if (D.wave === 0) { D.node = 'battle'; D.taken[0] = 'battle'; D.st = 'prep'; D.prepT = 6; const W = WAVES[0]; banner('1단계 · ' + W.name, W.intel + (TOUCH ? '' : ' · [Enter] 바로 시작')); return; }
-  if (D.wave >= 12) return;
+  if (D.wave >= 12) { if (D.endless) { D.node = 'battle'; D.taken[D.wave] = 'battle'; D.st = 'prep'; D.prepT = 6; banner('무한 침투 ' + (D.wave - 11) + '단계', '끝없이 몰려옵니다 · 몇 단계까지 버틸까요'); } return; }
   showMap();
 }
 function applyBuff(k) {
@@ -2401,10 +2437,10 @@ function unitTarget(a, range) {
   return best;
 }
 function unitFire(a, tg, dt) {
-  const c = CARDS[a.role], W = c.w, mul = rankMul(D.owned[a.role] ? D.owned[a.role].rank : 1);
+  const c = CARDS[a.role], W = medalWeapon(a, c.w), mul = rankMul(D.owned[a.role] ? D.owned[a.role].rank : 1);
   const yaw = angTo(tg.x - a.x, tg.z - a.z); a.yaw = angLerp(a.yaw, yaw, 1 - Math.exp(-12 * dt));
   if (a.cd > 0) return;
-  if (W.lob) { a.cd = W.cd; lob(a.x, a.z, tg.x + rand(-0.6, 0.6), tg.z + rand(-0.6, 0.6), 0.85, { r: W.r, dmg: W.dmg * mul, friendly: true, src: 'ally', by: a.name, arc: 3.5, stun: 0.5 }); play(a.ch, 'throw', 1.4); a.ch.lockT = 0.5; return; }
+  if (W.lob) { a.cd = W.cd; lob(a.x, a.z, tg.x + rand(-0.6, 0.6), tg.z + rand(-0.6, 0.6), 0.85, { r: W.r, dmg: W.dmg * mul, friendly: true, src: 'ally', by: a.name, arc: 3.5, stun: W.stunM || 0.5, fire: !!W.burnM }); play(a.ch, 'throw', 1.4); a.ch.lockT = 0.5; return; }
   if (W.flame) {
     a.cd = W.cd;
     for (const e of G.actors) {
@@ -2419,15 +2455,16 @@ function unitFire(a, tg, dt) {
   }
   a.burst = (a.burst || 0) + 1; a.cd = W.burst && a.burst % W.burst === 0 ? 0.7 : W.cd;
   const fm = D.tac.firemg && a.role === 'mg';
-  fire(a, yaw + rand(-W.spread, W.spread), { spd: W.spd, range: W.range + 2, dmg: W.dmg * mul, stag: 1, long: W.long, pierce: (W.pierce || 1) + (fm ? 2 : 0), burn: fm, fireT: fm });
+  fire(a, yaw + rand(-W.spread, W.spread), { spd: W.spd, range: W.range + 2, dmg: W.dmg * mul, stag: 1, long: W.long, pierce: (W.pierce || 1) + (fm ? 2 : 0), burn: fm || !!W.burnM, fireT: fm || !!W.burnM, stunM: W.stunM, supM: W.supM });
   if (W.long) SFX.snipe(); else SFX.ashot();
 }
 function unitHeal(a) {
   if (a.healCd > 0) return;
   let best = null, br = 0.92;
-  for (const f of G.actors) { if (!f.alive || f.team !== FRIEND || isDown(f) || f.turret || f === a) continue; if ((f.x - a.x) ** 2 + (f.z - a.z) ** 2 > 49) continue; const r = f.hp / f.maxhp; if (r < br) { br = r; best = f; } }
+  for (const f of G.actors) { if (!f.alive || f.team !== FRIEND || isDown(f) || f.turret || (f === a && !hasMedal(a, 'armor'))) continue; if ((f.x - a.x) ** 2 + (f.z - a.z) ** 2 > 49) continue; const r = f.hp / f.maxhp; if (r < br) { br = r; best = f; } }
   if (!best) return;
-  const v = Math.round(30 * rankMul(D.owned[a.role] ? D.owned[a.role].rank : 1)); a.healCd = 5;
+  const v = Math.round(30 * rankMul(D.owned[a.role] ? D.owned[a.role].rank : 1) * (hasMedal(a, 'pierce') ? 1.4 : 1)); a.healCd = hasMedal(a, 'rapid') ? 3 : 5;
+  if (hasMedal(a, 'fire')) for (const e of G.actors) if (e.alive && e.team === FOE && !e.boss && !e.static && (e.x - best.x) ** 2 + (e.z - best.z) ** 2 < 16) e.stunT = Math.max(e.stunT || 0, 0.6);
   best.hp = Math.min(best.maxhp, best.hp + v); dnum(best.x, 2.4, best.z, '+' + v, 'heal'); spark(best.x, 1.4, best.z, '#5fe08a', 6);
   if (best.player && rl('medR', 20000)) radio('의무병', '분대장님, 치료합니다!', true);
 }
@@ -2538,7 +2575,7 @@ function resetDefense() {
   for (const w of D.wdrops) { scene.remove(w.g); w.lab.remove(); } for (const r of D.rockets) scene.remove(r.m); if (D.sortie && D.sortie.wreck) scene.remove(D.sortie.wreck); if (D.sortie && D.sortie.depot) removeBody(D.sortie.depot.ch); flagGrp.visible = false; P.cap = null;
   Object.assign(D, { special: false, tac: {}, drones: [], helis: [], heliT: 6, flareT: 3, mineSpots: [], nests: 0, tanks: 0, route: [], taken: [], mapOpts: [], node: 'battle', next: {}, mods: { hp: 1, more: 1, noRun: false }, evUsed: [], ev: null, supply: false, nextSpecial: false, sortie: null, sortieAt: -1, sortiesDone: 0, wdrops: [], rockets: [], counter: null, rescue: null });
   D.route = buildRoute();
-  Object.assign(D, { wave: 0, st: 'idle', t: 0, prepT: 0, sched: [], pts: 0, rerolls: 0, offer: null, placing: null, owned: {}, mines: [], wires: [], wireT: 0, trucks: [], fire: { mortar: 0, k9: 0, air: 0 }, fireT: { mortar: 5, k9: 8 }, airLeft: 0, buff: { atk: 0, rate: 0, hp: 0, crit: 0, pierce: 0, cdr: 0 }, syn: { crit: 0, atk: 0, hp: 0, def: 0, gate: 0, heal: false, fastUp: false }, cnt: null, picks: [], gate0: 100, sumT: 12, cleared: 0 });
+  Object.assign(D, { relics: {}, relicDone: {}, endless: false, gateLog: [], medals: {}, jackpot: false, jpOffer: null, medalPick: null, wave: 0, st: 'idle', t: 0, prepT: 0, sched: [], pts: 0, rerolls: 0, offer: null, placing: null, owned: {}, mines: [], wires: [], wireT: 0, trucks: [], fire: { mortar: 0, k9: 0, air: 0 }, fireT: { mortar: 5, k9: 8 }, airLeft: 0, buff: { atk: 0, rate: 0, hp: 0, crit: 0, pierce: 0, cdr: 0 }, syn: { crit: 0, atk: 0, hp: 0, def: 0, gate: 0, heal: false, fastUp: false }, cnt: null, picks: [], gate0: 100, sumT: 12, cleared: 0 });
   showGhost(null); $('pick').hidden = true;
 }
 function startDefense() {
@@ -2547,7 +2584,7 @@ function startDefense() {
   Object.assign(M, { step: -1, t: 0, sub: 0, sched: [], list: [], mortars: [], mortarsDown: 0, civQ: 0, civT: 0, civSaved: 0, civLost: 0, policeLost: 0, police: [], bossSpawned: false, gap: 0, next: 0, truck: null, truckDone: false, truckHit: false, xpGain: 0, loot: [], lv0: R.lv });
   ST = calcStats();
   spawnPlayerOnly(ARENA.home[0], ARENA.home[1]);
-  spawnGarrison(); HISTS.last = -1; WX.tSnow = 0.6; WX.tWind = 0.2;
+  spawnGarrison(); WAVES.length = 12; LB.rid = ''; HISTS.last = -1; relicHud(); WX.tSnow = 0.6; WX.tWind = 0.2;
   camX = ARENA.home[0]; camZ = ARENA.home[1];
   $('actTxt').textContent = '1막 · 청와대 방어전'; $('kiaTxt').innerHTML = '정예 처치 <b id="kiaN">0</b> · 총 제압 <b id="killN">0</b>';
   $('ctrlHint').textContent = 'WASD 이동 · 좌클릭 사격 · R 재장전 · Shift+WASD 지원 요청 · C 집중 사격 · SPC 구르기 · Enter 다음 웨이브 · ESC 일시정지';
@@ -2564,9 +2601,10 @@ function startWave() {
   const n = D.next; D.next = {};
   if (n.elite && D.node === 'battle') { D.node = 'elite'; D.taken[D.wave - 1] = 'elite'; }
   const node = D.node;
-  D.mods = { hp: (node === 'elite' ? 1.3 : 1) * (n.hp || 1), more: n.more || 1, noRun: !!n.noRun };
+  D.mods = { hp: (node === 'elite' ? 1.3 : 1) * (n.hp || 1), more: n.more || 1, noRun: !!n.noRun }; if (D.wave > 12) D.mods.hp *= 1 + (D.wave - 12) * 0.12;
   if (D.on) defWaveFronts();
   if (node === 'counter') { startCounter(); return; }
+  if (!WAVES[D.wave - 1]) WAVES.push(endlessWave(D.wave)); (D.gateLog = D.gateLog || []).push(Math.round(G.gate));
   const W = WAVES[D.wave - 1]; W.build(); hdWaveStart(W); if (D.on) announceFronts();
   if (node === 'elite') for (let i = 0; i < 5; i++) dsch(2 + i * 2.2, pick(['rifle', 'rusher', 'nader', 'rifle']), pick(['north', 'nw', 'ne']));
   if (D.mods.noRun) D.sched = D.sched.filter((q) => q[1] !== 'runner');
@@ -2638,12 +2676,12 @@ function defObjs() {
   if (fs.length) rows.push(['화력 지원', fs.join(' · '), '']);
   return rows;
 }
-function defTitle() { if (D.st === 'map') return '작전 지도 · ' + (D.wave + 1) + '단계'; if (D.st === 'event') return '무전 이벤트 · ' + D.wave + '단계'; if (D.st === 'pick' && D.supply) return '보급소 · ' + D.wave + '단계'; if (D.node === 'rescue' && D.st === 'wave') return '무전 이벤트 · 피난민 구출'; if (D.node === 'counter' && D.st === 'wave') return '역습 · ' + WAVES[D.wave - 1].name; return D.wave === 0 ? '방어 준비' : '웨이브 ' + D.wave + '/' + WAVES.length + ' · ' + WAVES[Math.min(WAVES.length, Math.max(1, D.wave)) - 1].name; }
+function defTitle() { if (D.st === 'map') return '작전 지도 · ' + (D.wave + 1) + '단계'; if (D.st === 'event') return '무전 이벤트 · ' + D.wave + '단계'; if (D.st === 'pick' && D.supply) return '보급소 · ' + D.wave + '단계'; if (D.node === 'rescue' && D.st === 'wave') return '무전 이벤트 · 피난민 구출'; if (D.node === 'counter' && D.st === 'wave') return '역습 · ' + WAVES[D.wave - 1].name; return D.wave === 0 ? '방어 준비' : '웨이브 ' + D.wave + '/' + (D.endless ? '∞' : 12) + ' · ' + WAVES[Math.min(WAVES.length, Math.max(1, D.wave)) - 1].name; }
 function updateWaveChip() {
   const el = $('wv');
   if (!D.on || G.boss) { el.hidden = true; return; }
   el.hidden = false;
-  const txt = D.st === 'map' ? '작전 지도 · 다음 작전을 고르세요 (1·2·3)' : D.st === 'event' ? '무전 이벤트 · 선택하세요 (1·2)' : D.st === 'wave' && D.node === 'counter' ? '역습 · 깃발 안에 서서 거점을 점령하세요' : D.st === 'wave' && D.node === 'rescue' ? '피난민 구출 · 버스 앞 노란 표시로' : D.st === 'prep' ? (D.node === 'counter' ? '역습' : (D.wave + 1) + '단계') + ' 시작까지 ' + Math.ceil(D.prepT) + '초' + (TOUCH ? '' : ' · [Enter] 바로 시작') : D.st === 'place' ? CARDS[D.placing].n + ' 배치 · ' + (TOUCH ? '땅을 톡 누르기 · 아래 [자동 배치]' : '땅을 좌클릭 · [Enter] 자동 배치') : D.st === 'pick' || D.st === 'clear' ? '무전 보급 · 카드 1장을 고르세요' : '웨이브 ' + D.wave + ' / ' + WAVES.length + ' · ' + WAVES[D.wave - 1].name;
+  const txt = D.st === 'map' ? '작전 지도 · 다음 작전을 고르세요 (1·2·3)' : D.st === 'event' ? '무전 이벤트 · 선택하세요 (1·2)' : D.st === 'wave' && D.node === 'counter' ? '역습 · 깃발 안에 서서 거점을 점령하세요' : D.st === 'wave' && D.node === 'rescue' ? '피난민 구출 · 버스 앞 노란 표시로' : D.st === 'prep' ? (D.node === 'counter' ? '역습' : (D.wave + 1) + '단계') + ' 시작까지 ' + Math.ceil(D.prepT) + '초' + (TOUCH ? '' : ' · [Enter] 바로 시작') : D.st === 'place' ? CARDS[D.placing].n + ' 배치 · ' + (TOUCH ? '땅을 톡 누르기 · 아래 [자동 배치]' : '땅을 좌클릭 · [Enter] 자동 배치') : D.st === 'pick' || D.st === 'clear' ? '무전 보급 · 카드 1장을 고르세요' : '웨이브 ' + D.wave + ' / ' + (D.endless ? '∞' : 12) + ' · ' + WAVES[D.wave - 1].name;
   const tx2 = hdChip(txt); if (el.textContent !== tx2) el.textContent = tx2;
 }
 function updateSquadDef() {
@@ -2661,11 +2699,11 @@ function defResultHTML(win, why, rew, unlock) {
   const units = Object.keys(D.owned).map((k) => '<i style="color:' + FACT[CARDS[k].f].c + '">' + CARDS[k].n + ' ' + RANKS[D.owned[k].rank - 1] + '</i>').join('') || '<span class="sub">분대원 없음</span>';
   const rank = win ? (G.gate >= 85 ? 'S' : G.gate >= 55 ? 'A' : 'B') : D.cleared >= 9 ? 'B' : 'C';
   const nu = nextUnlock();
-  const stats = '<div class="stats"><div><span>돌파한 단계</span><b>' + (win ? WAVES.length : D.cleared) + ' / ' + WAVES.length + '</b></div><div><span>작전 시간</span><b>' + mm + ':' + String(ss).padStart(2, '0') + '</b></div><div><span>총 제압 · 내가 처치</span><b>' + G.kills + ' · ' + G.pKills + '</b></div><div><span>청와대 방어선</span><b>' + Math.round(G.gate) + '%</b></div><div><span>받은 보급</span><b>' + D.picks.length + '개</b></div><div><span>카운터 · 무력화</span><b>' + G.counters + ' · ' + G.groggies + '</b></div></div>';
+  const stats = '<div class="stats"><div><span>돌파한 단계</span><b>' + (D.endless ? '무한 ' + Math.max(0, D.wave - 12) + '단계' : (win ? 12 : D.cleared) + ' / 12') + '</b></div><div><span>작전 시간</span><b>' + mm + ':' + String(ss).padStart(2, '0') + '</b></div><div><span>총 제압 · 내가 처치</span><b>' + G.kills + ' · ' + G.pKills + '</b></div><div><span>청와대 방어선</span><b>' + Math.round(G.gate) + '%</b></div><div><span>받은 보급</span><b>' + D.picks.length + '개</b></div><div><span>카운터 · 무력화</span><b>' + G.counters + ' · ' + G.groggies + '</b></div></div>';
   const squad = '<div class="rew"><b>이번 분대</b> ' + units + '</div><div class="rew"><b>지나온 작전</b> ' + D.taken.map((t, i) => '<i style="color:' + NODE[t].c + '">' + (i + 1) + ' ' + NODE[t].n + '</i>').join('') + (D.sortiesDone ? '<i style="color:#ffd24a">출격 임무 성공 ' + D.sortiesDone + '회</i>' : '') + '</div>';
   const btns = '<div class="btns"><button class="btn pri" id="again">다시 출동 · ' + DIFF[R.diff].n + '</button><button class="btn" data-act="gopen:over">재정비 (장비·스킬)</button>' + (win && R.maxDiff > R.diff ? '<button class="btn" id="harder">' + DIFF[R.diff + 1].n + ' 난이도로 출동</button>' : '') + '<button class="btn" id="toTitle">타이틀</button></div>';
   return '<div class="panel"><div class="kick">' + (win ? '방어 성공' : '방어 실패') + '</div><h1>' + (win ? '청와대 <span>사수</span>' : why) + '</h1><div class="rank"><i>' + rank + '</i><h2>' + (win ? '12단계 돌파 · 침투조 지휘관 제압' : '웨이브 ' + D.wave + ' · ' + WAVES[Math.max(0, D.wave - 1)].name + '에서 무너졌습니다') + '</h2></div>' + stats + squad + rew +
-    (nu ? '<p class="note">레벨이 오르면 새 보급 카드가 열려요 · 다음 해금: ' + nu + '</p>' : '') + '<div class="histEnd"><b>실제 1·21 사태</b><p>' + HIST_END + '</p></div>' + btns + '</div>';
+    (nu ? '<p class="note">레벨이 오르면 새 보급 카드가 열려요 · 다음 해금: ' + nu + '</p>' : '') + (win && !D.endless ? '<div class="endlessBox"><button class="btn pri" id="endless">무한 침투 이어 하기</button><span>지휘관을 잡았어요. 몇 단계까지 더 버틸 수 있을까요?</span></div>' : '') + lbHTML(win) + '<div class="histEnd"><b>실제 1·21 사태</b><p>' + HIST_END + '</p></div>' + btns + '</div>';
 }
 
 // ================= 실감 연출: 연기, 충격파, 먼지, 총구 화염
@@ -3666,7 +3704,7 @@ function barrelBlow(b) {
   const i = OBST.indexOf(b.o); if (i >= 0) OBST.splice(i, 1); scene.remove(b.m); BRL.list.splice(BRL.list.indexOf(b), 1);
   let n = 0; for (const a of G.actors) if (a.alive && a.team === FOE && !isDown(a) && (a.x - b.x) ** 2 + (a.z - b.z) ** 2 < 16) n++;
   boom(b.x, b.z, 4, '#ffb25a'); scorch(b.x, b.z, 2.2); addZone(b.x, b.z, 2.4, 4, 40);
-  blast(b.x, b.z, 4, 150 + D.wave * 12, true, { src: 'player', stag: 10, stun: 1.4, by: '분대장' });
+  blast(b.x, b.z, hasRelic('barrel') ? 5 : 4, (150 + D.wave * 12) * (hasRelic('barrel') ? 2 : 1), true, { src: 'player', stag: 10, stun: 1.4, by: '분대장' });
   G.shake = Math.max(G.shake, 0.9);
   if (n >= 2) { dnum(b.x, 2.6, b.z, '드럼통 폭발! ' + n + '명', 'tag gold'); if (n >= 4) slowmo(0.4, 0.25); } else dnum(b.x, 2.4, b.z, '쾅!', 'tag');
   for (const o of BRL.list) if (!o.lit && (o.x - b.x) ** 2 + (o.z - b.z) ** 2 < 20) { o.hp = 0; o.lit = true; o.fuse = 0.22; o.m.material[0].emissiveIntensity = 0.6; }
@@ -3876,7 +3914,7 @@ if (!TOUCH) (async () => {
     addEventListener('resize', () => c.setSize(innerWidth, innerHeight)); BLOOM.c = c;
   } catch (e) { console.warn('bloom off', e); }
 })();
-function realTick(dt) { wxTick(dt); ambTick(dt); calloutTick(); footTick(); breathTick(); puffTick(dt); }
+function realTick(dt) { supplyTick(dt); wxTick(dt); ambTick(dt); calloutTick(); footTick(); breathTick(); puffTick(dt); }
 // --- 실제 사건: 단계 사이 기록 카드 (사실 확인: 한국민족문화대백과·위키백과·코리아헤럴드)
 const HIST = [
   ['1968년 1월 13일', '북한 124군부대 31명에게 청와대 습격 명령이 내려졌다. 함경도 출신 장교들로 뽑은 특수부대였다.'],
@@ -3899,6 +3937,214 @@ function histCard(i) {
   let el = $('hist'); if (!el) { el = document.createElement('div'); el.id = 'hist'; $('hud').appendChild(el); }
   el.innerHTML = '<small>기록 · ' + h[0] + '</small><p>' + h[1] + '</p>'; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
   clearTimeout(HISTS.t); HISTS.t = setTimeout(() => el.classList.remove('show'), 9500);
+}
+
+// ================= 1주차: 보급 낙하산 개봉 · 잭팟 지원 · 훈장 계승
+// --- 훈장: 같은 훈장도 병과마다 다르게 작동 (Slotbound의 '각인'처럼 조합이 빌드를 만듦)
+const MEDALS = {
+  pierce: { n: '관통탄 훈장', c: '#7cc8ff', d: { _: '총알이 적 1명을 더 꿰뚫어요', sniper: '총알이 적 2명을 더 꿰뚫어요', demo: '유탄 폭발 범위 +35%', flame: '화염 사거리 +30%', medic: '치료량 +40%' } },
+  fire: { n: '소이탄 훈장', c: '#ff8a3a', d: { _: '맞은 적이 3초 동안 불타요', demo: '터진 자리에 3초 불길', flame: '화염 피해 +50%', medic: '치료할 때 주변 적을 섬광으로 기절(0.6초)' } },
+  rapid: { n: '속사 훈장', c: '#ffd24a', d: { _: '사격 간격 -30%', sniper: '저격 간격 -25%', demo: '유탄 간격 -30%', medic: '치료 간격 -40%' } },
+  stun: { n: '제압 훈장', c: '#c27bff', d: { _: '맞은 적이 멈칫하고 엎드려요(경직 0.35초)', mg: '맞은 적이 확실히 엎드려요(제압 2배)', sniper: '맞은 적 1초 기절', demo: '폭발에 맞은 적 1.2초 기절' } },
+  armor: { n: '방탄 훈장', c: '#5fe08a', d: { _: '체력 +50% · 받는 피해 -25%', marine: '체력 +80% · 받는 피해 -35%', medic: '체력 +50% · 자기 자신도 치료' } }
+};
+for (const [m, v] of Object.entries(MEDALS)) CARDS['m_' + m] = { cat: 'medal', n: v.n, g: m === 'armor' || m === 'rapid' ? 2 : 3, lv: 1, d: '분대원 한 명에게 달아 줍니다 · ' + v.d._ + ' (병과마다 효과가 달라요)', medal: m };
+CAT.medal = ['훈장', '#e0b864'];
+const medalDesc = (m, k) => MEDALS[m].d[k] || MEDALS[m].d._;
+const hasMedal = (a, m) => !!(a && a.unit && D.medals && D.medals[a.role] && D.medals[a.role].includes(m));
+function medalStars(k) { const l = D.medals && D.medals[k]; return l && l.length ? ' ' + l.map((m) => '★').join('') : ''; }
+function pickFx(fresh) {
+  if (fresh && D.on && D.wave > 0) supplyDrop();
+  revealCards();
+  const jp = jackpotCheck();
+  if (jp) { const h = $('pick').querySelector('.phead'); if (h) h.innerHTML = h.innerHTML.replace(/보급 점수 \d+/, '보급 점수 ' + D.pts); if (h) h.insertAdjacentHTML('afterend', '<div class="jackpot">🎰 잭팟! ' + jp + ' · 다음 전투 시작 때 K9 일제 사격 + 보급 점수 +5</div>'); setTimeout(() => SFX.levelup(), 650); G.shake = Math.max(G.shake, 0.4); }
+}
+function medalChoose(m) {
+  const units = Object.keys(D.owned).filter((k) => CARDS[k].cat === 'unit' && (!D.medals[k] || D.medals[k].length < (hasRelic('medalist') ? 3 : 2)) && !(D.medals[k] || []).includes(m));
+  if (!units.length) { D.pts += 4; feed('훈장을 달 분대원이 없어 보급 점수 +4', 'gold'); afterPick(); return; }
+  D.st = 'medal'; D.medalPick = m; const el = $('pick'); el.hidden = false;
+  el.innerHTML = '<div class="phead"><b style="color:' + MEDALS[m].c + '">' + MEDALS[m].n + '</b><span>누구에게 달까요? 병과마다 효과가 달라요 (한 명에 최대 ' + (hasRelic('medalist') ? 3 : 2) + '개)</span></div><div class="pcards' + (units.length > 3 ? ' four' : '') + '">' +
+    units.map((k) => { const c = CARDS[k], cur = (D.medals[k] || []).map((x) => MEDALS[x].n).join(', '); return '<button class="pc medal" data-md="' + k + '" style="--gc:' + MEDALS[m].c + ';--cc:' + FACT[c.f].c + '"><i>' + FACT[c.f].n + ' · ' + RANKS[D.owned[k].rank - 1] + '</i><b>' + c.n + '</b><p>' + medalDesc(m, k) + '</p><small>' + (cur ? '달고 있는 훈장: ' + cur : '첫 훈장') + '</small></button>'; }).join('') + '</div>';
+}
+function medalAttach(k) {
+  const m = D.medalPick; if (D.st !== 'medal' || !m || !D.owned[k]) return;
+  (D.medals[k] = D.medals[k] || []).push(m); D.medalPick = null; $('pick').hidden = true;
+  for (const a of D.owned[k].actors) {
+    if (m === 'armor') { const f = k === 'marine' ? 1.8 : 1.5; a.maxhp = Math.round(a.maxhp * f); a.hp = Math.min(a.maxhp, a.hp * f); }
+    if (a.label) a.label.textContent = unitLabel(k);
+    pillar(a.x, a.z, MEDALS[m].c); dnum(a.x, 3, a.z, MEDALS[m].n + '!', 'tag gold');
+  }
+  SFX.rare(); feed(CARDS[k].n + ' · ' + MEDALS[m].n + ' · ' + medalDesc(m, k), 'gold');
+  radio('통제실', CARDS[k].n + '에게 ' + MEDALS[m].n + ' 수여. ' + medalDesc(m, k) + '.', true);
+  buildHud(); afterPick();
+}
+$('pick').addEventListener('click', (e) => { const b = e.target.closest('[data-md]'); if (b) medalAttach(b.dataset.md); });
+// 훈장 효과를 병과 무기에 반영
+function medalWeapon(a, W) {
+  if (!a.unit || !D.medals || !D.medals[a.role]) return W;
+  const L = D.medals[a.role], k = a.role, o = Object.assign({}, W);
+  if (L.includes('pierce')) { if (W.lob) o.r = W.r * 1.35; else if (W.flame) o.range = W.range * 1.3; else o.pierce = (W.pierce || 1) + (k === 'sniper' ? 2 : 1); }
+  if (L.includes('rapid')) o.cd = W.cd * (k === 'sniper' ? 0.75 : 0.7);
+  if (L.includes('fire')) { if (W.flame) o.dmg = W.dmg * 1.5; else o.burnM = true; }
+  if (L.includes('stun')) { o.stunM = k === 'sniper' ? 1 : k === 'demo' ? 1.2 : k === 'mg' ? 0 : 0.25; o.supM = k === 'mg' ? 2.2 : 1.3; }
+  return o;
+}
+// --- 보급 낙하산: 보급을 고를 때 하늘에서 상자가 내려옴
+const SUPPLY = { list: [] };
+function supplyDrop() {
+  const p = P.a; if (!p) return;
+  const g = new THREE.Group(), x = clamp(p.x + rand(-2.5, 2.5), BOUNDS.x0 + 2, BOUNDS.x1 - 2), z = clamp(p.z - rand(2.5, 3.5), BOUNDS.z0 + 2, BOUNDS.z1 - 2);
+  const box = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.8, 0.8), mat('#4f5a3a', { roughness: 0.8 })); box.position.y = 0.4; box.castShadow = true; g.add(box);
+  const band = new THREE.Mesh(new THREE.BoxGeometry(1.12, 0.12, 0.82), mat('#e0b864', { emissive: '#e0b864', emissiveIntensity: 0.4 })); band.position.y = 0.55; g.add(band);
+  const chute = new THREE.Mesh(new THREE.SphereGeometry(0.95, 16, 8, 0, TAU, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#d9d4c0', side: THREE.DoubleSide, roughness: 0.9 })); chute.position.y = 2.5; chute.scale.y = 0.55; g.add(chute);
+  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const l = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1.9), mat('#cfcab8')); l.position.set(sx * 0.42, 1.6, sz * 0.42); l.rotation.z = -sx * 0.25; l.rotation.x = sz * 0.25; g.add(l); }
+  g.position.set(x, 10, z); scene.add(g);
+  SUPPLY.list.push({ g, chute, x, z, t: 0, landed: false });
+}
+function supplyTick(dt) {
+  for (const s of SUPPLY.list) {
+    s.t += dt;
+    if (!s.landed) { s.g.position.y = Math.max(0, 10 - s.t * 12); s.g.rotation.y += dt * 0.8; if (s.g.position.y <= 0) { s.landed = true; s.g.position.y = 0; dust(s.x, s.z, 1.4); SFX.thump(); s.chute.visible = false; s.g.children.slice(3).forEach((c) => { c.visible = false; }); } }
+    if (s.t > 9) { scene.remove(s.g); s.dead = true; }
+  }
+  SUPPLY.list = SUPPLY.list.filter((s) => !s.dead);
+}
+// --- 개봉 연출: 카드가 한 장씩 뒤집히며 등급 빛이 터짐
+function revealCards() {
+  const cards = [...$('pick').querySelectorAll('.pcards .pc')];
+  cards.forEach((el, i) => {
+    const k = D.offer[i], g = k ? CARDS[k].g : 0; el.classList.add('rv'); el.style.animationDelay = (i * 0.2) + 's';
+    if (g >= 3) el.classList.add('epic'); if (g >= 4) el.classList.add('legend');
+    setTimeout(() => { if (G.state !== 'play') return; if (g >= 3) SFX.rare(); else SFX.ding(2 + g * 2 + i); }, 200 + i * 200);
+  });
+}
+// --- 잭팟: 같은 부대 3장이 겹치거나 7% 확률 → 다음 전투 시작 때 K9 일제 사격 + 보급 점수
+function jackpotCheck() {
+  if (!D.on || D.wave === 0 || D.offer === D.jpOffer) return false; D.jpOffer = D.offer;
+  const f = D.offer.map((k) => CARDS[k].f); const same = D.offer.length >= 3 && f[0] && f.every((x) => x === f[0]);
+  if (!(same || Math.random() < (hasRelic('coin') ? 0.2 : 0.07))) return false;
+  D.jackpot = true; D.pts += 5; HST.jackpot = (HST.jackpot || 0) + 1;
+  return same ? FACT[f[0]].n + ' 3장' : '행운의 보급';
+}
+function jackpotBarrage() {
+  if (!D.jackpot) return; D.jackpot = false;
+  radio('통제실', '잭팟 화력 도착. K9 포대 일제 사격 개시한다!');
+  banner('잭팟 지원', 'K9 자주포 일제 사격');
+  let n = 0;
+  const fireOne = () => {
+    if (G.state !== 'play' || n >= 9) return; n++;
+    const foes = G.actors.filter((e) => e.alive && e.team === FOE && !e.removed && Math.hypot(e.x - CORE.x, e.z - CORE.z) > CORE.r + 3);
+    const t = foes.length ? pick(foes) : null; const ang = rand(0, TAU), x = t ? t.x + rand(-1.2, 1.2) : Math.cos(ang) * 24, z = t ? t.z + rand(-1.2, 1.2) : Math.sin(ang) * 24;
+    addTele({ kind: 'circle', x, z, r: 3.4, dur: 1.1, friendly: true, onEnd: (tl) => { boom(tl.x, tl.z, 3.4, '#ffb25a'); scorch(tl.x, tl.z, 2); blast(tl.x, tl.z, 3.4, 110 + D.wave * 14, true, { src: 'player', by: 'K9', stag: 8, stun: 0.9 }); G.shake = Math.max(G.shake, 0.6); } });
+    setTimeout(fireOne, 420);
+  };
+  setTimeout(fireOne, 3800);
+}
+
+// ================= 2주차: 작전 유물 · 무한 침투 · 순위표   /  3주차: 판 평가 · 플레이 기록
+const RELICS = {
+  radio: { n: '무전병 증원', ic: '📻', d: '무전 보급이 4장 중 1장으로 늘어나요' },
+  reroll: { n: '보급 우선권', ic: '🎟', d: '매번 첫 재요청은 무료예요' },
+  coin: { n: '행운의 동전', ic: '🪙', d: '잭팟 확률 7% → 20%' },
+  rare: { n: '특급 보급선', ic: '💎', d: '고급 이상 카드가 1.8배 자주 나와요' },
+  ammo: { n: '탄약 상자 2배', ic: '🧰', d: '예비 탄창 +4, 탄창이 3.5초마다 보충돼요' },
+  barrel: { n: '고폭 드럼통', ic: '🛢', d: '드럼통 폭발 피해 2배, 범위 +25%' },
+  medalist: { n: '훈장 수여식', ic: '🎖', d: '훈장 카드가 2.5배 자주 나오고, 한 명에 3개까지 달 수 있어요' },
+  wall: { n: '방어선 보강', ic: '🧱', d: '방어선 +15%, 앞으로 깎이는 양 -10%' },
+  medkit: { n: '야전 병원', ic: '⛑', d: '전투가 시작될 때마다 분대 전원 체력이 가득 차요' },
+  strat: { n: '지원 우선 순위', ic: '📡', d: '지원 요청 재사용 대기 -30%' }
+};
+const hasRelic = (k) => !!(D.relics && D.relics[k]);
+function relicChoose(next) {
+  const pool = Object.keys(RELICS).filter((k) => !hasRelic(k)); if (!pool.length) return next();
+  const opts = []; while (opts.length < 3 && pool.length) opts.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+  D.st = 'relic'; D.relicNext = next; const el = $('pick'); el.hidden = false;
+  el.innerHTML = '<div class="phead"><b style="color:#e0b864">작전 유물</b><span>위험한 작전을 해냈어요 · 이번 판 내내 효과가 이어지는 유물 1개를 고르세요</span></div><div class="pcards">' +
+    opts.map((k) => '<button class="pc relic rv" data-rl="' + k + '" style="--gc:#e0b864;--cc:#e0b864"><i>작전 유물</i><b>' + RELICS[k].ic + ' ' + RELICS[k].n + '</b><p>' + RELICS[k].d + '</p><small>이번 판 내내 적용</small></button>').join('') + '</div>';
+  el.querySelectorAll('.pc').forEach((c, i) => { c.style.animationDelay = (i * 0.2) + 's'; });
+  setTimeout(() => SFX.rare(), 300);
+}
+function relicTake(k) {
+  if (D.st !== 'relic' || !RELICS[k]) return;
+  D.relics[k] = true; $('pick').hidden = true; SFX.levelup(); feed('작전 유물 · ' + RELICS[k].n + ' · ' + RELICS[k].d, 'gold');
+  if (k === 'ammo') { A.maxSpare += 4; A.spare = Math.min(A.maxSpare, A.spare + 4); }
+  if (k === 'wall') G.gate = Math.min(100, G.gate + 15);
+  if (k === 'medkit') healSquad();
+  relicHud(); const n = D.relicNext; D.relicNext = null; if (n) n();
+}
+$('pick').addEventListener('click', (e) => { const b = e.target.closest('[data-rl]'); if (b) relicTake(b.dataset.rl); });
+function healSquad() { for (const a of G.actors) if (a.alive && a.team === FRIEND && !a.turret) { a.hp = a.maxhp; if (a.downT > 0 && !a.player) a.downT = 0.01; } }
+function relicHud() {
+  let el = $('relics'); if (!el) { el = document.createElement('div'); el.id = 'relics'; const o = $('obj'); if (o) o.appendChild(el); else return; }
+  const ks = Object.keys(D.relics || {}); el.hidden = !ks.length;
+  el.innerHTML = ks.map((k) => '<span title="' + RELICS[k].n + ' · ' + RELICS[k].d + '">' + RELICS[k].ic + '</span>').join('');
+}
+function relicDue() {
+  if (!D.on || D.wave < 1 || D.relicDone[D.wave]) return false;
+  const node = D.taken[D.wave - 1];
+  return node === 'elite' || node === 'counter' || D.wave === 6 || (D.endless && (D.wave - 12) % 3 === 0);
+}
+// --- 무한 침투: 1막을 깬 뒤 끝없이 몰려오는 단계
+function endlessWave(n) {
+  const k = n - 12, fr = ['north', 'nw', 'ne', 'west', 'east'];
+  return { name: '무한 침투 ' + k, intel: '끝없이 몰려옵니다 · 몇 단계까지 버틸까요', endless: true, build() {
+    const m = 1 + k * 0.2; dpack(1, Math.round(16 * m), pick(fr), 0.18); dpack(4, Math.round(12 * m), pick(fr), 0.2); drun(6, Math.round(4 + k * 1.2), pick(fr));
+    for (let i = 0; i < 3 + k; i++) dsch(2 + i * 1.3, pick(['rifle', 'nader', 'rifle', 'rusher', 'sniper']), pick(fr));
+    if (k % 3 === 0) devt(8, () => truckD(0)); if (k % 4 === 0) devt(3, () => mortarD(0));
+  } };
+}
+function continueEndless() {
+  D.endless = true; D.sched = [];
+  for (const e of G.actors) if (e.alive && e.team === FOE) { e.alive = false; e.removed = true; removeBody(e.ch); if (e.label) e.label.remove(); }
+  G.state = 'play'; $('ov').hidden = true; $('hud').hidden = false; $('wv').hidden = false; clock.getDelta();
+  radio('통제실', '지휘관은 쓰러졌지만 침투는 끝나지 않았다. 버틸 수 있는 데까지 버텨라!');
+  showPick(false);
+}
+// --- 점수 · 순위표 (온라인: welev-games, 안 되면 이 기기 기록)
+const LB = { url: 'https://tozyoprymcvznkeqmrqp.supabase.co/rest/v1/', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvenlvcHJ5bWN2em5rZXFtcnFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQzNTU5MTksImV4cCI6MjEwOTkzMTkxOX0.I13m5wmaxEzSDh-u_aYbcquTJ072nX2XPpSaVliBDKE', sent: false, rid: '' };
+function runScore(win) { return Math.round((D.cleared || 0) * 1000 + (win ? 3000 : 0) + G.kills * 2 + Math.max(0, G.gate) * 10 + (D.endless ? (D.wave - 12) * 1500 : 0)) * (1 + R.diff * 0.5) | 0; }
+function lbFetch(path, opt) { return fetch(LB.url + path, Object.assign({ headers: { apikey: LB.key, Authorization: 'Bearer ' + LB.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' } }, opt || {})); }
+function lbLocal() { try { return JSON.parse(localStorage.getItem('uw_lb') || '[]'); } catch (e) { return []; } }
+function lbHTML(win) {
+  const sc = runScore(win); let nm = ''; try { nm = localStorage.getItem('uw_name') || ''; } catch (e) { nm = ''; }
+  return '<div class="lb"><div class="lbHead"><b>순위표</b><span>이번 판 점수 <em>' + sc.toLocaleString() + '</em>' + (D.endless ? ' · 무한 침투 ' + Math.max(0, D.wave - 12) + '단계' : '') + '</span></div>' +
+    '<div class="lbForm"><input id="lbName" maxlength="12" placeholder="이름 (12자까지)" value="' + nm.replace(/"/g, '') + '"><button class="btn sm" id="lbSend">기록 올리기</button></div><ol id="lbList"><li class="sub">불러오는 중…</li></ol></div>' +
+    '<div class="rate"><b>이번 판 어땠어요?</b><div id="rateStars">' + [1, 2, 3, 4, 5].map((i) => '<button data-star="' + i + '">★</button>').join('') + '</div><input id="rateTxt" maxlength="120" placeholder="한 줄 의견 (선택) · 어디가 어렵거나 재밌었나요?"><button class="btn sm" id="rateSend">보내기</button><span id="rateMsg" class="sub"></span></div>';
+}
+async function lbLoad() {
+  const el = $('lbList'); if (!el) return;
+  try {
+    const r = await lbFetch('uw_scores?select=name,score,wave,diff,win&order=score.desc&limit=10', { method: 'GET' }); if (!r.ok) throw new Error(r.status);
+    const rows = await r.json(); el.innerHTML = rows.length ? rows.map((x) => '<li><b>' + String(x.name).replace(/</g, '') + '</b><span>' + x.score.toLocaleString() + '</span><small>' + (x.wave > 12 ? '무한 ' + (x.wave - 12) : x.wave + '단계') + ' · ' + DIFF[x.diff || 0].n + '</small></li>').join('') : '<li class="sub">아직 기록이 없어요. 첫 기록을 남겨 보세요!</li>';
+  } catch (e) {
+    const rows = lbLocal(); el.innerHTML = '<li class="sub">온라인 순위표 준비 중 · 이 기기 기록</li>' + (rows.map((x) => '<li><b>' + x.name + '</b><span>' + x.score.toLocaleString() + '</span><small>' + (x.wave > 12 ? '무한 ' + (x.wave - 12) : x.wave + '단계') + '</small></li>').join('') || '');
+  }
+}
+async function lbSend(win) {
+  if (LB.sent) return; const nm = ($('lbName').value || '').trim().slice(0, 12); if (!nm) { $('lbName').focus(); return; }
+  try { localStorage.setItem('uw_name', nm); } catch (e) { /* storage blocked */ }
+  LB.sent = true; $('lbSend').disabled = true; $('lbSend').textContent = '올리는 중…';
+  const row = { name: nm, score: runScore(win), wave: D.wave, diff: R.diff, win: !!win, device: TOUCH ? 'mobile' : 'pc' };
+  try { const r = await lbFetch('uw_scores', { method: 'POST', body: JSON.stringify(row) }); if (!r.ok) throw new Error(r.status); $('lbSend').textContent = '올렸어요!'; }
+  catch (e) { const l = lbLocal(); l.push(row); l.sort((a, b) => b.score - a.score); try { localStorage.setItem('uw_lb', JSON.stringify(l.slice(0, 10))); } catch (x) { /* storage blocked */ } $('lbSend').textContent = '이 기기에 저장했어요'; }
+  lbLoad();
+}
+// --- 3주차: 판 기록 + 평가 (밸런스 조정용)
+function runData(win) {
+  return { rid: LB.rid, ver: 'w3', picks: D.picks, taken: D.taken, medals: D.medals, relics: Object.keys(D.relics || {}), gateLog: D.gateLog || [], downs: HST.down || 0, jackpots: HST.jackpot || 0, gateBy: HST.gate, endless: !!D.endless, lv: R.lv };
+}
+function runSend(win, rating, comment) {
+  const row = { win: !!win, wave: D.wave, diff: R.diff, device: TOUCH ? 'mobile' : 'pc', secs: Math.round(G.t), kills: G.kills, gate: Math.round(Math.max(0, G.gate)), rating: rating || null, comment: comment || null, data: runData(win) };
+  return lbFetch('uw_runs', { method: 'POST', body: JSON.stringify(row) }).then((r) => r.ok).catch(() => false);
+}
+function resultBind(win) {
+  LB.sent = false; LB.rid = LB.rid || Math.random().toString(36).slice(2, 10);
+  if ($('endless')) $('endless').onclick = () => continueEndless();
+  if ($('lbSend')) $('lbSend').onclick = () => lbSend(win);
+  let stars = 0;
+  for (const b of document.querySelectorAll('[data-star]')) b.onclick = () => { stars = +b.dataset.star; document.querySelectorAll('[data-star]').forEach((x) => x.classList.toggle('on', +x.dataset.star <= stars)); };
+  if ($('rateSend')) $('rateSend').onclick = async () => { if (!stars) { $('rateMsg').textContent = '별점을 먼저 골라 주세요'; return; } $('rateSend').disabled = true; const ok = await runSend(win, stars, ($('rateTxt').value || '').trim().slice(0, 120)); $('rateMsg').textContent = ok ? '고마워요! 다음 업데이트에 반영할게요' : '지금은 보낼 수 없어요 (온라인 기록 준비 중)'; };
+  lbLoad(); runSend(win);
 }
 
 // ================= 헬다이버즈식 전투: 탄창 · 피하는 적 탄 · 끊김 없는 압박 · 지원 요청(코드 입력)
@@ -3936,7 +4182,7 @@ Object.assign(SFX, {
 // ---- 탄창 · 재장전
 function ammoReset(full) {
   const w = ST.w, s = AMMO[w.model] || [30, 1.9];
-  A.model = w.model; A.max = s[0]; A.rDur = s[1]; A.maxSpare = w.model === 'sniper' ? 12 : 10;
+  A.model = w.model; A.max = s[0]; A.rDur = s[1]; A.maxSpare = (w.model === 'sniper' ? 12 : 10) + (hasRelic('ammo') ? 4 : 0);
   if (full) { A.mag = A.max; A.spare = A.maxSpare; A.rT = 0; A.pistol = false; A.need = false; }
 }
 function reload(manual) {
@@ -3953,7 +4199,7 @@ function updateAmmo(dt) {
   else if (A.need) reload(false);
   else if (!A.pistol && A.spare > 0 && A.mag < A.max * 0.34 && P.shotT > 0.6) reload(false);
   // 예비 탄창이 조금씩 다시 차서 오래 비어 있지 않음
-  if (A.spare < A.maxSpare) { A.trickT += dt; if (A.trickT >= 6) { A.trickT = 0; A.spare++; if (A.pistol || A.mag <= 0) A.need = true; } } else A.trickT = 0;
+  if (A.spare < A.maxSpare) { A.trickT += dt; if (A.trickT >= (hasRelic('ammo') ? 3.5 : 6)) { A.trickT = 0; A.spare++; if (A.pistol || A.mag <= 0) A.need = true; } } else A.trickT = 0;
 }
 function ammoGive(n) {
   A.spare = Math.min(A.maxSpare, A.spare + n);
@@ -4094,7 +4340,7 @@ function throwBeacon(tx, tz) {
   tx = clamp(tx, BOUNDS.x0 - 7, BOUNDS.x1 + 7); tz = clamp(tz, BOUNDS.z0 - 7, BOUNDS.z1 + 7);
   const g = new THREE.Group(); g.add(new THREE.Mesh(bcGeo, new THREE.MeshBasicMaterial({ color: s.col }))); g.position.set(p.x, 1.2, p.z); scene.add(g);
   HD.beacons.push({ s, x0: p.x, z0: p.z, x: tx, z: tz, t: 0, fly: 0.45, g, beam: null, yaw: angTo(tx - p.x, tz - p.z) || angTo(0, -1) });
-  HD.cd[s.k] = s.cd; HD.noFireT = 0.35; SFX.throwB(); play(p.ch, 'throw', 1.4); p.ch.lockT = 0.25;
+  HD.cd[s.k] = s.cd * (hasRelic('strat') ? 0.7 : 1); HD.noFireT = 0.35; SFX.throwB(); play(p.ch, 'throw', 1.4); p.ch.lockT = 0.25;
   feed('지원 요청 · ' + s.n, s.col === '#ff5a3a' ? 'gold' : 'good');
 }
 function hdBotStrat(k, x, z) { if (HD.cd[k] > 0 || !P.a || P.a.downT > 0) return false; P.beacon = k; throwBeacon(x, z); return true; }
@@ -4245,6 +4491,7 @@ function hdOnKill(a, by) {
 // ---- 웨이브 흐름: 측면 침투 · 헬기 도착까지 버티기
 const HOLD_ZONES = ['north', 'absN', 'absS', 'absW', 'absE', 'sideW', 'sideE'];
 function hdWaveStart(W) {
+  jackpotBarrage(); if (hasRelic('medkit')) healSquad();
   wxWave(D.wave); if (D.wave === 1 || W.boss) siren(W.boss ? 16 : 12);
   barrelsSpawn(); if (D.wave === 1) setTimeout(() => radio('통제실', '길목마다 기름 드럼통이 있다. 적이 몰리면 쏴서 터뜨려라!'), 2600);
   HD.hold = null; HD.holdDone = false; HD.sweep = null; HD.warn = []; HD.flares = W.boss ? 0 : D.wave >= 8 ? 3 : 2; HD.flareCd = 12;
@@ -4687,7 +4934,7 @@ function endGame(win, why) {
     $('pick').hidden = true; showGhost(null); $('wv').hidden = true;
     setTimeout(() => {
       $('ov').hidden = false; $('ov').innerHTML = defResultHTML(win, why, rew, unlock);
-      $('again').onclick = () => startDefense(); $('toTitle').onclick = () => { clearWorld(); D.on = false; showTitle(); };
+      $('again').onclick = () => startDefense(); resultBind(win); $('toTitle').onclick = () => { clearWorld(); D.on = false; showTitle(); };
       if ($('harder')) $('harder').onclick = () => { R.diff++; saveGame(); startDefense(); };
     }, win ? 700 : 1500);
     return;
@@ -4729,7 +4976,7 @@ loadModels((d, n) => { const el = $('load'); if (el) el.textContent = '3D 모델
   CHR.loaded = true; if (!ok) console.warn('models missing, capsule bodies');
   if (G.state === 'title') { $('ov').innerHTML = titleHTML(false); bindGo(); }
 }).catch((err) => { console.warn(err); CHR.loaded = true; if (G.state === 'title') { $('ov').innerHTML = titleHTML(false); bindGo(); } });
-window.__QA = { TC, tcStrat, tcAct, scene, CAMP, CORE, ARENA, setMapMode, makeTank, HD, HST, AM: A, STRAT, strat: hdBotStrat, mapChoose, eventChoose, dropWeapon, showMap, eventNode, startSortie, get NODE() { return NODE; }, grant: (k, x, z) => { D.offer = [k]; D.st = 'pick'; chooseCard(0); if (D.st === 'place') { gndPt.set(x == null ? 0 : x, 0, z == null ? 6 : z); tryPlace(false); } }, D, CARDS, WAVES, def: () => startDefense(), pickAction, tryPlace, startWave, placeAt: (x, z) => { gndPt.set(x, 0, z); tryPlace(false); }, get R() { return R; }, get ST() { return ST; }, gearAction, openGear, G, P, M, CHR, THREE, mouse, STEPS, start: (s) => startGame(s || 0), scale: (v) => { G.timeScale = v; }, bot: null, aim: null, zoom: 1, tick, sk: { dodge: doDodge, q: skillQ, e: skillE, r: skillR, f: skillF, mg: toggleMG }, MGS, sim(sec) { const n = Math.round(sec * 50); for (let i = 0; i < n && G.state === 'play'; i++) { if (this.brain) this.brain(); tick(0.02); } return G.state; } };
+window.__QA = { endGame, relicTake, continueEndless, runScore, medalAttach, MEDALS, showPick, TC, tcStrat, tcAct, scene, CAMP, CORE, ARENA, setMapMode, makeTank, HD, HST, AM: A, STRAT, strat: hdBotStrat, mapChoose, eventChoose, dropWeapon, showMap, eventNode, startSortie, get NODE() { return NODE; }, grant: (k, x, z) => { D.offer = [k]; D.st = 'pick'; chooseCard(0); if (D.st === 'place') { gndPt.set(x == null ? 0 : x, 0, z == null ? 6 : z); tryPlace(false); } }, D, CARDS, WAVES, def: () => startDefense(), pickAction, tryPlace, startWave, placeAt: (x, z) => { gndPt.set(x, 0, z); tryPlace(false); }, get R() { return R; }, get ST() { return ST; }, gearAction, openGear, G, P, M, CHR, THREE, mouse, STEPS, start: (s) => startGame(s || 0), scale: (v) => { G.timeScale = v; }, bot: null, aim: null, zoom: 1, tick, sk: { dodge: doDodge, q: skillQ, e: skillE, r: skillR, f: skillF, mg: toggleMG }, MGS, sim(sec) { const n = Math.round(sec * 50); for (let i = 0; i < n && G.state === 'play'; i++) { if (this.brain) this.brain(); tick(0.02); } return G.state; } };
 }
 </script>
 </body>
