@@ -288,8 +288,6 @@ body.touch #pick{z-index:5}
 .act.fire.on{background:rgba(255,80,50,.55)}
 #tFire{right:calc(26px + var(--sar));bottom:24px;width:92px;height:92px}
 #tFire svg{width:46px;height:46px}
-#tFireL{left:calc(170px + var(--sal));bottom:176px;width:58px;height:58px}
-#tFireL svg{width:28px;height:28px}
 #tDodge{right:calc(10px + var(--sar));bottom:140px;width:60px;height:60px}
 #tNade{right:calc(86px + var(--sar));bottom:150px}
 #tReload{right:calc(138px + var(--sar));bottom:14px}
@@ -3436,7 +3434,6 @@ const TC = { on: TOUCH, mv: [0, 0], L: null, look: null, fire: null, aim: [0, -1
 const TC_FIRE_IC = '<circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/>';
 const TC_ACTS = [
   { id: 'tFire', a: 'fire', ic: TC_FIRE_IC },
-  { id: 'tFireL', a: 'fire', ic: TC_FIRE_IC },
   { id: 'tDodge', a: 'dodge', n: '구르기', cd: 'dodge', ic: SKILLS[0].icon },
   { id: 'tNade', a: 'q', n: '수류탄', cd: 'q', ic: SKILLS[1].icon },
   { id: 'tCounter', a: 'e', n: '카운터', cd: 'e', ic: SKILLS[2].icon },
