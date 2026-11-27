@@ -26,33 +26,28 @@
           "value": "public, max-age=86400"
         }
       ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/bugak",
+      "destination": "https://unfinished-war.vercel.app/",
+      "permanent": false
     },
     {
-      "source": "/bugak/",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
+      "source": "/bugak/:path*",
+      "destination": "https://unfinished-war.vercel.app/:path*",
+      "permanent": false
     },
     {
-      "source": "/bugak/index.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
+      "source": "/unfinished-war",
+      "destination": "https://unfinished-war.vercel.app/",
+      "permanent": false
     },
     {
-      "source": "/bugak/(models|guns|img)/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400"
-        }
-      ]
+      "source": "/unfinished-war/:path*",
+      "destination": "https://unfinished-war.vercel.app/:path*",
+      "permanent": false
     }
   ]
 }

@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<base href="/bugak/">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>작전명 북악 1막</title>
+<title>UNFINISHED WAR · 언피니시드 워 — 1막 작전명 북악</title>
+<meta name="description" content="끝나지 않은 전쟁. 1968년 1·21 청와대 기습을 막아라 — 분대를 지휘하며 사방에서 몰려오는 침투조를 막는 쿼터뷰 로그라이트 방어전.">
+<meta property="og:title" content="UNFINISHED WAR · 언피니시드 워">
+<meta property="og:description" content="끝나지 않은 전쟁 · 1막 작전명 북악 — 청와대를 지켜라. PC 크롬에서 바로 플레이.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://unfinished-war.vercel.app/img/img_keyart.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
@@ -202,6 +206,9 @@ button{font:inherit;color:inherit}
 .panel .kick{font:700 15px 'Noto Sans KR';color:#8fb3ff}
 .panel h1{margin:4px 0 0;font:400 clamp(38px,5.6vw,66px)/1.02 'Black Han Sans';color:#fff;text-shadow:0 4px 18px rgba(0,0,0,.7);text-wrap:balance}
 .panel h1 span{color:#ff6a5a}
+.panel .logo{font:900 clamp(30px,4.4vw,54px)/1 Rajdhani,'Black Han Sans',sans-serif;letter-spacing:.14em;color:#fff;text-shadow:0 0 22px rgba(255,90,60,.35),0 4px 18px rgba(0,0,0,.7);margin-bottom:6px}
+.panel .logo i{font-style:normal;color:#ff5a3a}
+.panel .logo small{display:block;margin-top:6px;font:700 13px 'Noto Sans KR';letter-spacing:.32em;color:#9aa6c6}
 .panel h2{margin:10px 0 0;font:400 clamp(20px,2.4vw,28px)/1.2 'Black Han Sans';color:#ffd9a8}
 .panel p{color:#cdd6ee;max-width:66ch;margin:12px 0 0}
 .brief{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;margin-top:16px}
@@ -3915,7 +3922,7 @@ const STORY_DEF = '눈 내리는 1월 21일 밤. 북한 특수부대 침투조�
 const STORY = '눈 내리는 1월 21일 밤. 휴전선을 넘은 북한 특수부대 침투조 31명과 이들을 엄호하는 경보병 부대가 북악산 능선을 타고 청와대로 내려오고 있습니다. 자하문 검문소의 경찰이 먼저 그들을 막아섰고, 총성이 울렸습니다. 당신은 특전사 대테러 분대 \'알파\'의 분대장. 침투조가 청와대 담장에 닿기 전에 모두 막아 내야 합니다.';
 function titleHTML(loading) {
   const nu = nextUnlock();
-  return '<div class="panel"><div class="kick">제2의 6·25 · 1막 · 작전명 북악</div><h1>1·21 <span>청와대 방어전</span></h1>' +
+  return '<div class="panel"><div class="logo">UNFINISHED <i>WAR</i><small>언피니시드 워 · 끝나지 않은 전쟁</small></div><div class="kick">1막 · 작전명 북악</div><h1>1·21 <span>청와대 방어전</span></h1>' +
     '<p>' + STORY_DEF + '</p>' + charBox() +
     '<div class="btns"><button class="btn pri" id="go"' + (loading ? ' disabled' : '') + '>' + (loading ? '모델 불러오는 중…' : '출동 · 청와대 방어전') + '</button><button class="btn" id="camp"' + (loading ? ' disabled' : '') + '>캠페인 1막 (이전 버전)</button><span id="load"></span></div>' +
     '<div class="brief"><div class="box"><h3>진행 방식</h3><ol>' +
