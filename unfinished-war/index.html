@@ -186,6 +186,11 @@ button{font:inherit;color:inherit}
 .cinfo span{font-size:13px;color:#cdd6ee}
 .av.big{width:52px;height:52px;border-radius:10px;background:#0a0d14 var(--face) no-repeat;background-size:200% 200%}
 .diffs{display:flex;gap:6px;flex-wrap:wrap}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 10px}
+.actb{flex:1 1 180px;min-height:54px;padding:8px 14px;border-radius:12px;border:1px solid #3a4566;background:rgba(21,28,48,.85);cursor:pointer;font:700 15px 'Noto Sans KR';color:inherit;text-align:left}
+.actb span{display:block;font:600 11.5px 'Noto Sans KR';color:#9aa6c6;margin-top:2px}
+.actb.on{border-color:#ffc94a;background:rgba(255,201,74,.16);box-shadow:0 0 0 1px rgba(255,201,74,.3) inset}
+.actb.soon{opacity:.45;cursor:default}
 .dbtn{min-height:48px;padding:6px 14px;border-radius:10px;border:1px solid #3a4566;background:#151c30;cursor:pointer;font:700 15px 'Noto Sans KR';color:inherit;text-align:left}
 .dbtn small{display:block;font:600 11px 'Noto Sans KR';color:#9aa6c6}
 .dbtn.on{border-color:#ffc94a;background:rgba(255,201,74,.14)}
@@ -435,7 +440,7 @@ body.touch .pc{min-height:0!important;padding:8px;font-size:11.5px}
   <div id="vign"></div>
   <div id="hud" hidden>
     <div id="left">
-      <div id="obj"><div class="act" id="actTxt">1막 · 작전명 북악</div><b id="objTitle">출동 준비</b><ul id="objList"></ul><div id="kia"><span id="kiaTxt">정예 침투조 <b id="kiaN">0</b> / 31 · 총 제압 <b id="killN">0</b></span><br>청와대 방어선 <b id="gateN">100%</b><div id="gateMini"><i style="width:100%"></i></div></div></div>
+      <div id="obj"><div class="act" id="actTxt">1막 · 작전명 북악</div><b id="objTitle">출동 준비</b><ul id="objList"></ul><div id="kia"><span id="kiaTxt">정예 침투조 <b id="kiaN">0</b> / 31 · 총 제압 <b id="killN">0</b></span><br><span id="gateLab">청와대 방어선</span> <b id="gateN">100%</b><div id="gateMini"><i style="width:100%"></i></div></div></div>
       <div id="squad"></div>
     </div>
     <div id="right">
@@ -575,16 +580,16 @@ function makeTruckBody() {
 let fireLight = null;
 const TREE_SPOTS = [];
 const BBQ = (() => { const c = new THREE.PerspectiveCamera(); c.position.set(0, 19.5, 21.5); c.lookAt(0, 0, 0); return c.quaternion.clone(); })();
-function buildTrees(spots, tag) {
+function buildTrees(spots, tag, file, tint) {
   spots = spots || TREE_SPOTS; tag = tag || 'camp';
-  loadTex('tex_trees.webp').then((base) => {
+  loadTex(file || 'tex_trees.webp').then((base) => {
     const groups = [[], [], [], []];
     for (const s of spots) groups[s.v].push(s);
     const geo = new THREE.PlaneGeometry(1, 1); geo.translate(0, 0.5, 0);
     groups.forEach((list, v) => {
       if (!list.length) return;
       const t = base.clone(); t.needsUpdate = true; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.repeat.set(0.25, 1); t.offset.set(v * 0.25, 0);
-      const m = new THREE.MeshBasicMaterial({ map: t, alphaTest: 0.5, side: THREE.DoubleSide, color: '#bcc6da' });
+      const m = new THREE.MeshBasicMaterial({ map: t, alphaTest: 0.5, side: THREE.DoubleSide, color: tint || '#bcc6da' });
       const im = new THREE.InstancedMesh(geo, m, list.length);
       im.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: t, alphaTest: 0.5 });
       const m4 = new THREE.Matrix4(), sv = new THREE.Vector3(), pv = new THREE.Vector3();
@@ -1099,11 +1104,16 @@ function updateFx(dt) {
 }
 
 // ================= radio, feed, banner
+// 막(Act): 2막에서는 1막 지명(청와대·자하문·버스…)을 2막 지명으로 바꿔 보여 줌
+let ACT = null;
+const AT_MAP2 = [['청와대 정문', '마을 입구'], ['청와대 방어선', '마을 방어선'], ['청와대 쪽', '마을 쪽'], ['청와대 앞', '마을 앞'], ['청와대 좌표', '마을 좌표'], ['청와대 담장', '마을 담장'], ['청와대', '나곡 마을'], ['자하문 검문소', '해안 초소'], ['자하문 고개', '서쪽 골짜기'], ['자하문', '해안'], ['북악산', '태백 능선'], ['북악', '태백'], ['삼청동', '나곡 해안'], ['효자로', '신작로'], ['시내버스', '정미소'], ['버스 정류장', '정미소'], ['버스', '정미소'], ['승객', '주민'], ['시민', '주민'], ['정문', '마을 입구']];
+function AT(s) { if (!ACT || ACT.id === 1 || typeof s !== 'string') return s; for (const [a, b] of AT_MAP2) if (s.indexOf(a) >= 0) s = s.split(a).join(b); return s; }
 const SPEAK = { '적 무전': '#ff8a7a', '통제실': '#8fc6ff', '알파2': '#9fe8b8', '알파3': '#9fe8b8', '알파4': '#9fe8b8', '경찰관': '#ffd24a', '분대장': '#ffffff' };
 const RQ = []; let rCur = null;
 const FACE = { '분대장': '0% 0%', '알파2': '100% 0%', '알파3': '0% 100%', '알파4': '100% 100%' };
 function radio(who, text, chatter) {
   if (chatter && (RQ.length || rCur)) return;
+  text = AT(text);
   RQ.push({ who, text, dur: Math.max(2.8, text.length * 0.085 + 1.3), t: 0 });
 }
 function updateRadio(dt) {
@@ -1115,9 +1125,9 @@ function updateRadio(dt) {
   }
   if (rCur) { rCur.t += dt; if (rCur.t >= rCur.dur) { rCur = null; if (!RQ.length) $('radio').classList.remove('show'); } }
 }
-function feed(text, cls) { const f = $('feed'); if (f.childElementCount > 4) f.firstChild.remove(); const d = document.createElement('div'); d.textContent = text; if (cls) d.className = cls; f.appendChild(d); setTimeout(() => d.remove(), 4600); }
+function feed(text, cls) { text = AT(text); const f = $('feed'); if (f.childElementCount > 4) f.firstChild.remove(); const d = document.createElement('div'); d.textContent = text; if (cls) d.className = cls; f.appendChild(d); setTimeout(() => d.remove(), 4600); }
 let bannerTO = 0;
-function banner(t, s) { const b = $('banner'); b.textContent = t; if (s) { const sm = document.createElement('small'); sm.textContent = s; b.appendChild(sm); } b.classList.add('show'); clearTimeout(bannerTO); bannerTO = setTimeout(() => b.classList.remove('show'), 3400); }
+function banner(t, s) { t = AT(t); s = s && AT(s); const b = $('banner'); b.textContent = t; if (s) { const sm = document.createElement('small'); sm.textContent = s; b.appendChild(sm); } b.classList.add('show'); clearTimeout(bannerTO); bannerTO = setTimeout(() => b.classList.remove('show'), 3400); }
 
 // ================= damage
 const nums = $('nums');
@@ -1126,7 +1136,7 @@ function toScreen(x, y, z) { _v.set(x, y, z).project(camera); return [(_v.x + 1)
 function dnum(x, y, z, text, cls) {
   if (nums.childElementCount > 60) nums.firstChild.remove();
   const [sx, sy] = toScreen(x, y, z); const d = document.createElement('div'); d.className = 'dn ' + (cls || '');
-  d.textContent = text; d.style.left = (sx + rand(-14, 14)) + 'px'; d.style.top = sy + 'px'; nums.appendChild(d); setTimeout(() => d.remove(), 820);
+  d.textContent = AT(text); d.style.left = (sx + rand(-14, 14)) + 'px'; d.style.top = sy + 'px'; nums.appendChild(d); setTimeout(() => d.remove(), 820);
 }
 const byName = (by) => by || '분대';
 function hurt(a, dmg, src, opt) {
@@ -1178,6 +1188,7 @@ function kill(a, by) {
   a.alive = false; a.hp = 0; a.deadT = 0;
   if (a.label) { a.label.remove(); a.label = null; }
   if (a.type === 'truck') { truckBoom(a, false); return; }
+  if (a.type === 'boat') { boatSunk(a, by); return; }
   if (a.type === 'mortar') {
     boom(a.x, a.z, 4.5, '#ffb25a'); removeBody(a.ch); a.removed = true; scorch(a.x, a.z, 2.6);
     M.mortarsDown++; feed(byName(by) + ' ▸ 박격포 진지 파괴', 'gold'); gainXp(70); dropLoot(a.x, a.z, 'obj');
@@ -1559,6 +1570,7 @@ function gearAction(act) {
   } else if (k === 'trireset') { for (const s in R.tri) R.tri[s] = [0, 0, 0]; }
   else if (k === 'gclose') { closeGear(); return; }
   else if (k === 'diff') { R.diff = Math.min(+a1, R.maxDiff); saveGame(); showTitle(); return; }
+  else if (k === 'act') { R.act = ACTS[+a1] ? +a1 : 1; saveGame(); showTitle(); return; }
   else if (k === 'gopen') { openGear(a1 || 'title'); return; }
   else if (k === 'wipe1') { GS.wipeArm = true; showTitle(); return; }
   else if (k === 'wipe') { GS.wipeArm = false; R = newSave(); ST = calcStats(); saveGame(); showTitle(); return; }
@@ -2023,9 +2035,10 @@ function spawnPolice() {
 }
 function spawnCiv() {
   const keysC = ['office', 'woman', 'student'];
-  const a = newActor({ name: '승객', x: BUS.x - 1.75 + rand(-0.3, 0.3), z: BUS.z + 2.6 + rand(-0.4, 0.4), team: FRIEND, hp: 45, maxhp: 45, civ: true, r: 0.4, spd: rand(3.9, 4.6), gx: D.on ? CORE.x + rand(-2, 2) : rand(-3, 3), gz: D.on ? CORE.z + rand(4, 6) : 25, yaw: 0 });
+  const cn = ACT && ACT.id === 2 ? '주민' : '승객';
+  const a = newActor({ name: cn, x: BUS.x - 1.75 + rand(-0.3, 0.3), z: BUS.z + 2.6 + rand(-0.4, 0.4), team: FRIEND, hp: 45, maxhp: 45, civ: true, r: 0.4, spd: rand(3.9, 4.6), gx: D.on ? CORE.x + rand(-2, 2) : rand(-3, 3), gz: D.on ? CORE.z + rand(4, 6) : 25, yaw: 0 });
   a.ch = makeBody(keysC[Math.floor(Math.random() * 3)], { ring: '#ffd24a', ringA: 0.7, ringR: 0.42 }); play(a.ch, 'run');
-  addLabel(a, 'nm civ', '승객');
+  addLabel(a, 'nm civ', cn);
 }
 const alivePolice = () => M.police.filter((p) => p.alive || p.saved).length;
 const stepKills = () => M.list.filter((a) => a.counted && !a.alive).length;
@@ -2248,11 +2261,72 @@ const WAVES = [
   { name: '측면 기습', intel: '동·서 숲에서 동시에 내려옵니다', build() { dpack(1, 12, 'west', 0.25); dpack(1.5, 12, 'east', 0.25); dsch(3, 'rifle', 'west'); dsch(3.5, 'rifle', 'east'); dsch(6, 'nader', 'west'); dsch(7, 'nader', 'east'); dsch(9, 'rusher', 'west'); dsch(10, 'rusher', 'east'); drun(12, 4, 'sideW'); drun(13, 4, 'sideE'); dpack(15, 20, 'north', 0.2); } },
   { name: '박격포 진지', intel: '능선 박격포가 방어선을 포격 · 진지를 부숴야 끝납니다', build() { devt(0, () => mortarD(0)); dsch(0.2, 'rifle', '@0'); dsch(0.2, 'nader', '@0'); dpack(2, 16, 'north', 0.25); dsch(6, 'sniper', 'ridgeE'); dpack(10, 16, 'nw', 0.25); drun(14, 5, 'north'); dpack(20, 16, 'north', 0.2); } },
   { name: '북악 능선 탈환', intel: '역습', counter: true, build() {} },
-  { name: '포격 지원', intel: '박격포 2곳과 저격수 · 서두르세요', build() { devt(0, () => { mortarD(0); mortarD(1); }); dsch(0.2, 'rifle', '@0'); dsch(0.2, 'rifle', '@1'); dsch(2, 'sniper', 'ridgeW'); dsch(4, 'sniper', 'ridgeE'); dpack(1, 20, 'north', 0.2); drun(8, 3, 'north'); dpack(14, 24, 'north', 0.18); drun(20, 3, 'north'); } },
-  { name: '인해전술', intel: '경보병 100명 이상이 한꺼번에 몰려옵니다', build() { dpack(1, 40, 'north', 0.12); dpack(4, 20, 'nw', 0.2); dpack(5, 20, 'ne', 0.2); drun(8, 10, 'north'); dpack(12, 20, 'west', 0.2); dpack(12.5, 20, 'east', 0.2); dsch(6, 'rifle', 'north'); dsch(7, 'rifle', 'north'); dsch(9, 'nader', 'north'); dsch(10, 'nader', 'north'); } },
   { name: '본대 총공세', intel: '정예 전원과 트럭, 경보병 대군', build() { for (let i = 0; i < 8; i++) dsch(1 + i * 1.2, 'rifle', pick(['north', 'nw', 'ne', 'west', 'east'])); for (let i = 0; i < 4; i++) dsch(2 + i * 2, 'nader', 'north'); for (let i = 0; i < 4; i++) dsch(4 + i * 2, 'rusher', 'north'); dsch(5, 'sniper', 'ridgeW'); devt(9, () => truckD(0)); devt(20, () => truckD(-2)); dpack(1, 30, 'north', 0.15); drun(12, 10, 'north'); dpack(18, 30, 'north', 0.15); } },
   { name: '침투조 지휘관', intel: '지휘관을 잡으면 승리 · 파란 돌진은 [E] 카운터', boss: true, build() { devt(2, () => { spawnEnemy('boss', [0, -15]); radio('통제실', '침투조 지휘관 확인! 놈만 잡으면 끝이다!'); banner('침투조 지휘관 출현', '파란빛 돌진은 [E] 카운터 · 폭약 설치는 스킬로 무력화'); }); dpack(1, 16, 'north', 0.2); drun(6, 6, 'north'); } }
 ];
+const WAVES_A1 = WAVES.slice();
+// ---- 2막 · 작전명 태백: 1968 울진·삼척. 바다(동쪽)로 고무보트, 북쪽 능선·서쪽 골짜기로 침투조
+const WAVES_A2 = [
+  { name: '1차 상륙', intel: '고무보트가 동쪽 해안으로 · 닿기 전에 부수세요', build() { devt(0.6, () => boatD(3)); dpack(2, 8, 'north', 0.3); dsch(5, 'rifle', 'north'); devt(12, () => boatD(2)); dpack(15, 8, 'north', 0.25); } },
+  { name: '마을 침투', intel: '해안과 북쪽 능선에서 동시에 마을로', build() { dpack(1, 12, 'north', 0.25); dsch(3, 'rifle', 'nw'); dsch(6, 'nader', 'ne'); drun(8, 3, 'north'); devt(9, () => boatD(3)); dpack(14, 12, 'north', 0.22); } },
+  { name: '산길 매복', intel: '서쪽 골짜기 · 저격수와 돌파조', build() { dsch(1, 'sniper', 'ridgeW'); dsch(2, 'sniper', 'ridgeE'); dpack(2, 14, 'north', 0.22); drun(6, 5, 'north'); dsch(8, 'rusher', 'north'); dpack(12, 12, 'nw', 0.25); dsch(14, 'rifle', 'north'); } },
+  { name: '해안 초소 탈환', intel: '역습', counter: true, build() {} },
+  { name: '2차 상륙', intel: '보트 여러 척 · 해안이 뚫리면 마을까지 금방입니다', build() { devt(0.6, () => boatD(3)); devt(7, () => boatD(2)); dpack(2, 12, 'north', 0.22); dsch(4, 'rifle', 'north'); dsch(5, 'nader', 'north'); drun(9, 4, 'north'); dpack(13, 14, 'north', 0.2); devt(16, () => boatD(3)); } },
+  { name: '마을 포위', intel: '사방에서 조여 옵니다 · 방패병 주의', build() { dpack(1, 12, 'west', 0.25); dpack(1.5, 12, 'east', 0.25); dsch(3, 'shield', 'north'); dsch(5, 'shield', 'north'); dsch(4, 'rifle', 'west'); dsch(6, 'nader', 'east'); drun(9, 4, 'sideW'); drun(10, 4, 'sideE'); dpack(13, 16, 'north', 0.2); } },
+  { name: '능선 박격포', intel: '북쪽 능선 박격포 진지 · 부숴야 끝납니다', build() { devt(0, () => mortarD(0)); dsch(0.2, 'rifle', '@0'); dsch(0.2, 'nader', '@0'); dsch(3, 'sniper', 'ridgeE'); dpack(2, 16, 'north', 0.22); devt(9, () => boatD(2)); drun(12, 4, 'north'); dpack(16, 14, 'north', 0.2); } },
+  { name: '태백 능선 탈환', intel: '역습', counter: true, build() {} },
+  { name: '야간 총공세', intel: '상륙조와 산악조 전원 · 사방에서', build() { for (let i = 0; i < 6; i++) dsch(1 + i * 1.4, 'rifle', pick(['north', 'nw', 'ne', 'west', 'east'])); for (let i = 0; i < 3; i++) dsch(3 + i * 2, 'nader', 'north'); for (let i = 0; i < 3; i++) dsch(4 + i * 2, 'rusher', 'north'); dsch(5, 'sniper', 'ridgeW'); devt(2, () => boatD(4)); devt(15, () => boatD(3)); dpack(1, 18, 'north', 0.18); dpack(8, 14, 'west', 0.2); dpack(9, 14, 'east', 0.2); drun(12, 6, 'north'); dpack(18, 18, 'north', 0.16); } },
+  { name: '침투조 지휘관', intel: '지휘관을 잡으면 승리 · 파란 돌진은 [E] 카운터', boss: true, build() { devt(2, () => { spawnEnemy('boss', [16, -2]); radio('통제실', '침투조 지휘관 확인! 해안에서 올라온다. 놈만 잡으면 끝이다!'); banner('침투조 지휘관 출현', '파란빛 돌진은 [E] 카운터 · 폭약 설치는 스킬로 무력화'); }); devt(1, () => boatD(2)); dpack(1, 14, 'north', 0.2); drun(6, 6, 'north'); } }
+];
+// ---- 고무보트 상륙: 바다에서 해안으로 다가오고, 닿기 전에 부수면 탄 적까지 물에 빠짐
+const BOATS = [];
+function boatMesh() {
+  const g = new THREE.Group(), rub = mat('#2b2f33', { roughness: 0.7 }), floor = mat('#1c1f22'), crewM = mat('#3a3d2e'), motor = mat('#15171a', { metalness: 0.4 });
+  for (const s of [-1, 1]) { const t = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 3.6, 10), rub); t.rotation.x = Math.PI / 2; t.position.set(s * 0.62, 0.3, 0); t.castShadow = true; g.add(t); }
+  const bow = new THREE.Mesh(new THREE.SphereGeometry(0.62, 12, 8, 0, Math.PI), rub); bow.scale.set(1, 0.5, 0.9); bow.position.set(0, 0.3, -1.75); bow.rotation.y = Math.PI; g.add(bow);
+  const fl = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.1, 3.4), floor); fl.position.y = 0.12; g.add(fl);
+  for (let i = 0; i < 5; i++) { const c = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.62, 0.3), crewM); c.position.set((i % 2 ? 0.22 : -0.22), 0.5, -1.1 + i * 0.5); c.castShadow = true; g.add(c); const h = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), crewM); h.position.set(c.position.x, 0.92, c.position.z); g.add(h); }
+  const mo = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.6, 0.3), motor); mo.position.set(0, 0.45, 1.85); g.add(mo);
+  const wake = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 3.2), new THREE.MeshBasicMaterial({ color: '#cfe6f2', transparent: true, opacity: 0.35, depthWrite: false })); wake.rotation.x = -Math.PI / 2; wake.position.set(0, 0.05, 3.2); g.add(wake);
+  g.rotation.y = Math.PI / 2; scene.add(g); return g;
+}
+function boatD(n) {
+  const zs = []; for (let i = 0; i < n; i++) { let z = 0, k = 0; do { z = rand(-17, 17); } while (zs.some((q) => Math.abs(q - z) < 4.5) && k++ < 20); zs.push(z); }
+  zs.forEach((z, i) => {
+    const hp = 300 * DIFF[R.diff].hp * (1 + D.wave * 0.06);
+    const a = newActor({ type: 'boat', name: '고무보트', x: 57 + i * 2.5, z, team: FOE, hp, maxhp: hp, r: 1.35, static: true, cd: 9, yaw: -Math.PI / 2 });
+    a.ch = { root: boatMesh(), model: null, mixer: null, holder: null, lockT: 0, mats: [], actions: {} }; a.ch.root.position.set(a.x, 0, a.z);
+    a.boat = { tx: 36.4 + rand(-0.3, 0.6), spd: rand(3.1, 3.7), crew: 5 + (D.wave >= 5 ? 1 : 0), ph: rand(0, 6) };
+    addLabel(a, 'ehp'); BOATS.push(a);
+  });
+  banner('적 고무보트 ' + n + '척 접근', '동쪽 해안 · 닿기 전에 부수면 탄 적까지 물에 빠집니다'); SFX.alarm();
+  if (rl('boatR', 9000)) radio('알파3', '바다에 고무보트! 해안에 닿기 전에 부숴야 합니다!', true);
+  for (const z of zs) HD.warn.push({ side: 'E', t: 3.6 });
+}
+function updateBoats(dt) {
+  for (const a of BOATS) {
+    const g = a.ch.root, B = a.boat;
+    if (a.sinkT !== undefined) { a.sinkT += dt; g.position.y -= dt * 0.55; g.rotation.z += dt * 0.35; if (a.sinkT > 3.2 && !a.gone) { a.gone = true; scene.remove(g); } continue; }
+    if (B.landed) continue;
+    if (!a.alive) continue;
+    B.ph += dt; a.x = Math.max(B.tx, a.x - B.spd * dt); g.position.y = 0.12 + Math.sin(B.ph * 3.1) * 0.08; g.rotation.x = Math.sin(B.ph * 2.3) * 0.05;
+    if (Math.random() < dt * 3) puff(a.x + 1.9, 0.1, a.z + rand(-0.5, 0.5), 0.2, 0.5, rand(0.5, 1.4), rand(0.1, 0.4), rand(-0.3, 0.3), 0.6);
+    if (a.x <= B.tx + 0.01) {
+      B.landed = true; a.alive = false; a.removed = true; if (a.label) { a.label.remove(); a.label = null; } g.position.y = 0.02; g.rotation.x = 0.06;
+      for (let k = 0; k < B.crew; k++) spawnEnemy(k === 0 ? 'rifle' : k === 1 && D.wave >= 4 ? 'nader' : 'grunt', [a.x - rand(1.2, 2.6), a.z + rand(-1.6, 1.6)]);
+      feed('고무보트 상륙 · 적 ' + B.crew + '명이 해안에 올라왔습니다', 'bad'); dust(a.x - 1.5, a.z, 2);
+    }
+  }
+}
+function boatSunk(a, by) {
+  const g = a.ch.root; a.sinkT = 0; a.removed = true;
+  boom(a.x, a.z, 2.4, '#ffb25a'); for (let i = 0; i < 10; i++) puff(a.x + rand(-1.2, 1.2), 0.3, a.z + rand(-1.2, 1.2), 0.35, 0.9, rand(-1, 1), rand(2.5, 5), rand(-1, 1), 0.9);
+  for (let i = g.children.length - 1; i >= 0; i--) { const c = g.children[i]; if (c.geometry && c.geometry.type === 'BoxGeometry' && c.position.y > 0.4 && c.position.z !== 1.85) g.remove(c); else if (c.geometry && c.geometry.type === 'SphereGeometry' && c.position.y > 0.8) g.remove(c); }
+  G.kills += a.boat.crew; if (by === '분대장') G.pKills += a.boat.crew;
+  feed(byName(by) + ' ▸ 고무보트 격침 · 탑승 ' + a.boat.crew + '명', 'gold'); gainXp(40); D.pts += 1;
+  if (rl('sinkR', 6000)) radio('알파2', pick(['보트 하나 가라앉았습니다!', '격침! 다 물에 빠졌어요!', '보트 격침 확인!']), true);
+}
+function boatsClear() { for (const a of BOATS) { if (!a.gone) scene.remove(a.ch.root); if (a.label) a.label.remove(); } BOATS.length = 0; }
 
 // ---- cards: offer, pick, place
 function cardPool(unitsOnly) {
@@ -2568,7 +2642,7 @@ function spawnPlayerOnly(x, z) {
   p.ch = makeBody('swat', { gun: ST.w.model, ring: '#5fe08a', ringR: 0.55 }); p.ch.gunModel = ST.w.model; play(p.ch, 'aim'); P.a = p;
 }
 function resetDefense() {
-  hdReset();
+  hdReset(); boatsClear();
   for (const mi of D.mines) scene.remove(mi.g); for (const w of D.wires) scene.remove(w.g); for (const m of RUN_MESH) scene.remove(m); RUN_MESH.length = 0;
   for (let i = OBST.length - 1; i >= 0; i--) if (OBST[i].run) OBST.splice(i, 1);
   for (const d of D.drones) scene.remove(d.g); for (const h of D.helis) scene.remove(h.g);
@@ -2579,19 +2653,19 @@ function resetDefense() {
   showGhost(null); $('pick').hidden = true;
 }
 function startDefense() {
-  D.on = true; setMapMode('def');
+  D.on = true; setAct(R.act || 1); setMapMode('def');
   clearWorld();
   Object.assign(M, { step: -1, t: 0, sub: 0, sched: [], list: [], mortars: [], mortarsDown: 0, civQ: 0, civT: 0, civSaved: 0, civLost: 0, policeLost: 0, police: [], bossSpawned: false, gap: 0, next: 0, truck: null, truckDone: false, truckHit: false, xpGain: 0, loot: [], lv0: R.lv });
   ST = calcStats();
   spawnPlayerOnly(ARENA.home[0], ARENA.home[1]);
-  spawnGarrison(); WAVES.length = 12; LB.rid = ''; HISTS.last = -1; relicHud(); WX.tSnow = 0.6; WX.tWind = 0.2;
+  spawnGarrison(); WAVES.length = 0; WAVES.push(...ACT.waves); LB.rid = ''; HISTS.last = -1; relicHud(); WX.tSnow = ACT.snow ? 0.6 : 0; WX.tWind = 0.2;
   camX = ARENA.home[0]; camZ = ARENA.home[1];
-  $('actTxt').textContent = '1막 · 청와대 방어전'; $('kiaTxt').innerHTML = '정예 처치 <b id="kiaN">0</b> · 총 제압 <b id="killN">0</b>';
+  $('actTxt').textContent = ACT.hud; $('gateLab').textContent = ACT.core + ' 방어선'; if ($('tcGateLab')) $('tcGateLab').textContent = ACT.core + ' 방어선'; $('kiaTxt').innerHTML = '정예 처치 <b id="kiaN">0</b> · 총 제압 <b id="killN">0</b>';
   $('ctrlHint').textContent = 'WASD 이동 · 좌클릭 사격 · R 재장전 · Shift+WASD 지원 요청 · C 집중 사격 · SPC 구르기 · Enter 다음 웨이브 · ESC 일시정지';
   buildHud();
   $('ov').hidden = true; $('ov').classList.remove('art'); $('hud').hidden = false;
   G.state = 'play'; clock.getDelta(); musicStart(); ambStart(); voxLoad();
-  radio('통제실', '알파1, 네 길목에 경계조를 세워 뒀다. 침투조가 사방에서 온다. 병력을 더 요청해 막아라.');
+  radio('통제실', ACT.intro);
   showPick(true);
 }
 function startWave() {
@@ -2601,7 +2675,7 @@ function startWave() {
   const n = D.next; D.next = {};
   if (n.elite && D.node === 'battle') { D.node = 'elite'; D.taken[D.wave - 1] = 'elite'; }
   const node = D.node;
-  D.mods = { hp: (node === 'elite' ? 1.3 : 1) * (n.hp || 1), more: n.more || 1, noRun: !!n.noRun }; if (D.wave > 12) D.mods.hp *= 1 + (D.wave - 12) * 0.12;
+  D.mods = { hp: (node === 'elite' ? 1.3 : 1) * (n.hp || 1), more: n.more || 1, noRun: !!n.noRun }; if (D.wave > ACT.nw) D.mods.hp *= 1 + (D.wave - ACT.nw) * 0.12;
   if (D.on) defWaveFronts();
   if (node === 'counter') { startCounter(); return; }
   if (!WAVES[D.wave - 1]) WAVES.push(endlessWave(D.wave)); (D.gateLog = D.gateLog || []).push(Math.round(G.gate));
@@ -2629,11 +2703,11 @@ function waveClear() {
   for (const a of G.actors) if (a.ally && a.alive) { a.downT = 0; a.hp = Math.max(a.hp, a.maxhp * (D.syn.heal ? 1 : 0.6)); play(a.ch, 'aim'); }
   D.trucks = D.trucks.filter((t) => t.alive); M.mortars = M.mortars.filter((m) => m.alive);
   banner('웨이브 ' + w + ' 방어 성공', '보급 점수 +' + gain + (perfect ? ' (방어선 무피해 보너스 +2)' : '') + ' · 방어선 응급 보수 +4%'); SFX.clear();
-  radio('통제실', w >= 9 ? '버텨라, 알파. 놈들 본대가 얼마 안 남았다.' : '웨이브 ' + w + ' 격퇴. 보급 요청을 받는다.', true);
+  radio('통제실', w >= ACT.nw - 2 ? '버텨라, 알파. 놈들 본대가 얼마 안 남았다.' : '웨이브 ' + w + ' 격퇴. 보급 요청을 받는다.', true);
   D.clearT = 1.3;
 }
 function updateDefense(dt) {
-  updateHD(dt); updateMines(); updateWires(dt); updateTac(dt); updateWeaponDrops(dt);
+  updateBoats(dt); updateHD(dt); updateMines(); updateWires(dt); updateTac(dt); updateWeaponDrops(dt);
   if (D.st === 'wave') {
     D.t += dt;
     D.sched.sort((a, b) => a[0] - b[0]);
@@ -2667,7 +2741,7 @@ function defObjs() {
   else rows.push(['무전 보급', '고르는 중', 'ok']);
   if (D.sortie && !D.sortie.done) rows.push(['출격 임무', SORTIES[D.sortie.k].n + ' · ' + Math.ceil(D.sortie.t) + '초', 'ok']);
   if (D.st === 'wave' && D.node === 'counter' && D.counter) rows.push(['거점 점령', Math.round(D.counter.prog * 100) + '%', 'ok']);
-  if (D.st === 'wave' && D.node === 'rescue') rows.push(['시민 대피', M.civSaved + '명', 'ok']);
+  if (D.st === 'wave' && D.node === 'rescue') rows.push([AT('시민 대피'), M.civSaved + '명', 'ok']);
   if (P.cap) rows.push(['노획 무기', CAPW[P.cap.k].n, 'ok']);
   hdRows(rows);
   rows.push(['보급 점수', D.pts + '', '']);
@@ -2676,13 +2750,13 @@ function defObjs() {
   if (fs.length) rows.push(['화력 지원', fs.join(' · '), '']);
   return rows;
 }
-function defTitle() { if (D.st === 'map') return '작전 지도 · ' + (D.wave + 1) + '단계'; if (D.st === 'event') return '무전 이벤트 · ' + D.wave + '단계'; if (D.st === 'pick' && D.supply) return '보급소 · ' + D.wave + '단계'; if (D.node === 'rescue' && D.st === 'wave') return '무전 이벤트 · 피난민 구출'; if (D.node === 'counter' && D.st === 'wave') return '역습 · ' + WAVES[D.wave - 1].name; return D.wave === 0 ? '방어 준비' : '웨이브 ' + D.wave + '/' + (D.endless ? '∞' : 12) + ' · ' + WAVES[Math.min(WAVES.length, Math.max(1, D.wave)) - 1].name; }
+function defTitle() { if (D.st === 'map') return '작전 지도 · ' + (D.wave + 1) + '단계'; if (D.st === 'event') return '무전 이벤트 · ' + D.wave + '단계'; if (D.st === 'pick' && D.supply) return '보급소 · ' + D.wave + '단계'; if (D.node === 'rescue' && D.st === 'wave') return '무전 이벤트 · 피난민 구출'; if (D.node === 'counter' && D.st === 'wave') return '역습 · ' + WAVES[D.wave - 1].name; return D.wave === 0 ? '방어 준비' : '웨이브 ' + D.wave + '/' + (D.endless ? '∞' : ACT.nw) + ' · ' + WAVES[Math.min(WAVES.length, Math.max(1, D.wave)) - 1].name; }
 function updateWaveChip() {
   const el = $('wv');
   if (!D.on || G.boss) { el.hidden = true; return; }
   el.hidden = false;
-  const txt = D.st === 'map' ? '작전 지도 · 다음 작전을 고르세요 (1·2·3)' : D.st === 'event' ? '무전 이벤트 · 선택하세요 (1·2)' : D.st === 'wave' && D.node === 'counter' ? '역습 · 깃발 안에 서서 거점을 점령하세요' : D.st === 'wave' && D.node === 'rescue' ? '피난민 구출 · 버스 앞 노란 표시로' : D.st === 'prep' ? (D.node === 'counter' ? '역습' : (D.wave + 1) + '단계') + ' 시작까지 ' + Math.ceil(D.prepT) + '초' + (TOUCH ? '' : ' · [Enter] 바로 시작') : D.st === 'place' ? CARDS[D.placing].n + ' 배치 · ' + (TOUCH ? '땅을 톡 누르기 · 아래 [자동 배치]' : '땅을 좌클릭 · [Enter] 자동 배치') : D.st === 'pick' || D.st === 'clear' ? '무전 보급 · 카드 1장을 고르세요' : '웨이브 ' + D.wave + ' / ' + (D.endless ? '∞' : 12) + ' · ' + WAVES[D.wave - 1].name;
-  const tx2 = hdChip(txt); if (el.textContent !== tx2) el.textContent = tx2;
+  const txt = D.st === 'map' ? '작전 지도 · 다음 작전을 고르세요 (1·2·3)' : D.st === 'event' ? '무전 이벤트 · 선택하세요 (1·2)' : D.st === 'wave' && D.node === 'counter' ? '역습 · 깃발 안에 서서 거점을 점령하세요' : D.st === 'wave' && D.node === 'rescue' ? '피난민 구출 · 버스 앞 노란 표시로' : D.st === 'prep' ? (D.node === 'counter' ? '역습' : (D.wave + 1) + '단계') + ' 시작까지 ' + Math.ceil(D.prepT) + '초' + (TOUCH ? '' : ' · [Enter] 바로 시작') : D.st === 'place' ? CARDS[D.placing].n + ' 배치 · ' + (TOUCH ? '땅을 톡 누르기 · 아래 [자동 배치]' : '땅을 좌클릭 · [Enter] 자동 배치') : D.st === 'pick' || D.st === 'clear' ? '무전 보급 · 카드 1장을 고르세요' : '웨이브 ' + D.wave + ' / ' + (D.endless ? '∞' : ACT.nw) + ' · ' + WAVES[D.wave - 1].name;
+  const tx2 = AT(hdChip(txt)); if (el.textContent !== tx2) el.textContent = tx2;
 }
 function updateSquadDef() {
   for (const k in D.owned) {
@@ -2697,13 +2771,13 @@ function updateSquadDef() {
 function defResultHTML(win, why, rew, unlock) {
   const mm = Math.floor(G.t / 60), ss = Math.floor(G.t % 60);
   const units = Object.keys(D.owned).map((k) => '<i style="color:' + FACT[CARDS[k].f].c + '">' + CARDS[k].n + ' ' + RANKS[D.owned[k].rank - 1] + '</i>').join('') || '<span class="sub">분대원 없음</span>';
-  const rank = win ? (G.gate >= 85 ? 'S' : G.gate >= 55 ? 'A' : 'B') : D.cleared >= 9 ? 'B' : 'C';
+  const rank = win ? (G.gate >= 85 ? 'S' : G.gate >= 55 ? 'A' : 'B') : D.cleared >= ACT.nw - 2 ? 'B' : 'C';
   const nu = nextUnlock();
-  const stats = '<div class="stats"><div><span>돌파한 단계</span><b>' + (D.endless ? '무한 ' + Math.max(0, D.wave - 12) + '단계' : (win ? 12 : D.cleared) + ' / 12') + '</b></div><div><span>작전 시간</span><b>' + mm + ':' + String(ss).padStart(2, '0') + '</b></div><div><span>총 제압 · 내가 처치</span><b>' + G.kills + ' · ' + G.pKills + '</b></div><div><span>청와대 방어선</span><b>' + Math.round(G.gate) + '%</b></div><div><span>받은 보급</span><b>' + D.picks.length + '개</b></div><div><span>카운터 · 무력화</span><b>' + G.counters + ' · ' + G.groggies + '</b></div></div>';
+  const stats = '<div class="stats"><div><span>돌파한 단계</span><b>' + (D.endless ? '무한 ' + Math.max(0, D.wave - ACT.nw) + '단계' : (win ? ACT.nw : D.cleared) + ' / ' + ACT.nw) + '</b></div><div><span>작전 시간</span><b>' + mm + ':' + String(ss).padStart(2, '0') + '</b></div><div><span>총 제압 · 내가 처치</span><b>' + G.kills + ' · ' + G.pKills + '</b></div><div><span>' + ACT.core + ' 방어선</span><b>' + Math.round(G.gate) + '%</b></div><div><span>받은 보급</span><b>' + D.picks.length + '개</b></div><div><span>카운터 · 무력화</span><b>' + G.counters + ' · ' + G.groggies + '</b></div></div>';
   const squad = '<div class="rew"><b>이번 분대</b> ' + units + '</div><div class="rew"><b>지나온 작전</b> ' + D.taken.map((t, i) => '<i style="color:' + NODE[t].c + '">' + (i + 1) + ' ' + NODE[t].n + '</i>').join('') + (D.sortiesDone ? '<i style="color:#ffd24a">출격 임무 성공 ' + D.sortiesDone + '회</i>' : '') + '</div>';
   const btns = '<div class="btns"><button class="btn pri" id="again">다시 출동 · ' + DIFF[R.diff].n + '</button><button class="btn" data-act="gopen:over">재정비 (장비·스킬)</button>' + (win && R.maxDiff > R.diff ? '<button class="btn" id="harder">' + DIFF[R.diff + 1].n + ' 난이도로 출동</button>' : '') + '<button class="btn" id="toTitle">타이틀</button></div>';
-  return '<div class="panel"><div class="kick">' + (win ? '방어 성공' : '방어 실패') + '</div><h1>' + (win ? '청와대 <span>사수</span>' : why) + '</h1><div class="rank"><i>' + rank + '</i><h2>' + (win ? '12단계 돌파 · 침투조 지휘관 제압' : '웨이브 ' + D.wave + ' · ' + WAVES[Math.max(0, D.wave - 1)].name + '에서 무너졌습니다') + '</h2></div>' + stats + squad + rew +
-    (nu ? '<p class="note">레벨이 오르면 새 보급 카드가 열려요 · 다음 해금: ' + nu + '</p>' : '') + (win && !D.endless ? '<div class="endlessBox"><button class="btn pri" id="endless">무한 침투 이어 하기</button><span>지휘관을 잡았어요. 몇 단계까지 더 버틸 수 있을까요?</span></div>' : '') + lbHTML(win) + '<div class="histEnd"><b>실제 1·21 사태</b><p>' + HIST_END + '</p></div>' + btns + '</div>';
+  return '<div class="panel"><div class="kick">' + (win ? '방어 성공' : '방어 실패') + '</div><h1>' + (win ? ACT.winH : AT(why)) + '</h1><div class="rank"><i>' + rank + '</i><h2>' + (win ? ACT.nw + '단계 돌파 · ' + ACT.bossDown : '웨이브 ' + D.wave + ' · ' + WAVES[Math.max(0, D.wave - 1)].name + '에서 무너졌습니다') + '</h2></div>' + stats + squad + rew +
+    (nu ? '<p class="note">레벨이 오르면 새 보급 카드가 열려요 · 다음 해금: ' + nu + '</p>' : '') + (win && !D.endless ? '<div class="endlessBox"><button class="btn pri" id="endless">무한 침투 이어 하기</button><span>지휘관을 잡았어요. 몇 단계까지 더 버틸 수 있을까요?</span></div>' : '') + lbHTML(win) + '<div class="histEnd"><b>' + ACT.histHead + '</b><p>' + ACT.histEnd + '</p></div>' + btns + '</div>';
 }
 
 // ================= 실감 연출: 연기, 충격파, 먼지, 총구 화염
@@ -2900,15 +2974,20 @@ const COUNTERS = {
   4: { name: '검문소 탈환', fx: -20, fz: 0, th: -Math.PI / 2, intel: '서쪽 자하문 검문소를 되찾으세요 · 깃발 안에 서 있으면 점령' },
   8: { name: '북악 능선 탈환', fx: 0, fz: -22, th: 0, intel: '북쪽 북악산 능선까지 밀어붙이세요 · 깃발 안에 서 있으면 점령' }
 };
+const COUNTERS_A1 = Object.assign({}, COUNTERS);
+const COUNTERS_A2 = {
+  4: { name: '해안 초소 탈환', fx: 21, fz: 0, th: Math.PI / 2, intel: '동쪽 해안 초소를 되찾으세요 · 깃발 안에 서 있으면 점령' },
+  8: { name: '태백 능선 탈환', fx: 0, fz: -22, th: 0, intel: '북쪽 능선까지 밀어붙이세요 · 깃발 안에 서 있으면 점령' }
+};
 function buildRoute() {
   const r = [];
-  for (let s = 1; s <= 12; s++) {
+  for (let s = 1; s <= ACT.nw; s++) {
     if (s === 1) r.push({ opts: ['battle'] });
     else if (COUNTERS[s]) r.push({ opts: ['counter'] });
-    else if (s === 12) r.push({ opts: ['boss'] });
+    else if (s === ACT.nw) r.push({ opts: ['boss'] });
     else { const extra = ['elite', 'supply', 'event'].sort(() => Math.random() - 0.5).slice(0, Math.random() < 0.5 ? 1 : 2); r.push({ opts: ['battle', ...extra] }); }
   }
-  for (let s = 2; s < 12; s++) { if (r[s - 1].opts.includes('supply') && r[s - 2].opts.includes('supply')) r[s - 1].opts = r[s - 1].opts.filter((o) => o !== 'supply'); }
+  for (let s = 2; s < ACT.nw; s++) { if (r[s - 1].opts.includes('supply') && r[s - 2].opts.includes('supply')) r[s - 1].opts = r[s - 1].opts.filter((o) => o !== 'supply'); }
   return r;
 }
 function routeStrip() {
@@ -2920,7 +2999,7 @@ function routeStrip() {
   }).join('') + '</div>';
 }
 function showMap() {
-  const s = D.wave + 1; if (s > 12) return;
+  const s = D.wave + 1; if (s > ACT.nw) return;
   D.st = 'map'; D.mapOpts = D.route[s - 1].opts.slice();
   const el = $('pick'); el.hidden = false; mouse.down = false;
   el.innerHTML = '<div class="phead"><b>작전 지도</b><span>' + s + '단계 · 다음 작전을 고르세요</span><em>보급 점수 ' + D.pts + '</em></div>' + routeStrip() +
@@ -3162,9 +3241,12 @@ const MAPMESH = { camp: [], def: [] };
 let MAPCUR = 'camp';
 const FRONT_ANG = { N: 0, E: Math.PI / 2, S: Math.PI, W: -Math.PI / 2 };
 const FRONT_NAME = { N: '북쪽 북악산', E: '동쪽 삼청동', S: '남쪽 효자로', W: '서쪽 자하문 고개' };
+const FRONT_NAME_A1 = Object.assign({}, FRONT_NAME), FRONT_NAME_A2 = { N: '북쪽 태백 능선', E: '동쪽 나곡 해안', S: '남쪽 신작로', W: '서쪽 골짜기' };
 const FRONT_SHORT = { N: '북쪽', E: '동쪽', S: '남쪽', W: '서쪽' };
-// 단계별 주공 방향 (1~12단계)
-const WAVE_FRONTS = [null, ['N'], ['N', 'W'], ['E'], ['W'], ['S'], ['W', 'E'], ['N'], ['N'], ['E', 'N'], ['N', 'W', 'S'], ['N', 'E', 'S', 'W'], ['N']];
+// 단계별 주공 방향 (1~10단계)
+const WAVE_FRONTS_A1 = [null, ['N'], ['N', 'W'], ['E'], ['W'], ['S'], ['W', 'E'], ['N'], ['N'], ['N', 'E', 'S', 'W'], ['N']];
+const WAVE_FRONTS_A2 = [null, ['E'], ['E', 'N'], ['W', 'N'], ['E'], ['E', 'S'], ['W', 'E', 'S'], ['N'], ['N'], ['N', 'E', 'S', 'W'], ['E']];
+const WAVE_FRONTS = WAVE_FRONTS_A1.slice();
 const REL_Z = new Set(['north', 'nw', 'ne', 'ridgeW', 'ridgeE', 'road']);
 // 북쪽에서 쳐들어온다고 가정한 좌표(청와대 기준) → 주공 방향으로 돌림
 const SPAWN_REL = {
@@ -3373,6 +3455,7 @@ function arenaBeams() {
 }
 const _bv = new THREE.Vector3(), _bu = new THREE.Vector3(0, 1, 0);
 function updateBeams(t) {
+  seaTick(t);
   if (!ARENA.beams || !ARENA.g || !ARENA.g.visible) return;
   for (const b of ARENA.beams) {
     const an = b.ph + t * b.sp + Math.sin(t * 0.7 + b.ph) * 0.25, r = 19 + Math.sin(t * 0.43 + b.ph * 2) * 6;
@@ -3443,10 +3526,261 @@ function buildArena() {
   arenaFlora(); arenaBeams();
   ARENA.g.traverse((o) => { if (o.isMesh && o.castShadow === undefined) o.castShadow = true; });
 }
+// ================= 2막 맵: 울진 나곡 해안 마을 — 가운데 분교, 동쪽 모래사장·바다, 북쪽 태백 능선, 서쪽 골짜기·정미소, 남쪽 신작로
+const SEA = { m: null, foam: null, wet: null };
+function grainTex(base, dots, light, dark, rep, size) {
+  return canvasTex(size || 256, size || 256, (x, w, h) => {
+    x.fillStyle = base; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < dots; i++) { const sz = 1 + Math.random() * 3; x.fillStyle = Math.random() < 0.5 ? dark : light; x.globalAlpha = 0.05 + Math.random() * 0.2; x.fillRect(Math.random() * w, Math.random() * h, sz, sz); }
+    x.globalAlpha = 1;
+  }, rep);
+}
+const a2Mat = (tex, o) => new THREE.MeshStandardMaterial(Object.assign({ map: tex, roughness: 0.95, metalness: 0.02 }, o || {}));
+function a2Glow(m, k) { m.emissiveMap = m.map; m.emissive = new THREE.Color('#ffffff'); m.emissiveIntensity = k; return m; }
+// 분교 벽: 크림색 회벽, 푸른 징두리, 나무 창틀 (불 켜진 칸과 꺼진 칸)
+function schoolWallTex(front) {
+  return canvasTex(1024, 192, (x, w, h) => {
+    x.fillStyle = '#d6cdb4'; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 900; i++) { x.fillStyle = Math.random() < 0.5 ? 'rgba(90,80,60,.08)' : 'rgba(255,255,240,.08)'; x.fillRect(Math.random() * w, Math.random() * h, 2 + Math.random() * 4, 1 + Math.random() * 2); }
+    x.fillStyle = '#3f5b72'; x.fillRect(0, h * 0.72, w, h * 0.28); x.fillStyle = '#2c3f50'; x.fillRect(0, h * 0.72, w, 5);
+    if (!front) { for (const cx of [w * 0.3, w * 0.7]) { x.fillStyle = '#5a3e2b'; x.fillRect(cx - 30, h * 0.16, 60, h * 0.5); x.fillStyle = '#263342'; x.fillRect(cx - 26, h * 0.19, 52, h * 0.44); } return; }
+    const n = 12, gw = w / n;
+    for (let i = 0; i < n; i++) {
+      const cx = i * gw + gw / 2;
+      if (i === 5) { const dx = cx + gw / 2; x.fillStyle = '#4a3324'; x.fillRect(dx - 34, h * 0.18, 68, h * 0.82); x.fillStyle = '#f0c07a'; x.fillRect(dx - 28, h * 0.24, 56, h * 0.48); x.strokeStyle = '#4a3324'; x.lineWidth = 4; x.beginPath(); x.moveTo(dx, h * 0.24); x.lineTo(dx, h * 0.72); x.stroke(); continue; }
+      if (i === 6) continue;
+      const lit = (i * 7) % 5 < 3;
+      x.fillStyle = '#5a3e2b'; x.fillRect(cx - 30, h * 0.16, 60, h * 0.5);
+      x.fillStyle = lit ? '#f2c987' : '#263342'; x.fillRect(cx - 26, h * 0.19, 52, h * 0.44);
+      x.strokeStyle = '#5a3e2b'; x.lineWidth = 3; x.beginPath();
+      for (const k of [1, 2]) { x.moveTo(cx - 26 + k * 52 / 3, h * 0.19); x.lineTo(cx - 26 + k * 52 / 3, h * 0.63); }
+      x.moveTo(cx - 26, h * 0.41); x.lineTo(cx + 26, h * 0.41); x.stroke();
+    }
+  });
+}
+function slateTex(rep) {
+  return canvasTex(256, 256, (x, w, h) => {
+    x.fillStyle = '#4d5562'; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < w; i += 8) { x.fillStyle = i % 16 ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.2)'; x.fillRect(i, 0, 4, h); }
+    for (let j = 0; j < h; j += 64) { x.fillStyle = 'rgba(0,0,0,.35)'; x.fillRect(0, j, w, 3); }
+    for (let i = 0; i < 320; i++) { x.fillStyle = 'rgba(130,90,55,' + (Math.random() * 0.14) + ')'; x.fillRect(Math.random() * w, Math.random() * h, 3, 7); }
+  }, rep || [4, 1]);
+}
+function strawTex() {
+  return canvasTex(256, 256, (x, w, h) => {
+    x.fillStyle = '#7c6a43'; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 2400; i++) { const px = Math.random() * w, py = Math.random() * h, l = 6 + Math.random() * 14; x.strokeStyle = Math.random() < 0.5 ? 'rgba(214,184,112,.35)' : 'rgba(58,43,22,.35)'; x.lineWidth = 1 + Math.random(); x.beginPath(); x.moveTo(px, py); x.lineTo(px + (Math.random() - 0.5) * 3, py + l); x.stroke(); }
+    for (let j = 0; j < h; j += 42) { x.fillStyle = 'rgba(48,36,18,.4)'; x.fillRect(0, j, w, 2); }
+  }, [3, 2]);
+}
+function chogaWallTex(front) {
+  return canvasTex(512, 160, (x, w, h) => {
+    x.fillStyle = '#b9a47c'; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 700; i++) { x.fillStyle = Math.random() < 0.5 ? 'rgba(70,55,35,.13)' : 'rgba(240,225,190,.1)'; x.fillRect(Math.random() * w, Math.random() * h, 3 + Math.random() * 6, 2 + Math.random() * 3); }
+    x.fillStyle = '#4b3524'; for (const px of [0, 0.25, 0.5, 0.75, 1]) x.fillRect(px * w - 7, 0, 14, h); x.fillRect(0, 0, w, 10);
+    x.fillStyle = '#6b665c'; x.fillRect(0, h - 22, w, 22);
+    if (!front) return;
+    for (const [px, lit] of [[0.125, true], [0.375, false], [0.625, true], [0.875, false]]) {
+      const cx = px * w; x.fillStyle = '#4b3524'; x.fillRect(cx - 34, 24, 68, 108); x.fillStyle = lit ? '#efcf8f' : '#d9ccb0'; x.fillRect(cx - 30, 28, 60, 100);
+      x.strokeStyle = '#6a4b30'; x.lineWidth = 2;
+      for (let gx = 1; gx < 4; gx++) { x.beginPath(); x.moveTo(cx - 30 + gx * 15, 28); x.lineTo(cx - 30 + gx * 15, 128); x.stroke(); }
+      for (let gy = 1; gy < 6; gy++) { x.beginPath(); x.moveTo(cx - 30, 28 + gy * 17); x.lineTo(cx + 30, 28 + gy * 17); x.stroke(); }
+    }
+  });
+}
+function plankTex() {
+  return canvasTex(256, 256, (x, w, h) => {
+    x.fillStyle = '#5b4632'; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < w; i += 22) { x.fillStyle = 'rgba(0,0,0,.35)'; x.fillRect(i, 0, 2, h); x.fillStyle = 'rgba(255,230,190,' + (Math.random() * 0.08) + ')'; x.fillRect(i + 2, 0, 20, h); }
+    for (let i = 0; i < 400; i++) { x.fillStyle = 'rgba(30,20,10,.15)'; x.fillRect(Math.random() * w, Math.random() * h, 1, 6 + Math.random() * 14); }
+  }, [2, 1]);
+}
+function flagTex() {
+  return canvasTex(192, 128, (x, w, h) => {
+    x.fillStyle = '#f4f4f0'; x.fillRect(0, 0, w, h);
+    const cx = w / 2, cy = h / 2, r = h / 4, a = Math.atan2(h, w);
+    x.save(); x.translate(cx, cy); x.rotate(a);
+    x.fillStyle = '#c8102e'; x.beginPath(); x.arc(0, 0, r, Math.PI, 0); x.fill();
+    x.fillStyle = '#003478'; x.beginPath(); x.arc(0, 0, r, 0, Math.PI); x.fill();
+    x.fillStyle = '#c8102e'; x.beginPath(); x.arc(-r / 2, 0, r / 2, 0, TAU); x.fill();
+    x.fillStyle = '#003478'; x.beginPath(); x.arc(r / 2, 0, r / 2, 0, TAU); x.fill();
+    x.restore();
+    const tri = (tx, ty, ang, pat) => { x.save(); x.translate(tx, ty); x.rotate(ang); x.fillStyle = '#111'; pat.forEach((p, i) => { const y = (i - 1) * 6; if (p) x.fillRect(-11, y - 2, 22, 4); else { x.fillRect(-11, y - 2, 9.5, 4); x.fillRect(1.5, y - 2, 9.5, 4); } }); x.restore(); };
+    const d = r * 1.95, ca = Math.cos(a), sa = Math.sin(a);
+    tri(cx - d * ca, cy - d * sa, a + Math.PI / 2, [1, 1, 1]); tri(cx + d * ca, cy + d * sa, a + Math.PI / 2, [0, 0, 0]);
+    tri(cx + d * ca, cy - d * sa, -a + Math.PI / 2, [0, 1, 0]); tri(cx - d * ca, cy + d * sa, -a + Math.PI / 2, [1, 0, 1]);
+  });
+}
+function seaTex() {
+  return canvasTex(512, 512, (x, w, h) => {
+    const g = x.createLinearGradient(0, 0, w, 0); g.addColorStop(0, '#1b4050'); g.addColorStop(1, '#0b2232'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 320; i++) { const px = Math.random() * w, py = Math.random() * h, l = 24 + Math.random() * 110; x.strokeStyle = 'rgba(170,210,230,' + (0.05 + Math.random() * 0.13) + ')'; x.lineWidth = 1 + Math.random() * 1.6; x.beginPath(); x.moveTo(px, py); x.quadraticCurveTo(px - 3, py + l / 2, px, py + l); x.stroke(); }
+  }, [3, 3]);
+}
+// 박공지붕: 삼각 기둥 (길이 x축)
+function gableRoof(w, d, h, m, x, y, z, ry) {
+  const geo = new THREE.CylinderGeometry(1, 1, 1, 3, 1); geo.rotateX(-Math.PI / 2); geo.rotateY(Math.PI / 2);
+  const r = new THREE.Mesh(geo, m); r.scale.set(w, h / 1.5, (d / 2) / 0.866); r.position.set(x, y + 0.5 * (h / 1.5), z); if (ry) r.rotation.y = ry; r.castShadow = true; ARENA.g.add(r); return r;
+}
+function buildSchool() {
+  const W = 18, H = 3.0, Dp = 5, z0 = -0.9;
+  const fm = a2Glow(a2Mat(schoolWallTex(true)), 0.34), bm = a2Glow(a2Mat(schoolWallTex(false)), 0.25), sm = a2Mat(grainTex('#cfc6ad', 600, '#efe6cc', '#7d735c', [1, 1]));
+  const body = new THREE.Mesh(new THREE.BoxGeometry(W, H, Dp), [sm, sm, sm, sm, fm, bm]); body.position.set(0, H / 2, z0); body.castShadow = true; body.receiveShadow = true; ARENA.g.add(body);
+  const roofM = a2Mat(slateTex([6, 1]), { roughness: 0.6, metalness: 0.25 }); a2Glow(roofM, 0.12);
+  gableRoof(W + 1, Dp + 1.4, 1.7, roofM, 0, H, z0);
+  // 현관 지붕과 기둥
+  const porchM = mat('#e8e0c8', { emissive: '#2a2622' });
+  for (const px of [-1.3, 1.3]) abox(0.2, 2.5, 0.2, porchM, px, 1.25, z0 + Dp / 2 + 1.2);
+  gableRoof(3.2, 1.9, 0.7, roofM, 0, 2.5, z0 + Dp / 2 + 0.75, Math.PI / 2);
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.42), new THREE.MeshBasicMaterial({ map: signTex('나곡 분교', '#24372a', '#f2efe2') })); sign.position.set(0, 2.25, z0 + Dp / 2 + 0.02); ARENA.g.add(sign);
+  // 기단, 계단
+  const st = mat('#8e8a80'); abox(W + 0.6, 0.25, Dp + 0.6, st, 0, 0.12, z0); abox(3.4, 0.18, 1.4, st, 0, 0.09, z0 + Dp / 2 + 0.9);
+  // 국기 게양대
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 6.2, 8), mat('#c9ccd2', { metalness: 0.6 })); pole.position.set(6.2, 3.1, 4.6); ARENA.g.add(pole);
+  const fl = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.0), new THREE.MeshStandardMaterial({ map: flagTex(), side: THREE.DoubleSide, roughness: 0.9, emissive: '#ffffff', emissiveIntensity: 0.18 }));
+  fl.material.emissiveMap = fl.material.map; fl.position.set(6.95, 5.55, 4.6); ARENA.g.add(fl); ARENA.flag = fl;
+  // 충돌
+  ARENA.obst.push({ x0: -W / 2 - 0.3, x1: W / 2 + 0.3, z0: z0 - Dp / 2 - 0.3, z1: z0 + Dp / 2 + 0.3, kind: 'hall' }, { x0: -1.6, x1: 1.6, z0: z0 + Dp / 2, z1: z0 + Dp / 2 + 1.7, kind: 'hall' });
+  const L = new THREE.PointLight('#ffd6a0', 10, 9, 1.6); L.position.set(0, 3.2, z0 + Dp / 2 + 2.4); ARENA.g.add(L);
+  const L2 = new THREE.PointLight('#ffc98a', 5, 14, 1.8); L2.position.set(-5, 2, z0 + Dp / 2 + 1.5); ARENA.g.add(L2);
+}
+// 초가집: 흙벽 + 둥근 짚 지붕
+let CHOGA_M = null;
+function buildChoga(x, z, flip) {
+  if (!CHOGA_M) CHOGA_M = { f: a2Glow(a2Mat(chogaWallTex(true)), 0.28), s: a2Glow(a2Mat(chogaWallTex(false)), 0.2), roof: a2Mat(strawTex(), { roughness: 1 }) };
+  const W = 6.4, Dp = 3.4, H = 2.0, M = CHOGA_M;
+  const b = new THREE.Mesh(new THREE.BoxGeometry(W, H, Dp), [M.s, M.s, M.s, M.s, M.f, M.s]); b.position.set(x, H / 2, z); if (flip) b.rotation.y = Math.PI; b.castShadow = true; b.receiveShadow = true; ARENA.g.add(b);
+  const rf = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 10, 0, TAU, 0, Math.PI / 2), M.roof); rf.scale.set(W / 2 + 0.8, 1.15, Dp / 2 + 0.9); rf.position.set(x, H - 0.12, z); rf.castShadow = true; ARENA.g.add(rf);
+  const eave = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.22, 24, 1, true), M.roof); eave.scale.set(W / 2 + 0.78, 1, Dp / 2 + 0.88); eave.position.set(x, H - 0.1, z); ARENA.g.add(eave);
+  const rope = new THREE.Mesh(new THREE.TorusGeometry(1, 0.03, 4, 24), mat('#3a2c18')); rope.rotation.x = Math.PI / 2; rope.scale.set(W / 2 + 0.5, Dp / 2 + 0.6, 1); rope.position.set(x, H + 0.32, z); ARENA.g.add(rope);
+  ARENA.obst.push({ x0: x - W / 2, x1: x + W / 2, z0: z - Dp / 2, z1: z + Dp / 2, kind: 'house' });
+  const L = new THREE.PointLight('#ffc06a', 4, 7, 1.8); L.position.set(x, 1.3, z + (flip ? -Dp / 2 - 1 : Dp / 2 + 1)); ARENA.g.add(L);
+}
+function arenaClear2(x, z) { return x < 31 && arenaClear(x, z) && !(x < -18 && x > -31 && Math.abs(z - 7.5) < 7); }
+function arenaFlora2() {
+  const fl = [], rk = [], fx = () => (Math.random() < 0.5 ? -1 : 1);
+  // 감나무·느티나무: 신작로 양쪽, 집 둘레
+  for (const s of [-1, 1]) for (const z of [21, 30, 39]) fl.push({ x: s * 7.7 + rand(-0.3, 0.3), z: z + rand(-0.6, 0.6), v: 0, h: rand(7.2, 9.4), fx: fx() });
+  for (const [x, z] of [[14, -13.5], [25, -13.8], [16, 14], [31, 13.2], [-30, 13.5], [-21, -13]]) fl.push({ x, z, v: 0, h: rand(6.2, 8), fx: fx() });
+  // 운동장 둘레 관목
+  for (let d = 0; d < 360; d += 9) {
+    const ad = d % 90; if (ad < 22 || ad > 68) continue;
+    const an = d * Math.PI / 180, r = rand(16.3, 17.3), x = Math.cos(an) * r, z = Math.sin(an) * r;
+    if (arenaFree(x, z, 0.9)) fl.push({ x, z, v: 1, h: rand(1.8, 2.5), fx: fx() });
+  }
+  // 어린 소나무
+  for (const [x, z] of [[-12, 20], [-20, 26], [-27, 19], [-15, 31], [-31, 27], [12, 22], [20, 28], [27, 20], [-14, -24], [-24, -14], [-26, -26]]) { const px = x + rand(-1, 1), pz = z + rand(-1, 1); if (arenaFree(px, pz, 1)) fl.push({ x: px, z: pz, v: 2, h: rand(4.4, 6.2), fx: fx() }); }
+  // 억새: 능선 가장자리, 해안 둔덕
+  for (let i = 0; i < 54; i++) { const x = rand(-36, 30), z = rand(-36, -15); if (arenaClear2(x, z) && arenaFree(x, z, 0.6)) fl.push({ x, z, v: 3, h: rand(1.4, 2.3), fx: fx() }); }
+  for (let i = 0; i < 26; i++) { const x = rand(29, 32.5), z = rand(-34, 34); if (Math.abs(z) > 4.5) fl.push({ x, z, v: 3, h: rand(1.2, 1.9), fx: fx() }); }
+  for (let i = 0; i < 16; i++) { const x = fx() * rand(8, 30), z = rand(15, 35); if (Math.abs(x) > 7.5 && arenaFree(x, z, 0.6)) fl.push({ x, z, v: 3, h: rand(1.3, 1.9), fx: fx() }); }
+  // 바위: 능선, 해안 갯바위
+  for (let i = 0; i < 18; i++) { const x = rand(-42, 42), z = rand(-46, -33); if (Math.abs(x) > 5.5) rk.push({ x, z, v: i % 4, h: rand(2.4, 3.8), fx: fx() }); }
+  for (const [x, z] of [[36.5, -24], [40, -21], [35.5, 22], [39.5, 26], [35, -33], [38, 33], [41, 9], [42.5, -8]]) rk.push({ x, z, v: Math.floor(Math.random() * 4), h: rand(1.8, 3.2), fx: fx() });
+  for (const [x, z] of [[-33, -15], [-16, 37], [-34, 31], [-36, 17]]) rk.push({ x, z, v: Math.floor(Math.random() * 4), h: rand(1.9, 2.9), fx: fx() });
+  for (const s of fl) if (s.v === 0 || s.v === 2) ARENA.trees.push({ x: s.x, z: s.z, r: 0.35 });
+  buildBillboards('tex2_flora.webp', fl, '#c9c2b2');
+  buildBillboards('tex2_rocks.webp', rk, '#b9b4a8');
+}
+function buildArena2() {
+  ARENA.g = new THREE.Group(); scene.add(ARENA.g); ARENA.built = true; ARENA.act = 2;
+  // 땅: 늦가을 마른 풀
+  const g = new THREE.Mesh(new THREE.PlaneGeometry(132, 132), skin(mat('#7d7556', { roughness: 0.97 }), 'tex_lawn.jpg', { wrap: 'mirror', rep: [16, 16], tint: '#8a8259' }));
+  g.rotation.x = -Math.PI / 2; g.position.y = -0.004; g.receiveShadow = true; ARENA.g.add(g);
+  // 모래사장·바다
+  const sand = new THREE.Mesh(new THREE.PlaneGeometry(9, 150), a2Mat(grainTex('#a3967a', 3000, '#d6caa8', '#5d5444', [3, 40])));
+  sand.rotation.x = -Math.PI / 2; sand.position.set(34, 0.006, 0); sand.receiveShadow = true; ARENA.g.add(sand);
+  SEA.wet = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 150), a2Mat(grainTex('#5e5848', 2000, '#8a826c', '#2e2b24', [2, 40]), { roughness: 0.4, metalness: 0.15 }));
+  SEA.wet.rotation.x = -Math.PI / 2; SEA.wet.position.set(37.6, 0.01, 0); ARENA.g.add(SEA.wet);
+  SEA.m = new THREE.Mesh(new THREE.PlaneGeometry(90, 160), new THREE.MeshStandardMaterial({ map: seaTex(), roughness: 0.28, metalness: 0.2, emissive: '#0b2030', emissiveIntensity: 0.7 }));
+  SEA.m.rotation.x = -Math.PI / 2; SEA.m.position.set(84, 0.03, 0); ARENA.g.add(SEA.m);
+  SEA.foam = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 160), new THREE.MeshBasicMaterial({ color: '#dff0f6', transparent: true, opacity: 0.3, depthWrite: false }));
+  SEA.foam.rotation.x = -Math.PI / 2; SEA.foam.position.set(39.2, 0.045, 0); ARENA.g.add(SEA.foam);
+  // 네 갈래 흙길과 분교 운동장
+  const dirt = grainTex('#6f604a', 2600, '#a8977a', '#3a3024', [1, 4]);
+  const road = (w, len, x, z, alongX) => { const t = dirt.clone(); t.needsUpdate = true; t.repeat.set(w / 8, len / 8); const m = new THREE.Mesh(new THREE.PlaneGeometry(w, len), a2Mat(t)); m.rotation.set(-Math.PI / 2, 0, alongX ? Math.PI / 2 : 0); m.position.set(x, 0.012, z); m.receiveShadow = true; ARENA.g.add(m); };
+  road(7, 38, 0, -28.5, false); road(9, 38, 0, 28.5, false); road(7, 38, -28.5, 0, true); road(6.5, 24, 22.5, 0, true);
+  const yard = new THREE.Mesh(new THREE.CircleGeometry(CORE.r + 2.6, 48), a2Mat(grainTex('#7f6f55', 2600, '#b3a184', '#3f3528', [5, 5])));
+  yard.rotation.x = -Math.PI / 2; yard.position.y = 0.018; yard.receiveShadow = true; ARENA.g.add(yard);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(CORE.r - 0.2, CORE.r + 0.2, 72), new THREE.MeshBasicMaterial({ color: '#4fb6ff', transparent: true, opacity: 0.6, depthWrite: false }));
+  ring.rotation.x = -Math.PI / 2; ring.position.y = 0.04; ARENA.g.add(ring);
+  // 운동장 돌담 테두리
+  const stoneM = skin(mat('#8c877c'), 'tex_stonewall.jpg', { wrap: 'repeat', rep: [2.4, 0.5] });
+  const ringC = new THREE.Mesh(new THREE.TorusGeometry(CORE.r + 2.65, 0.16, 6, 72), mat('#8a857a', { roughness: 0.95 })); ringC.rotation.x = Math.PI / 2; ringC.position.y = 0.07; ARENA.g.add(ringC);
+  buildSchool();
+  // 모래주머니·거치 기관총 (1막과 같은 자리)
+  const bagAt = (x, z, w, ry) => abox(w, 0.9, 0.84, skin(mat('#a88f68', { roughness: 1 }), 'tex_sandbag.jpg', { wrap: 'repeat', rep: [w / 2.4, 0.5] }), x, 0.45, z, 'bag', ry);
+  for (const [x, z, ry] of [[-2.2, -17, 0], [2.6, 17, 0], [-17, 2.2, Math.PI / 2], [17, -2.4, Math.PI / 2]]) bagAt(x, z, 3.2, ry);
+  for (const a of [0.25, 0.75, 1.25, 1.75]) { const ang = a * Math.PI, x = Math.cos(ang) * 14.2, z = Math.sin(ang) * 14.2; bagAt(x, z, 3, -ang + Math.PI / 2); }
+  for (const [x, z, yaw] of [[0, -12.6, Math.PI], [0, 12.6, 0], [-12.6, 0, -Math.PI / 2], [12.6, 0, Math.PI / 2]]) { makeMG(x, z, yaw); const m = MGS.pop(); ARENA.g.add(m.piv.parent); ARENA.mgs.push(m); }
+  // 동쪽 어촌: 초가 네 채, 돌담, 해안 초소
+  for (const [x, z] of [[17.6, -8.6], [27.4, -8.8], [18.2, 8.8], [28, 8.6]]) buildChoga(x, z, z > 0);
+  for (const [x, z, w, ry] of [[18.5, -12.4, 13, 0], [23, 12.6, 13, 0], [11.6, -10, 3.5, Math.PI / 2], [12.6, 11, 3.5, Math.PI / 2]]) abox(w, 1.2, 0.6, stoneM, x, 0.6, z, 'wall', ry);
+  abox(2.4, 2.4, 2.2, mat('#c9cdb8'), 24.2, 1.2, -5.2, 'booth'); gableRoof(2.9, 2.7, 0.6, a2Mat(slateTex([1, 1])), 24.2, 2.4, -5.2);
+  const ps = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 0.4), new THREE.MeshBasicMaterial({ map: signTex('해안 초소', '#2b3f2a', '#ffffff') })); ps.position.set(24.2, 1.9, -4.08); ARENA.g.add(ps);
+  for (const [x, z, ry] of [[22.2, -3.6, 0], [26.4, -3.6, 0]]) bagAt(x, z, 1.8, ry);
+  // 서쪽 골짜기: 정미소 (피난민 구출 지점)
+  const plank = a2Glow(a2Mat(plankTex()), 0.16), mb = ARENA.bus;
+  const mill = new THREE.Mesh(new THREE.BoxGeometry(2.8, 3.0, 9.4), plank); mill.position.set(mb.x, 1.5, mb.z); mill.rotation.y = 0.12; mill.castShadow = true; ARENA.g.add(mill);
+  gableRoof(9.8, 3.6, 1.2, a2Mat(slateTex([3, 1]), { roughness: 0.6, metalness: 0.3 }), mb.x, 3.0, mb.z, Math.PI / 2 + 0.12);
+  const ms = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.45), new THREE.MeshBasicMaterial({ map: signTex('나곡 정미소', '#3a2a1a', '#f4e6c8') })); ms.position.set(mb.x - 1.42, 2.3, mb.z); ms.rotation.y = -Math.PI / 2 + 0.12; ARENA.g.add(ms);
+  ARENA.obst.push({ x0: mb.x - 1.6, x1: mb.x + 1.6, z0: mb.z - 5.1, z1: mb.z + 5.1, kind: 'bus' });
+  // 해변: 고깃배·그물 말리는 장대
+  const hullM = a2Mat(plankTex(), { roughness: 0.9 });
+  for (const [x, z, ry] of [[33.6, -13, 0.3], [34, 16, -0.25], [33.2, 29, 0.1]]) {
+    const h = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.7, 4.6), hullM); h.position.set(x, 0.35, z); h.rotation.set(0, ry, 0.12); h.castShadow = true; ARENA.g.add(h);
+    const bw = new THREE.Mesh(new THREE.ConeGeometry(0.75, 1.3, 4), hullM); bw.rotation.set(Math.PI / 2, Math.PI / 4, 0); bw.scale.set(1, 1, 0.45); bw.position.set(x + Math.sin(ry) * 2.9, 0.45, z + Math.cos(ry) * 2.9); ARENA.g.add(bw);
+  }
+  const netT = canvasTex(128, 128, (x, w, h) => { x.clearRect(0, 0, w, h); x.strokeStyle = 'rgba(30,30,25,.85)'; x.lineWidth = 1.4; for (let i = 0; i <= w; i += 10) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, h); x.stroke(); x.beginPath(); x.moveTo(0, i); x.lineTo(w, i); x.stroke(); } }, [3, 1]);
+  const netM = new THREE.MeshBasicMaterial({ map: netT, transparent: true, side: THREE.DoubleSide, depthWrite: false, color: '#5a5446' });
+  for (const z0 of [-27, 6]) { for (const dz of [0, 5]) abox(0.12, 2.2, 0.12, mat('#4a3a28'), 32, 1.1, z0 + dz); const n = new THREE.Mesh(new THREE.PlaneGeometry(5, 1.6), netM); n.position.set(32, 1.2, z0 + 2.5); n.rotation.y = Math.PI / 2; ARENA.g.add(n); }
+  // 남쪽 신작로: 나무 전봇대와 백열등, 불탄 군용 지프
+  const poleM = mat('#4a3a2a'), lampM = new THREE.MeshBasicMaterial({ color: '#ffd9a0' });
+  [[-6.6, 16, 1], [6.6, 26, 1], [-6.6, 34, 0], [5.4, -18, 1], [-5.4, -30, 0], [-18, 5.4, 1], [18, -4.6, 0]].forEach(([x, z, light]) => {
+    const o = x < 0 ? 0.6 : -0.6;
+    abox(0.18, 4.0, 0.18, poleM, x, 2.0, z); abox(1.1, 0.1, 0.1, poleM, x, 3.6, z);
+    const h = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), lampM); h.position.set(x + o, 3.35, z); ARENA.g.add(h);
+    if (light) { const L = new THREE.PointLight('#ffb866', 26, 15, 1.6); L.position.set(x + o, 3.2, z); ARENA.g.add(L); }
+  });
+  const jeep = texBox(1.85, 1.8, 3.9, vehicleFaces('jeep', 'webp'), true); jeep.position.set(9.5, 0.9, 21); jeep.rotation.y = 0.5; ARENA.g.add(jeep);
+  ARENA.obst.push({ x0: 8, x1: 11, z0: 19, z1: 23, kind: 'jeep' });
+  ARENA.fire = new THREE.PointLight('#ff7a2a', 30, 12, 1.6); ARENA.fire.position.set(9.5, 2.4, 21); ARENA.g.add(ARENA.fire);
+  // 북쪽 태백 능선 (늦가을 산)
+  const hillM = a2Mat(grainTex('#4d4a36', 3200, '#7e7556', '#25241a', [3, 3]));
+  for (let i = 0; i < 9; i++) { const x = -44 + i * 11 + rand(-2, 2), z = -50 + rand(-4, 3), s = rand(8, 13); const m = new THREE.Mesh(new THREE.SphereGeometry(s, 14, 10), hillM); m.scale.y = 0.55; m.position.set(x, -s * 0.18, z); m.receiveShadow = true; ARENA.g.add(m); }
+  for (let i = 0; i < 4; i++) { const z = -18 + i * 13, s = rand(7, 10); const m = new THREE.Mesh(new THREE.SphereGeometry(s, 12, 8), hillM); m.scale.y = 0.45; m.position.set(-52 + rand(-2, 2), -s * 0.15, z); ARENA.g.add(m); }
+  // 소나무·참나무 숲: 북쪽·서쪽은 빽빽하게
+  const spots = []; let guard = 0;
+  while (spots.length < 160 && guard++ < 4500) {
+    const x = rand(-46, 31), z = rand(-48, 46), wild = z < -18 || x < -26;
+    if (!wild && Math.random() < 0.5) continue;
+    if (arenaClear2(x, z)) spots.push({ x, z, v: Math.floor(Math.random() * 4), h: rand(6, 9.6) });
+  }
+  for (const sp of spots) if (Math.abs(sp.x) < 34 && Math.abs(sp.z) < 34) ARENA.trees.push({ x: sp.x, z: sp.z, r: 0.5 });
+  buildTrees(spots, 'def', 'tex2_trees.webp', '#c4bfb2');
+  arenaFlora2(); arenaBeams();
+  ARENA.g.traverse((o) => { if (o.isMesh && o.castShadow === undefined) o.castShadow = true; });
+}
+function seaTick(t) {
+  if (!SEA.m || ARENA.act !== 2 || !ARENA.g || !ARENA.g.visible) return;
+  SEA.m.material.map.offset.x = -t * 0.012; SEA.m.material.map.offset.y = Math.sin(t * 0.1) * 0.02;
+  const k = (Math.sin(t * 0.55) + 1) / 2;
+  SEA.foam.position.x = 38.6 + k * 1.3; SEA.foam.material.opacity = 0.12 + (1 - k) * 0.32;
+  if (ARENA.flag) ARENA.flag.rotation.y = Math.sin(t * 2.2) * 0.25;
+}
+
+function ensureArena() {
+  if (ARENA.built && ARENA.act === ACT.id) return;
+  if (ARENA.g) scene.remove(ARENA.g);
+  for (const m of MAPMESH.def) scene.remove(m); MAPMESH.def.length = 0;
+  Object.assign(ARENA, { g: null, obst: [], trees: [], mgs: [], built: false, beams: null, fire: null });
+  ARENA.act = ACT.id;
+  if (ACT.id === 2) buildArena2(); else buildArena();
+}
 function setMapMode(mode) {
-  if (mode === MAPCUR) return;
+  if (mode === MAPCUR && (mode !== 'def' || (ARENA.built && ARENA.act === ACT.id))) return;
   barrelsClear();
-  if (mode === 'def' && !ARENA.built) buildArena();
+  if (mode === 'def') ensureArena();
   const def = mode === 'def';
   for (const o of CAMP.objs) o.visible = !def;
   for (const m of MAPMESH.camp) m.visible = !def;
@@ -3472,6 +3806,7 @@ function announceFronts() {
 // 레이더: 네 길, 앞마당 링, 건물
 function drawRadarArena(X, Y, k) {
   rx.fillStyle = 'rgba(46,84,60,.35)'; rx.fillRect(X(-48), Y(-50), 96 * k, 30 * k);
+  if (ACT && ACT.id === 2) { rx.fillStyle = 'rgba(40,110,170,.45)'; rx.fillRect(X(38), Y(-60), 30 * k, 120 * k); rx.fillStyle = 'rgba(190,170,120,.35)'; rx.fillRect(X(30), Y(-60), 8 * k, 120 * k); for (const b of BOATS) if (b.alive) { rx.fillStyle = '#ff6a4a'; rx.fillRect(X(b.x) - 3, Y(b.z) - 2, 6, 4); } }
   rx.fillStyle = 'rgba(130,140,160,.32)';
   rx.fillRect(X(-4), Y(-48), 8 * k, 38 * k); rx.fillRect(X(-5), Y(10), 10 * k, 38 * k); rx.fillRect(X(-48), Y(-4), 38 * k, 8 * k); rx.fillRect(X(10), Y(-3.5), 38 * k, 7 * k);
   for (const b of OBST) { rx.fillStyle = b.kind === 'bus' ? 'rgba(220,200,120,.85)' : b.kind === 'hall' ? 'rgba(60,120,230,.85)' : b.kind === 'booth' ? 'rgba(130,170,255,.85)' : 'rgba(190,170,130,.6)'; rx.fillRect(X(b.x0), Y(b.z0), Math.max(1.5, (b.x1 - b.x0) * k), Math.max(1.5, (b.z1 - b.z0) * k)); }
@@ -3550,7 +3885,7 @@ function tcBuild() {
   const el = document.createElement('div'); el.id = 'tc'; el.hidden = true;
   el.innerHTML = '<div class="zone" id="tcL"></div><div class="zone" id="tcR"></div><div class="stick" id="stL"><i></i></div><div class="stick look" id="stR"><i></i></div>' +
     TC_ACTS.map((b) => '<button class="tact' + (b.a === 'fire' ? ' fire' : '') + '" id="' + b.id + '" data-a="' + b.a + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + b.ic + '</svg>' + (b.n ? '<span>' + b.n + '</span>' : '') + '<em></em></button>').join('') +
-    '<div id="tcSt"></div><div id="tcGate"><span>청와대 방어선 <b>100%</b></span><i><u></u></i></div><button id="tcGo" hidden></button><button id="tcPause" aria-label="일시정지">Ⅱ</button>';
+    '<div id="tcSt"></div><div id="tcGate"><span><span id="tcGateLab">청와대 방어선</span> <b>100%</b></span><i><u></u></i></div><button id="tcGo" hidden></button><button id="tcPause" aria-label="일시정지">Ⅱ</button>';
   $('hud').appendChild(el);
   const rot = document.createElement('div'); rot.id = 'tcRot'; rot.innerHTML = '<div>📱↻</div><b>가로 화면으로 돌려 주세요</b><span>UNFINISHED WAR는 가로 화면에서 플레이해요</span>'; document.body.appendChild(rot);
   // 이동 스틱: 평소엔 왼쪽 아래 제자리에 보이고, 다른 곳을 누르면 그 자리로 따라옴
@@ -3806,7 +4141,9 @@ function ambTick(dt) {
   const w = G.state === 'play' ? Math.max(0.006, 0.02 + WX.snow * 0.03 + Math.sin(G.t * 0.37) * 0.012 + Math.sin(G.t * 0.11) * 0.01) : 0.0001;
   SND.wind.g.gain.setTargetAtTime(w, AC.currentTime, 0.4); SND.wind.fl.frequency.setTargetAtTime(380 + WX.snow * 260 + Math.sin(G.t * 0.5) * 80, AC.currentTime, 0.5);
   if (D.on && D.st === 'wave' && Math.random() < dt * 0.22) distantShots();
+  if (ACT && ACT.id === 2 && G.state === 'play' && Math.random() < dt * 0.22) surf();
 }
+function surf() { if (!sndInit()) return; const t = AC.currentTime; sNoise(t, 3.4, 0.045, 'lowpass', 1200, 0.5, 260, 0.5); sNoise(t + 0.4, 2.2, 0.02, 'bandpass', 2400, 0.4, 700, 0.3); }
 // --- 무전 음성: ElevenLabs로 녹음한 목소리 (목록에 있는 대사만 재생, 무전은 무전기 필터)
 const VOX = { base: 'https://tozyoprymcvznkeqmrqp.supabase.co/storage/v1/object/public/uw-voice/', map: null, buf: {}, cur: null, pri: 0, until: 0 };
 const VOX_RADIO = /통제실|경찰관|적 무전|알파\d|분대장|의무병/;
@@ -3905,10 +4242,10 @@ function breathTick() {
 function snowHit(x, z) { for (let i = 0; i < 3; i++) puff(x + rand(-0.15, 0.15), 0.12, z + rand(-0.15, 0.15), 0.12, 0.6, rand(-0.6, 0.6), rand(0.8, 1.6), rand(-0.6, 0.6), 0.75); }
 const WX = { snow: 0.7, fall: 1, wind: 0, tSnow: 0.7, tWind: 0 };
 const WX_W = [0.55, 0.7, 0.85, 0.6, 0.9, 1.0, 0.75, 0.95, 1.1, 1.0, 1.25, 1.45];
-function wxWave(n) { WX.tSnow = WX_W[Math.min(11, Math.max(0, n - 1))]; WX.tWind = (Math.random() < 0.5 ? -1 : 1) * (0.2 + WX.tSnow * 0.9); if (WX.tSnow >= 1.25) feed('눈보라가 거세진다 · 시야가 좁아져요', 'gold'); }
+function wxWave(n) { WX.tSnow = ACT && !ACT.snow ? 0 : WX_W[Math.min(11, Math.max(0, n - 1))]; WX.tWind = (Math.random() < 0.5 ? -1 : 1) * (0.2 + WX.tSnow * 0.9); if (WX.tSnow >= 1.25) feed('눈보라가 거세진다 · 시야가 좁아져요', 'gold'); }
 function wxTick(dt) {
   const k = Math.min(1, dt * 0.3); WX.snow += (WX.tSnow - WX.snow) * k; WX.wind += (WX.tWind - WX.wind) * k; WX.fall = 0.7 + WX.snow * 0.8;
-  snowGeo.setDrawRange(0, Math.floor(SNOW_N * Math.min(1, 0.35 + WX.snow * 0.55)));
+  snowGeo.setDrawRange(0, ACT && !ACT.snow ? 0 : Math.floor(SNOW_N * Math.min(1, 0.35 + WX.snow * 0.55)));
   if (scene.fog) scene.fog.far = 100 - Math.max(0, WX.snow - 0.6) * 45;
 }
 const BLOOM = { c: null };
@@ -3930,12 +4267,25 @@ const HIST = [
   ['정체가 드러난 순간', '침투조는 총을 쏘며 흩어졌고, 지나가던 시내버스에 수류탄을 던졌다. 최규식 서장은 이날 밤 목숨을 잃었다.'],
   ['청와대를 코앞에 두고', '침투조는 청와대 바로 앞까지 다가왔다. 군경이 막아서면서 서울 도심 곳곳에서 총격전이 벌어졌다.'],
   ['흩어진 침투조', '살아남은 침투조는 북악산·인왕산 쪽 산으로 흩어져 달아났다. 군경의 추격이 시작됐다.'],
-  ['추격', '김신조가 붙잡혔다. 남은 침투조를 쫓는 소탕 작전이 서울 북쪽 산과 경기 북부에서 이어졌다.'],
-  ['1월 말까지', '소탕 작전은 1월 말까지 이어졌다. 달아나는 침투조를 휴전선에서 막다가 미군 4명도 숨졌다.'],
-  ['희생', '이 사건으로 국군·경찰과 시민 수십 명이 죽거나 다쳤다. 버스에 타고 있던 시민들도 희생됐다.'],
-  ['그 뒤', '정부는 비정규전에 대비해 향토예비군 창설을 서둘렀다. 그해 4월 향토예비군이 만들어졌다.'],
+  ['추격', '김신조가 붙잡혔다. 남은 침투조를 쫓는 소탕 작전이 1월 말까지 이어졌고, 달아나는 침투조를 휴전선에서 막다가 미군 4명도 숨졌다.'],
+  ['희생, 그리고 그 뒤', '국군·경찰과 시민 수십 명이 죽거나 다쳤다. 정부는 비정규전에 대비해 그해 4월 향토예비군을 만들었다.'],
   ['다시, 오늘 밤', '1968년의 그 밤처럼, 침투조 지휘관이 마지막으로 청와대를 노린다.']
 ];
+const HIST_A1 = HIST.slice();
+// 2막 기록: 한국민족문화대백과(울진·삼척지구 무장공비 침투사건)·국방부 자료·RFA 보도 기준
+const HIST_A2 = [
+  ['1968년 10월 30일', '1·21 사태를 일으킨 북한 124군부대 소속 120명이 원산에서 배로 떠나 그날 울진 해안에 닿았다.'],
+  ['15명씩 한 조', '무장공비들은 15명씩 조를 짜서 10월 30일부터 11월 2일까지 세 차례에 걸쳐 침투했다.'],
+  ['첫 상륙지', '1차로 들어온 30명은 경북 울진군 북면 나곡리 해안으로 올라왔다.'],
+  ['노린 것', '태백산맥에 유격대 활동 거점을 만들고, 산골 마을을 장악해 정보망을 꾸리려 했다.'],
+  ['위장', '이들의 옷차림은 군복, 신사복, 등산복 등으로 제각각이었다.'],
+  ['마을에서', '무장공비들은 마을 주민들을 모아 위협했고, 따르지 않는 주민을 해쳤다.'],
+  ['신고', '살아남은 주민들의 신고로 군경과 예비군의 소탕 작전이 곧바로 시작됐다.'],
+  ['향토예비군', '1·21 사태 뒤 만들어진 향토예비군이 군경과 함께 길목에 매복하며 산악 소탕전에 나섰다.'],
+  ['58일', '소탕 작전은 58일 동안 이어졌다. 120명 가운데 111명이 사살되고 5명이 생포됐으며 2명은 자수했다.'],
+  ['다시, 오늘 밤', '1968년 그 가을처럼, 침투조 지휘관이 마지막으로 나곡 마을을 노린다.']
+];
+const HIST_END2 = '1968년 10월 30일부터 11월 2일까지 북한 124군부대 무장공비 120명이 세 차례에 걸쳐 울진·삼척 지역 해안으로 침투했습니다. 태백산맥에 유격 거점을 만들려던 이들은 산골 마을 주민들을 모아 위협하고 해쳤습니다. 주민 신고로 시작된 군경·향토예비군의 소탕 작전은 58일 동안 이어졌고, 120명 가운데 111명이 사살되고 5명이 생포됐으며 2명은 자수했습니다. 1968년 11월 29일 대간첩대책본부 발표로는 민간인 16명을 포함해 49명이 목숨을 잃었습니다. 이 게임은 그 밤을 현대 장비로 다시 막아 내는 가상 작전입니다.';
 const HIST_END = '1968년 1월 21일 밤, 북한 124군부대 31명이 청와대를 노리고 세검정 고개까지 내려왔습니다. 31명 가운데 김신조만 생포됐고, 나머지는 사살되거나 북으로 달아났습니다. 국군·경찰과 시민 수십 명이 죽거나 다쳤고, 최규식 종로경찰서장도 그날 밤 순직했습니다. 이 사건 뒤 향토예비군이 만들어졌습니다. 이 게임은 그 밤을 현대 장비로 다시 막아 내는 가상 작전입니다.';
 const HISTS = { last: -1, t: 0 };
 function histCard(i) {
@@ -4088,11 +4438,11 @@ function relicHud() {
 function relicDue() {
   if (!D.on || D.wave < 1 || D.relicDone[D.wave]) return false;
   const node = D.taken[D.wave - 1];
-  return node === 'elite' || node === 'counter' || D.wave === 6 || (D.endless && (D.wave - 12) % 3 === 0);
+  return node === 'elite' || node === 'counter' || D.wave === 6 || (D.endless && (D.wave - ACT.nw) % 3 === 0);
 }
 // --- 무한 침투: 1막을 깬 뒤 끝없이 몰려오는 단계
 function endlessWave(n) {
-  const k = n - 12, fr = ['north', 'nw', 'ne', 'west', 'east'];
+  const k = n - ACT.nw, fr = ['north', 'nw', 'ne', 'west', 'east'];
   return { name: '무한 침투 ' + k, intel: '끝없이 몰려옵니다 · 몇 단계까지 버틸까요', endless: true, build() {
     const m = 1 + k * 0.2; dpack(1, Math.round(16 * m), pick(fr), 0.18); dpack(4, Math.round(12 * m), pick(fr), 0.2); drun(6, Math.round(4 + k * 1.2), pick(fr));
     for (let i = 0; i < 3 + k; i++) dsch(2 + i * 1.3, pick(['rifle', 'nader', 'rifle', 'rusher', 'sniper']), pick(fr));
@@ -4108,39 +4458,39 @@ function continueEndless() {
 }
 // --- 점수 · 순위표 (온라인: welev-games, 안 되면 이 기기 기록)
 const LB = { url: 'https://tozyoprymcvznkeqmrqp.supabase.co/rest/v1/', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvenlvcHJ5bWN2em5rZXFtcnFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQzNTU5MTksImV4cCI6MjEwOTkzMTkxOX0.I13m5wmaxEzSDh-u_aYbcquTJ072nX2XPpSaVliBDKE', sent: false, rid: '' };
-function runScore(win) { return Math.round((D.cleared || 0) * 1000 + (win ? 3000 : 0) + G.kills * 2 + Math.max(0, G.gate) * 10 + (D.endless ? (D.wave - 12) * 1500 : 0)) * (1 + R.diff * 0.5) | 0; }
+function runScore(win) { return Math.round((D.cleared || 0) * 1000 + (win ? 3000 : 0) + G.kills * 2 + Math.max(0, G.gate) * 10 + (D.endless ? (D.wave - ACT.nw) * 1500 : 0)) * (1 + R.diff * 0.5) | 0; }
 function lbFetch(path, opt) { return fetch(LB.url + path, Object.assign({ headers: { apikey: LB.key, Authorization: 'Bearer ' + LB.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' } }, opt || {})); }
-function lbLocal() { try { return JSON.parse(localStorage.getItem('uw_lb') || '[]'); } catch (e) { return []; } }
+function lbLocal() { try { return JSON.parse(localStorage.getItem('uw_lb' + (ACT.id > 1 ? ACT.id : '')) || '[]'); } catch (e) { return []; } }
 function lbHTML(win) {
   const sc = runScore(win); let nm = ''; try { nm = localStorage.getItem('uw_name') || ''; } catch (e) { nm = ''; }
-  return '<div class="lb"><div class="lbHead"><b>순위표</b><span>이번 판 점수 <em>' + sc.toLocaleString() + '</em>' + (D.endless ? ' · 무한 침투 ' + Math.max(0, D.wave - 12) + '단계' : '') + '</span></div>' +
+  return '<div class="lb"><div class="lbHead"><b>순위표</b><span>이번 판 점수 <em>' + sc.toLocaleString() + '</em>' + (D.endless ? ' · 무한 침투 ' + Math.max(0, D.wave - ACT.nw) + '단계' : '') + '</span></div>' +
     '<div class="lbForm"><input id="lbName" maxlength="12" placeholder="이름 (12자까지)" value="' + nm.replace(/"/g, '') + '"><button class="btn sm" id="lbSend">기록 올리기</button></div><ol id="lbList"><li class="sub">불러오는 중…</li></ol></div>' +
     '<div class="rate"><b>이번 판 어땠어요?</b><div id="rateStars">' + [1, 2, 3, 4, 5].map((i) => '<button data-star="' + i + '">★</button>').join('') + '</div><input id="rateTxt" maxlength="120" placeholder="한 줄 의견 (선택) · 어디가 어렵거나 재밌었나요?"><button class="btn sm" id="rateSend">보내기</button><span id="rateMsg" class="sub"></span></div>';
 }
 async function lbLoad() {
   const el = $('lbList'); if (!el) return;
   try {
-    const r = await lbFetch('uw_scores?select=name,score,wave,diff,win&order=score.desc&limit=10', { method: 'GET' }); if (!r.ok) throw new Error(r.status);
-    const rows = await r.json(); el.innerHTML = rows.length ? rows.map((x) => '<li><b>' + String(x.name).replace(/</g, '') + '</b><span>' + x.score.toLocaleString() + '</span><small>' + (x.wave > 12 ? '무한 ' + (x.wave - 12) : x.wave + '단계') + ' · ' + DIFF[x.diff || 0].n + '</small></li>').join('') : '<li class="sub">아직 기록이 없어요. 첫 기록을 남겨 보세요!</li>';
+    const r = await lbFetch('uw_scores?select=name,score,wave,diff,win&order=score.desc&limit=10&device=' + (ACT.id === 1 ? 'not.like.*-a*' : 'like.*-a' + ACT.id), { method: 'GET' }); if (!r.ok) throw new Error(r.status);
+    const rows = await r.json(); el.innerHTML = rows.length ? rows.map((x) => '<li><b>' + String(x.name).replace(/</g, '') + '</b><span>' + x.score.toLocaleString() + '</span><small>' + (x.wave > ACT.nw ? '무한 ' + (x.wave - ACT.nw) : x.wave + '단계') + ' · ' + DIFF[x.diff || 0].n + '</small></li>').join('') : '<li class="sub">아직 기록이 없어요. 첫 기록을 남겨 보세요!</li>';
   } catch (e) {
-    const rows = lbLocal(); el.innerHTML = '<li class="sub">온라인 순위표 준비 중 · 이 기기 기록</li>' + (rows.map((x) => '<li><b>' + x.name + '</b><span>' + x.score.toLocaleString() + '</span><small>' + (x.wave > 12 ? '무한 ' + (x.wave - 12) : x.wave + '단계') + '</small></li>').join('') || '');
+    const rows = lbLocal(); el.innerHTML = '<li class="sub">온라인 순위표 준비 중 · 이 기기 기록</li>' + (rows.map((x) => '<li><b>' + x.name + '</b><span>' + x.score.toLocaleString() + '</span><small>' + (x.wave > ACT.nw ? '무한 ' + (x.wave - ACT.nw) : x.wave + '단계') + '</small></li>').join('') || '');
   }
 }
 async function lbSend(win) {
   if (LB.sent) return; const nm = ($('lbName').value || '').trim().slice(0, 12); if (!nm) { $('lbName').focus(); return; }
   try { localStorage.setItem('uw_name', nm); } catch (e) { /* storage blocked */ }
   LB.sent = true; $('lbSend').disabled = true; $('lbSend').textContent = '올리는 중…';
-  const row = { name: nm, score: runScore(win), wave: D.wave, diff: R.diff, win: !!win, device: TOUCH ? 'mobile' : 'pc' };
+  const row = { name: nm, score: runScore(win), wave: D.wave, diff: R.diff, win: !!win, device: (TOUCH ? 'mobile' : 'pc') + (ACT.id > 1 ? '-a' + ACT.id : '') };
   try { const r = await lbFetch('uw_scores', { method: 'POST', body: JSON.stringify(row) }); if (!r.ok) throw new Error(r.status); $('lbSend').textContent = '올렸어요!'; }
-  catch (e) { const l = lbLocal(); l.push(row); l.sort((a, b) => b.score - a.score); try { localStorage.setItem('uw_lb', JSON.stringify(l.slice(0, 10))); } catch (x) { /* storage blocked */ } $('lbSend').textContent = '이 기기에 저장했어요'; }
+  catch (e) { const l = lbLocal(); l.push(row); l.sort((a, b) => b.score - a.score); try { localStorage.setItem('uw_lb' + (ACT.id > 1 ? ACT.id : ''), JSON.stringify(l.slice(0, 10))); } catch (x) { /* storage blocked */ } $('lbSend').textContent = '이 기기에 저장했어요'; }
   lbLoad();
 }
 // --- 3주차: 판 기록 + 평가 (밸런스 조정용)
 function runData(win) {
-  return { rid: LB.rid, ver: 'w3', picks: D.picks, taken: D.taken, medals: D.medals, relics: Object.keys(D.relics || {}), gateLog: D.gateLog || [], downs: HST.down || 0, jackpots: HST.jackpot || 0, gateBy: HST.gate, endless: !!D.endless, lv: R.lv };
+  return { rid: LB.rid, ver: 'w4', act: ACT.id, picks: D.picks, taken: D.taken, medals: D.medals, relics: Object.keys(D.relics || {}), gateLog: D.gateLog || [], downs: HST.down || 0, jackpots: HST.jackpot || 0, gateBy: HST.gate, endless: !!D.endless, lv: R.lv };
 }
 function runSend(win, rating, comment) {
-  const row = { win: !!win, wave: D.wave, diff: R.diff, device: TOUCH ? 'mobile' : 'pc', secs: Math.round(G.t), kills: G.kills, gate: Math.round(Math.max(0, G.gate)), rating: rating || null, comment: comment || null, data: runData(win) };
+  const row = { win: !!win, wave: D.wave, diff: R.diff, device: (TOUCH ? 'mobile' : 'pc') + (ACT.id > 1 ? '-a' + ACT.id : ''), secs: Math.round(G.t), kills: G.kills, gate: Math.round(Math.max(0, G.gate)), rating: rating || null, comment: comment || null, data: runData(win) };
   return lbFetch('uw_runs', { method: 'POST', body: JSON.stringify(row) }).then((r) => r.ok).catch(() => false);
 }
 function resultBind(win) {
@@ -4859,13 +5209,39 @@ function frame() {
 // ================= screens
 const STORY_DEF = '1968년 1월 21일 밤, 북한 124군부대 31명이 청와대를 노리고 북악산을 넘어왔습니다. 그 밤이 오늘 다시 온다면? 당신은 현대 장비를 갖춘 특전사 대테러 분대 \'알파\'의 분대장. 무전으로 병력과 화력을 요청해 청와대 정문을 끝까지 지켜야 합니다. 판마다 들어오는 보급이 달라서 매번 다른 방어선이 만들어집니다.';
 const STORY = '눈 내리는 1월 21일 밤. 휴전선을 넘은 북한 특수부대 침투조 31명과 이들을 엄호하는 경보병 부대가 북악산 능선을 타고 청와대로 내려오고 있습니다. 자하문 검문소의 경찰이 먼저 그들을 막아섰고, 총성이 울렸습니다. 당신은 특전사 대테러 분대 \'알파\'의 분대장. 침투조가 청와대 담장에 닿기 전에 모두 막아 내야 합니다.';
+
+// ================= 막(Act) 정의 · 1막 청와대 / 2막 울진·삼척 나곡 마을
+const STORY_DEF2 = '1968년 10월 30일, 1·21 사태를 일으킨 북한 124군부대 120명이 배를 타고 원산을 떠나 그날 경북 울진 해안에 닿았습니다. 태백산맥에 유격 거점을 만들고 산골 마을을 장악하려던 작전이었습니다. 그 밤이 오늘 다시 온다면? 알파 분대는 해안 마을 나곡을 지켜야 합니다. 바다에서 오는 고무보트는 해안에 닿기 전에 부수고, 능선과 골짜기로 내려오는 침투조는 마을 입구에서 막으세요.';
+const ACTS = {
+  1: { id: 1, nw: 10, snow: true, kick: '1막 · 작전명 북악', sub: '1968.1.21 · 청와대 사방 방어', h1: '1·21 <span>청와대 방어전</span>', hud: '1막 · 청와대 방어전', go: '출동 · 청와대 방어전', core: '청와대', story: STORY_DEF,
+    intro: '알파1, 네 길목에 경계조를 세워 뒀다. 침투조가 사방에서 온다. 병력을 더 요청해 막아라.', winH: '청와대 <span>사수</span>', bossDown: '침투조 지휘관 제압', histHead: '실제 1·21 사태', histEnd: HIST_END,
+    waves: WAVES_A1, hist: HIST_A1, counters: COUNTERS_A1, fname: FRONT_NAME_A1, fronts: WAVE_FRONTS_A1 },
+  2: { id: 2, nw: 10, snow: false, kick: '2막 · 작전명 태백', sub: '1968.10.30 · 울진 해안 마을 방어', h1: '울진·삼척 <span>해안 마을 방어전</span>', hud: '2막 · 나곡 마을 방어전', go: '출동 · 나곡 마을 방어전', core: '마을', story: STORY_DEF2,
+    intro: '알파1, 해안 초소 보고다. 바다에 배가 보인다. 마을 길목마다 경계조를 세웠다. 해안부터 막아라.', winH: '나곡 마을 <span>사수</span>', bossDown: '침투조 지휘관 제압', histHead: '실제 울진·삼척 무장공비 침투 사건', histEnd: HIST_END2,
+    waves: WAVES_A2, hist: HIST_A2, counters: COUNTERS_A2, fname: FRONT_NAME_A2, fronts: WAVE_FRONTS_A2 }
+};
+const TXT0 = { ev: EVENTS.map((e) => ({ t: e.t, d: e.d, a: e.a.map((o) => o.slice()) })), so: Object.fromEntries(Object.entries(SORTIES).map(([k, v]) => [k, { n: v.n, d: v.d, reward: v.reward }])), cd: Object.fromEntries(Object.entries(CARDS).map(([k, v]) => [k, { n: v.n, d: v.d }])) };
+function setAct(id) {
+  ACT = ACTS[id] || ACTS[1];
+  WAVES.length = 0; WAVES.push(...ACT.waves);
+  HIST.length = 0; HIST.push(...ACT.hist);
+  for (const k in COUNTERS) delete COUNTERS[k]; Object.assign(COUNTERS, ACT.counters);
+  Object.assign(FRONT_NAME, ACT.fname);
+  WAVE_FRONTS.length = 0; WAVE_FRONTS.push(...ACT.fronts);
+  EVENTS.forEach((e, i) => { const o = TXT0.ev[i]; e.t = AT(o.t); e.d = AT(o.d); e.a = o.a.map((x) => x.map(AT)); });
+  for (const k in SORTIES) { const o = TXT0.so[k]; SORTIES[k].n = AT(o.n); SORTIES[k].d = AT(o.d); SORTIES[k].reward = AT(o.reward); }
+  for (const k in CARDS) { const o = TXT0.cd[k]; if (typeof o.n === 'string') CARDS[k].n = AT(o.n); if (typeof o.d === 'string') CARDS[k].d = AT(o.d); }
+  if (ACT.id === 2) { const r = EVENTS.find((e) => e.id === 'refugee'); if (r) r.d = '서쪽 정미소에 주민들이 고립됐다는 무전입니다. 적 경보병이 다가오고 있습니다.'; }
+}
+setAct(R.act || 1);
 function titleHTML(loading) {
   const nu = nextUnlock();
-  return '<div class="panel"><div class="logo">UNFINISHED <i>WAR</i><small>언피니시드 워 · 끝나지 않은 전쟁</small></div><div class="kick">1막 · 작전명 북악</div><h1>1·21 <span>청와대 방어전</span></h1>' +
-    '<p>' + STORY_DEF + '</p>' + charBox() +
-    '<div class="btns"><button class="btn pri" id="go"' + (loading ? ' disabled' : '') + '>' + (loading ? '모델 불러오는 중…' : '출동 · 청와대 방어전') + '</button><button class="btn" id="camp"' + (loading ? ' disabled' : '') + '>캠페인 1막 (이전 버전)</button><span id="load"></span></div>' + (TOUCH ? '<p class="tonly">📱 <b>왼쪽 스틱</b> 이동 · <b>오른쪽 큰 버튼</b> 사격(누른 채 끌면 그 방향 조준, 가까운 적 자동 조준) · 오른쪽 화면을 끌면 조준만 · 사격 버튼 둘레에 구르기·수류탄·재장전 · 위 오른쪽 <b>지원 요청</b></p>' : '') +
+  const acts = '<div class="acts">' + [1, 2].map((id) => '<button class="actb' + (ACT.id === id ? ' on' : '') + '" data-act="act:' + id + '"><b>' + ACTS[id].kick + '</b><span>' + ACTS[id].sub + '</span></button>').join('') + '<div class="actb soon"><b>3막 · 제작 예정</b><span>다음 도발 사건</span></div></div>';
+  return '<div class="panel"><div class="logo">UNFINISHED <i>WAR</i><small>언피니시드 워 · 끝나지 않은 전쟁</small></div>' + acts + '<div class="kick">' + ACT.kick + '</div><h1>' + ACT.h1 + '</h1>' +
+    '<p>' + ACT.story + '</p>' + charBox() +
+    '<div class="btns"><button class="btn pri" id="go"' + (loading ? ' disabled' : '') + '>' + (loading ? '모델 불러오는 중…' : ACT.go) + '</button><button class="btn" id="camp"' + (loading ? ' disabled' : '') + '>캠페인 1막 (이전 버전)</button><span id="load"></span></div>' + (TOUCH ? '<p class="tonly">📱 <b>왼쪽 스틱</b> 이동 · <b>오른쪽 큰 버튼</b> 사격(누른 채 끌면 그 방향 조준, 가까운 적 자동 조준) · 오른쪽 화면을 끌면 조준만 · 사격 버튼 둘레에 구르기·수류탄·재장전 · 위 오른쪽 <b>지원 요청</b></p>' : '') +
     '<div class="brief"><div class="box"><h3>진행 방식</h3><ol>' +
-    '<li><b>12단계</b>를 버티면 승리. 마지막에 침투조 지휘관이 나옵니다</li>' +
+    '<li><b>' + ACT.nw + '단계</b>를 버티면 승리. 마지막에 침투조 지휘관이 나옵니다' + (ACT.id === 2 ? ' · 바다의 <b>고무보트</b>는 해안에 닿기 전에 부수세요' : '') + '</li>' +
     '<li>웨이브 사이 <b>무전 보급</b> 카드 3장 중 1장 · 분대원·진지·화력 지원·강화</li>' +
     '<li>분대원·진지는 <b>땅을 좌클릭해 배치</b>. 같은 분대원을 또 뽑으면 이병→병장 <b>진급</b></li>' +
     '<li>같은 부대 2·3명이면 <b>시너지</b> · 특전사·해병대·향토방위</li>' +
@@ -4884,7 +5260,7 @@ function charBox() {
     '<div class="diffs">' + diffs + '</div>' + (il < D.rec ? '<p class="warn">권장 아이템 레벨보다 낮아요. 아래 난이도에서 장비를 더 모으면 좋아요.</p>' : '') +
     '<p class="sub" style="margin:0">진행 기록은 이 브라우저에만 저장돼요. ' + (GS.wipeArm ? '<button class="btn sm" data-act="wipe">정말 처음부터 (레벨·장비 삭제)</button>' : '<button class="btn sm" data-act="wipe1">진행 초기화</button>') + '</p></div>';
 }
-function showTitle() { G.state = 'title'; $('ov').hidden = false; $('ov').classList.add('art'); $('hud').hidden = true; $('ov').innerHTML = titleHTML(!CHR.loaded); bindGo(); }
+function showTitle() { setAct(R.act || 1); G.state = 'title'; $('ov').hidden = false; $('ov').classList.add('art'); $('hud').hidden = true; $('ov').innerHTML = titleHTML(!CHR.loaded); bindGo(); }
 function bindGo() { const b = $('go'); if (b) b.onclick = () => { ac(); startDefense(); }; const c = $('camp'); if (c) c.onclick = () => { ac(); startGame(0); }; }
 function pause(on) {
   if (on && G.state === 'play') {
