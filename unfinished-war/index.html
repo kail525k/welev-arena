@@ -1096,10 +1096,11 @@ function hurt(a, dmg, src, opt) {
     if (a.player && ((P.dodge && P.dodge.inv > 0) || P.invT > 0)) return 0;
     if (src === 'foe') dmg *= DIFF[R.diff].dmg;
     if (a.player) dmg *= 1 - ST.def / 100;
+    if (a.player && D.on && R.diff === 0) dmg *= 0.65;
     if (a.police) dmg *= 0.5;
     if (a.ally && D.on) dmg *= 1 - D.syn.def;
     a.hp -= dmg; a.hitT = 0.12;
-    if (a.player) { G.taken += dmg; P.regenT = 5.5; G.shake = Math.max(G.shake, 0.25); SFX.hurt(); $('vign').classList.add('hurt'); setTimeout(() => $('vign').classList.remove('hurt'), 160); }
+    if (a.player) { G.taken += dmg; P.regenT = D.on ? 3.5 : 5.5; G.shake = Math.max(G.shake, 0.25); SFX.hurt(); $('vign').classList.add('hurt'); setTimeout(() => $('vign').classList.remove('hurt'), 160); }
     dnum(a.x, 2.1, a.z, Math.round(dmg), 'hurt');
     if (a.hp <= 0) {
       a.hp = 0;
@@ -1594,7 +1595,7 @@ function updatePlayer(dt) {
   if (a.downT > 0) { a.downT -= dt; if (a.downT <= 0) { a.downT = 0; a.hp = Math.round(a.maxhp * 0.6); if (D.on) { const sp = hdDropPt(); a.x = sp[0]; a.z = sp[1]; hdRespawn(a); } else { a.x = 0; a.z = 19; } a.ch.lockT = 0; play(a.ch, 'aim'); dnum(a.x, 2.6, a.z, '재투입', 'tag'); pillar(a.x, a.z, '#5fe08a'); } return; }
   for (const k in P.cd) P.cd[k] = Math.max(0, P.cd[k] - dt);
   P.odT = Math.max(0, P.odT - dt); P.shotT += dt; P.regenT -= dt; P.adrT -= dt; P.rapidT -= dt;
-  if (P.regenT <= 0 && a.hp < a.maxhp) a.hp = Math.min(a.maxhp, a.hp + 2.5 * dt);
+  if (P.regenT <= 0 && a.hp < a.maxhp) a.hp = Math.min(a.maxhp, a.hp + (D.on ? 7 : 2.5) * dt);
   if (ST.sp.medic && a.hp < a.maxhp * 0.35) a.hp = Math.min(a.maxhp, a.hp + 8 * dt);
   const low = a.hp < a.maxhp * 0.35;
   if (low) { P.hbT -= dt; if (P.hbT <= 0) { P.hbT = 0.75; SFX.heart(); } }
@@ -2176,7 +2177,7 @@ const RANKS = ['이병', '일병', '상병', '병장'];
 const BUFF_V = { atk: ['atk', 15], rate: ['rate', 15], hp: ['hp', 45], crit: ['crit', 10], pierce: ['pierce', 1], cdr: ['cdr', 12] };
 const rankMul = (r) => 1 + 0.4 * (r - 1);
 const allyAtk = () => 1 + (D.on ? D.syn.atk : 0);
-const gateMul = () => (D.on ? (1 - D.syn.gate) * (D.wave >= 8 ? 0.85 : 1) : 1);
+const gateMul = () => (D.on ? (1 - D.syn.gate) * (D.wave >= 8 ? 0.85 : 1) * (R.diff === 0 ? 0.8 : 1) : 1);
 const unitLabel = (k) => CARDS[k].n + ' · ' + RANKS[D.owned[k].rank - 1];
 function nextUnlock() {
   let lv = 99;
@@ -2276,7 +2277,7 @@ function chooseCard(i) {
 }
 function afterPick() {
   D.placing = null; showGhost(null); updateSyn(); D.supply = false;
-  if (D.wave === 0) { D.node = 'battle'; D.taken[0] = 'battle'; D.st = 'prep'; D.prepT = 6; const W = WAVES[0]; banner('1단계 · ' + W.name, W.intel + ' · [Enter] 바로 시작'); return; }
+  if (D.wave === 0) { D.node = 'battle'; D.taken[0] = 'battle'; D.st = 'prep'; D.prepT = 6; const W = WAVES[0]; banner('1단계 · ' + W.name, W.intel + (TOUCH ? '' : ' · [Enter] 바로 시작')); return; }
   if (D.wave >= 12) return;
   showMap();
 }
@@ -2332,6 +2333,16 @@ function tryPlace(auto) {
 }
 
 // ---- squad units (hold their post, fight on their own)
+// 시작 경계 병력: 네 길목마다 소총수·기관총 사수 한 조 (보급 카드와 별개)
+const GARRISON = [[-2.2, -15.5, 'rifle'], [1.9, -15.1, 'mg'], [2.6, 15.6, 'rifle'], [-1.9, 15.2, 'mg'], [-15.6, 2.2, 'rifle'], [-15.2, -1.9, 'mg'], [15.6, -2.4, 'rifle'], [15.2, 1.9, 'mg']];
+function spawnGarrison() {
+  for (const [x, z, k] of GARRISON) {
+    const c = CARDS[k];
+    const a = newActor({ name: '경계 ' + c.n, tag: '경계', role: k, x, z, yaw: Math.atan2(x, z), team: FRIEND, ally: true, unit: true, garrison: true, post: { x, z }, hp: c.hp, maxhp: c.hp, downT: 0, healCd: 3, face: FACT[c.f].face, slot: [0, 0] });
+    a.ch = makeBody(c.body ? c.body[0] : 'swat', { gun: c.gun, ring: '#7cc8ff' });
+    play(a.ch, 'aim'); addLabel(a, 'nm', '경계 ' + c.n);
+  }
+}
 function spawnUnit(k, x, z) {
   const c = CARDS[k], n = c.n2 || 1, grp = [];
   D.owned[k] = { rank: 1, actors: grp };
@@ -2377,7 +2388,7 @@ function unitTarget(a, range) {
   return best;
 }
 function unitFire(a, tg, dt) {
-  const c = CARDS[a.role], W = c.w, mul = rankMul(D.owned[a.role].rank);
+  const c = CARDS[a.role], W = c.w, mul = rankMul(D.owned[a.role] ? D.owned[a.role].rank : 1);
   const yaw = angTo(tg.x - a.x, tg.z - a.z); a.yaw = angLerp(a.yaw, yaw, 1 - Math.exp(-12 * dt));
   if (a.cd > 0) return;
   if (W.lob) { a.cd = W.cd; lob(a.x, a.z, tg.x + rand(-0.6, 0.6), tg.z + rand(-0.6, 0.6), 0.85, { r: W.r, dmg: W.dmg * mul, friendly: true, src: 'ally', by: a.name, arc: 3.5, stun: 0.5 }); play(a.ch, 'throw', 1.4); a.ch.lockT = 0.5; return; }
@@ -2403,7 +2414,7 @@ function unitHeal(a) {
   let best = null, br = 0.92;
   for (const f of G.actors) { if (!f.alive || f.team !== FRIEND || isDown(f) || f.turret || f === a) continue; if ((f.x - a.x) ** 2 + (f.z - a.z) ** 2 > 49) continue; const r = f.hp / f.maxhp; if (r < br) { br = r; best = f; } }
   if (!best) return;
-  const v = Math.round(30 * rankMul(D.owned[a.role].rank)); a.healCd = 5;
+  const v = Math.round(30 * rankMul(D.owned[a.role] ? D.owned[a.role].rank : 1)); a.healCd = 5;
   best.hp = Math.min(best.maxhp, best.hp + v); dnum(best.x, 2.4, best.z, '+' + v, 'heal'); spark(best.x, 1.4, best.z, '#5fe08a', 6);
   if (best.player && rl('medR', 20000)) radio('의무병', '분대장님, 치료합니다!', true);
 }
@@ -2523,13 +2534,14 @@ function startDefense() {
   Object.assign(M, { step: -1, t: 0, sub: 0, sched: [], list: [], mortars: [], mortarsDown: 0, civQ: 0, civT: 0, civSaved: 0, civLost: 0, policeLost: 0, police: [], bossSpawned: false, gap: 0, next: 0, truck: null, truckDone: false, truckHit: false, xpGain: 0, loot: [], lv0: R.lv });
   ST = calcStats();
   spawnPlayerOnly(ARENA.home[0], ARENA.home[1]);
+  spawnGarrison();
   camX = ARENA.home[0]; camZ = ARENA.home[1];
   $('actTxt').textContent = '1막 · 청와대 방어전'; $('kiaTxt').innerHTML = '정예 처치 <b id="kiaN">0</b> · 총 제압 <b id="killN">0</b>';
   $('ctrlHint').textContent = 'WASD 이동 · 좌클릭 사격 · R 재장전 · Shift+WASD 지원 요청 · C 집중 사격 · SPC 구르기 · Enter 다음 웨이브 · ESC 일시정지';
   buildHud();
   $('ov').hidden = true; $('ov').classList.remove('art'); $('hud').hidden = false;
   G.state = 'play'; clock.getDelta(); musicStart();
-  radio('통제실', '알파1, 침투조가 네 방향에서 청와대로 몰려온다. 병력을 요청해 사방을 지켜라.');
+  radio('통제실', '알파1, 네 길목에 경계조를 세워 뒀다. 침투조가 사방에서 온다. 병력을 더 요청해 막아라.');
   showPick(true);
 }
 function startWave() {
@@ -2597,7 +2609,7 @@ function defObjs() {
   const rows = [];
   const foes = G.actors.filter((x) => x.alive && x.team === FOE).length + D.sched.filter((s) => s[1] !== '!').length;
   if (D.st === 'wave') rows.push(['남은 적', foes + '명', '']);
-  else if (D.st === 'prep') { const W = WAVES[D.wave]; rows.push([D.node === 'counter' ? '역습 시작' : '다음 전투', Math.ceil(D.prepT) + '초 · Enter', '']); if (W) rows.push([NODE[D.node] ? NODE[D.node].n : '다음 적', W.name, '']); }
+  else if (D.st === 'prep') { const W = WAVES[D.wave]; rows.push([D.node === 'counter' ? '역습 시작' : '다음 전투', Math.ceil(D.prepT) + '초' + (TOUCH ? '' : ' · Enter'), '']); if (W) rows.push([NODE[D.node] ? NODE[D.node].n : '다음 적', W.name, '']); }
   else if (D.st === 'place') rows.push(['배치', CARDS[D.placing].n + ' · 좌클릭', 'ok']);
   else if (D.st === 'map') rows.push(['작전 지도', '다음 작전 선택', 'ok']);
   else if (D.st === 'event') rows.push(['무전 이벤트', '선택하세요', 'ok']);
@@ -2618,7 +2630,7 @@ function updateWaveChip() {
   const el = $('wv');
   if (!D.on || G.boss) { el.hidden = true; return; }
   el.hidden = false;
-  const txt = D.st === 'map' ? '작전 지도 · 다음 작전을 고르세요 (1·2·3)' : D.st === 'event' ? '무전 이벤트 · 선택하세요 (1·2)' : D.st === 'wave' && D.node === 'counter' ? '역습 · 깃발 안에 서서 거점을 점령하세요' : D.st === 'wave' && D.node === 'rescue' ? '피난민 구출 · 버스 앞 노란 표시로' : D.st === 'prep' ? (D.node === 'counter' ? '역습' : (D.wave + 1) + '단계') + ' 시작까지 ' + Math.ceil(D.prepT) + '초 · [Enter] 바로 시작' : D.st === 'place' ? CARDS[D.placing].n + ' 배치 · ' + (TOUCH ? '땅을 톡 누르기 · 아래 [자동 배치]' : '땅을 좌클릭 · [Enter] 자동 배치') : D.st === 'pick' || D.st === 'clear' ? '무전 보급 · 카드 1장을 고르세요' : '웨이브 ' + D.wave + ' / ' + WAVES.length + ' · ' + WAVES[D.wave - 1].name;
+  const txt = D.st === 'map' ? '작전 지도 · 다음 작전을 고르세요 (1·2·3)' : D.st === 'event' ? '무전 이벤트 · 선택하세요 (1·2)' : D.st === 'wave' && D.node === 'counter' ? '역습 · 깃발 안에 서서 거점을 점령하세요' : D.st === 'wave' && D.node === 'rescue' ? '피난민 구출 · 버스 앞 노란 표시로' : D.st === 'prep' ? (D.node === 'counter' ? '역습' : (D.wave + 1) + '단계') + ' 시작까지 ' + Math.ceil(D.prepT) + '초' + (TOUCH ? '' : ' · [Enter] 바로 시작') : D.st === 'place' ? CARDS[D.placing].n + ' 배치 · ' + (TOUCH ? '땅을 톡 누르기 · 아래 [자동 배치]' : '땅을 좌클릭 · [Enter] 자동 배치') : D.st === 'pick' || D.st === 'clear' ? '무전 보급 · 카드 1장을 고르세요' : '웨이브 ' + D.wave + ' / ' + WAVES.length + ' · ' + WAVES[D.wave - 1].name;
   const tx2 = hdChip(txt); if (el.textContent !== tx2) el.textContent = tx2;
 }
 function updateSquadDef() {
@@ -3657,8 +3669,8 @@ function updateBarrels(dt) {
 // ================= 헬다이버즈식 전투: 탄창 · 피하는 적 탄 · 끊김 없는 압박 · 지원 요청(코드 입력)
 const lrp = (a, b, k) => a + (b - a) * k;
 const angD = (a, b) => ((a - b + Math.PI) % TAU + TAU) % TAU - Math.PI;
-const AMMO = { k1a: [30, 1.9], hk416: [30, 2.0], mp5: [36, 1.7], sniper: [6, 2.4] };
-const A = { mag: 30, max: 30, spare: 7, maxSpare: 7, rT: 0, rDur: 1.9, pistol: false, model: '', need: false };
+const AMMO = { k1a: [30, 0.55], hk416: [30, 0.6], mp5: [36, 0.5], sniper: [6, 0.9] };
+const A = { mag: 30, max: 30, spare: 10, maxSpare: 10, rT: 0, rDur: 0.55, trickT: 0, pistol: false, model: '', need: false };
 const HD = { menu: false, lock: false, buf: '', errT: 0, cd: {}, beacons: [], pods: [], sentries: [], boxes: [], drops: [], jets: [], timers: [], flareFx: [], warn: [], flankT: 99, hold: null, holdDone: false, sweep: null, flares: 0, flareCd: 0, mark: null, ui: '', ua: '' };
 const STRAT = [
   { k: 'orb', n: '155mm 정밀 포격', code: 'RRU', cd: 40, call: 2.4, col: '#ff5a3a', d: '큰 원 한 발 · 아군도 휘말림' },
@@ -3689,7 +3701,7 @@ Object.assign(SFX, {
 // ---- 탄창 · 재장전
 function ammoReset(full) {
   const w = ST.w, s = AMMO[w.model] || [30, 1.9];
-  A.model = w.model; A.max = s[0]; A.rDur = s[1]; A.maxSpare = w.model === 'sniper' ? 8 : 7;
+  A.model = w.model; A.max = s[0]; A.rDur = s[1]; A.maxSpare = w.model === 'sniper' ? 12 : 10;
   if (full) { A.mag = A.max; A.spare = A.maxSpare; A.rT = 0; A.pistol = false; A.need = false; }
 }
 function reload(manual) {
@@ -3704,6 +3716,9 @@ function updateAmmo(dt) {
   if (A.model !== ST.w.model) ammoReset(true);
   if (A.rT > 0) { A.rT -= dt; if (A.rT <= 0) { A.rT = 0; A.spare--; A.mag = A.max; A.pistol = false; SFX.magIn(); } }
   else if (A.need) reload(false);
+  else if (!A.pistol && A.spare > 0 && A.mag < A.max * 0.34 && P.shotT > 0.6) reload(false);
+  // 예비 탄창이 조금씩 다시 차서 오래 비어 있지 않음
+  if (A.spare < A.maxSpare) { A.trickT += dt; if (A.trickT >= 6) { A.trickT = 0; A.spare++; if (A.pistol || A.mag <= 0) A.need = true; } } else A.trickT = 0;
 }
 function ammoGive(n) {
   A.spare = Math.min(A.maxSpare, A.spare + n);
