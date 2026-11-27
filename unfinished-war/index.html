@@ -263,60 +263,79 @@ button{font:inherit;color:inherit}
 #capW{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);padding:5px 14px;border-radius:999px;background:rgba(5,8,18,.8);border:1px solid currentColor;font:700 14px 'Noto Sans KR';white-space:nowrap}
 #capW[hidden]{display:none}
 
-/* ---- 모바일(터치) */
+/* ---- 모바일(터치): 콜오브듀티 모바일식 배치 */
+body.touch{--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px)}
 #tc{position:absolute;inset:0;pointer-events:none;z-index:3}
-#tc .zone{position:absolute;top:16%;bottom:0;pointer-events:auto;touch-action:none}
-#tcL{left:0;width:42%}
-#tcR{left:42%;right:132px}
-#tc.place .zone,#tc.place .stick,#tc.place #tcBtns,#tc.menu #tcBtns,#tc.menu #tcStrat{display:none}
+#tc .zone{position:absolute;top:20%;bottom:0;pointer-events:auto;touch-action:none}
+#tcL{left:0;width:45%}
+#tcR{left:45%;right:0}
+#tc.place .zone,#tc.place .stick,#tc.place .act,#tc.place #tcSt,#tc.menu .act,#tc.menu #tcSt,#tc.menu .stick{display:none}
 body.touch #pick{z-index:5}
-.stick{position:absolute;width:112px;height:112px;margin:-56px 0 0 -56px;border-radius:50%;border:2px solid rgba(143,179,255,.38);background:rgba(10,16,34,.28);opacity:0;transition:opacity .1s;pointer-events:none}
+.stick{position:absolute;width:124px;height:124px;margin:-62px 0 0 -62px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:radial-gradient(circle,rgba(255,255,255,.07),rgba(0,0,0,.22) 72%);pointer-events:none;opacity:.6;transition:opacity .12s}
 .stick.on{opacity:1}
-.stick i{position:absolute;left:50%;top:50%;width:46px;height:46px;border-radius:50%;background:rgba(143,179,255,.6);transform:translate(-50%,-50%)}
-.stick.fire{border-color:rgba(255,120,90,.45)}
-.stick.fire i{background:rgba(255,90,58,.65)}
-#tcBtns{position:absolute;right:max(8px,env(safe-area-inset-right));bottom:8px;display:grid;grid-template-columns:repeat(2,54px);gap:7px;pointer-events:auto}
-.tb{position:relative;width:54px;height:54px;border-radius:50%;border:1px solid rgba(143,179,255,.42);background:rgba(8,12,26,.74);color:#eef3ff;display:grid;place-items:center;align-content:center;padding:0;font:700 9.5px 'Noto Sans KR';touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none}
-.tb svg{width:21px;height:21px}
-.tb span{line-height:1;margin-top:2px}
-.tb em{position:absolute;inset:0;display:grid;place-items:center;border-radius:50%;font:700 18px Rajdhani;font-style:normal;color:#fff;background:rgba(0,0,0,.58);opacity:0}
-.tb.cd em{opacity:1}
-.tb.rdy{border-color:#ffd24a;box-shadow:0 0 12px rgba(255,210,74,.6)}
-.tb.sup{border-color:#5fe08a;color:#a8f2c2}
-.tb.sup b{font:400 15px/1 'Black Han Sans'}
-#tcStrat{position:absolute;right:134px;bottom:8px;display:grid;gap:5px;pointer-events:auto;width:214px}
-#tcStrat[hidden]{display:none}
-#tcStrat button{display:grid;grid-template-columns:8px 1fr auto;gap:8px;align-items:center;padding:9px 10px;border-radius:9px;border:1px solid rgba(143,179,255,.35);background:rgba(8,12,26,.92);color:#eef3ff;font:700 12.5px 'Noto Sans KR';text-align:left;touch-action:none}
-#tcStrat button i{width:8px;height:8px;border-radius:2px}
-#tcStrat button span{font:700 12px Rajdhani;color:#5fe08a}
-#tcStrat button.cd{opacity:.45}
-#tcStrat button.cd span{color:#ff9a7a}
-#tcGo{position:absolute;left:50%;bottom:52px;transform:translateX(-50%);padding:10px 22px;border-radius:999px;border:0;background:linear-gradient(180deg,#ff7a5a,#d83a2a);color:#fff;font:700 15px 'Noto Sans KR';pointer-events:auto;box-shadow:0 4px 14px rgba(0,0,0,.5);touch-action:none}
+.stick i{position:absolute;left:50%;top:50%;width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.45);box-shadow:0 0 0 2px rgba(255,255,255,.25),0 2px 8px rgba(0,0,0,.4);transform:translate(-50%,-50%)}
+.stick.look{width:96px;height:96px;margin:-48px 0 0 -48px;opacity:0;border-style:dashed}
+.stick.look i{width:34px;height:34px;background:rgba(255,255,255,.3)}
+.stick.look.on{opacity:.75}
+.act{position:absolute;display:grid;place-items:center;align-content:center;width:52px;height:52px;border-radius:50%;border:2px solid rgba(255,255,255,.34);background:rgba(10,14,24,.45);color:#fff;pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;padding:0;font:700 9.5px 'Noto Sans KR';text-shadow:0 1px 2px #000}
+.act[hidden]{display:none}
+.act svg{width:22px;height:22px}
+.act span{line-height:1;margin-top:2px}
+.act em{position:absolute;inset:-2px;display:grid;place-items:center;border-radius:50%;font:700 18px Rajdhani;font-style:normal;color:#fff;background:rgba(0,0,0,.58);opacity:0;pointer-events:none}
+.act.cd em{opacity:1}
+.act.on{background:rgba(255,255,255,.3);border-color:#fff;transform:scale(.94)}
+.act.fire{border-color:rgba(255,150,120,.85);background:rgba(150,28,18,.4)}
+.act.fire.on{background:rgba(255,80,50,.55)}
+#tFire{right:calc(26px + var(--sar));bottom:24px;width:92px;height:92px}
+#tFire svg{width:46px;height:46px}
+#tFireL{left:calc(170px + var(--sal));bottom:176px;width:58px;height:58px}
+#tFireL svg{width:28px;height:28px}
+#tDodge{right:calc(10px + var(--sar));bottom:140px;width:60px;height:60px}
+#tNade{right:calc(86px + var(--sar));bottom:150px}
+#tReload{right:calc(138px + var(--sar));bottom:14px}
+#tCounter{right:calc(144px + var(--sar));bottom:82px}
+#tFocus{right:calc(160px + var(--sar));bottom:150px}
+#tMG{right:calc(220px + var(--sar));bottom:94px;border-color:#ffd24a}
+#tMG.mount{background:rgba(255,210,74,.35)}
+#tArty{right:calc(211px + var(--sar));bottom:15px;width:58px;height:58px;border:0;background:conic-gradient(#ffd24a var(--g,0%),rgba(255,255,255,.18) 0) border-box;-webkit-mask:none}
+#tArty::before{content:'';position:absolute;inset:3px;border-radius:50%;background:rgba(10,14,24,.82);z-index:-1}
+#tArty{isolation:isolate}
+#tArty.rdy{box-shadow:0 0 14px rgba(255,210,74,.8)}
+#tArty:not(.rdy){color:#9aa6c6}
+#tcSt{position:absolute;top:6px;right:calc(50px + var(--sar));display:flex;gap:5px;pointer-events:auto}
+#tcSt button{position:relative;width:40px;height:40px;border-radius:50%;border:2px solid var(--c);background:rgba(10,14,24,.6);color:#fff;font:700 10.5px 'Noto Sans KR';padding:0;touch-action:none;-webkit-tap-highlight-color:transparent}
+#tcSt button em{position:absolute;inset:-2px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.62);font:700 14px Rajdhani;font-style:normal;opacity:0}
+#tcSt button.cd{border-color:rgba(255,255,255,.22)}
+#tcSt button.cd em{opacity:1}
+#tcGate{position:absolute;left:50%;top:36px;transform:translateX(-50%);width:170px;text-align:center;font:600 10.5px 'Noto Sans KR';color:#cfe3ff;text-shadow:0 1px 2px #000;pointer-events:none}
+#tcGate b{font:700 12px Rajdhani;color:#fff}
+#tcGate i{display:block;height:4px;margin-top:1px;border-radius:2px;background:rgba(0,0,0,.55);overflow:hidden}
+#tcGate u{display:block;height:100%;background:linear-gradient(90deg,#2f7fd6,#7cc8ff)}
+#tcGate.low u{background:linear-gradient(90deg,#d83a2a,#ff8a5a)}
+#tcGo{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);padding:10px 22px;border-radius:999px;border:0;background:linear-gradient(180deg,#ff7a5a,#d83a2a);color:#fff;font:700 15px 'Noto Sans KR';pointer-events:auto;box-shadow:0 4px 14px rgba(0,0,0,.5);touch-action:none}
 #tcGo[hidden]{display:none}
-#tcPause{position:absolute;top:8px;left:calc(min(220px,32vw) + 18px);width:36px;height:36px;border-radius:50%;border:1px solid rgba(143,179,255,.4);background:rgba(8,12,26,.72);color:#eef3ff;font:700 14px 'Noto Sans KR';pointer-events:auto;touch-action:none}
+#tcPause{position:absolute;top:8px;right:calc(8px + var(--sar));width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(10,14,24,.6);color:#eef3ff;font:700 13px 'Noto Sans KR';pointer-events:auto;touch-action:none;padding:0}
 #tcRot{display:none}
 @media (orientation:portrait){body.touch #tcRot{position:fixed;inset:0;z-index:50;display:grid;place-content:center;justify-items:center;gap:10px;background:#0b1020;color:#eef3ff;text-align:center;padding:24px}}
 #tcRot div{font-size:44px}
 #tcRot b{font:400 24px 'Black Han Sans'}
 #tcRot span{font-size:13px;color:#9aa6c6}
 body.touch canvas{touch-action:none}
-body.touch #ctrlHint,body.touch #feed,body.touch #squad,body.touch #lvRow,body.touch #radarTxt,body.touch #strat,body.touch #skills,body.touch #counterTip,body.touch #objList,body.touch #kiaTxt,body.touch #kia br{display:none!important}
-body.touch #left{width:min(220px,32vw);top:8px;left:max(8px,env(safe-area-inset-left))}
-body.touch #obj{padding:6px 10px}
-body.touch #objTitle{font-size:16px}
-body.touch #kia{margin-top:3px;padding-top:3px;font-size:11.5px}
-body.touch #right{top:4px;right:4px;transform:scale(.56);transform-origin:top right}
-body.touch #radio{left:50%;top:44px;bottom:auto;transform:translateX(-50%);width:min(440px,52vw);padding:5px 10px;display:block;border-left-width:2px}
+body.touch #left,body.touch #ctrlHint,body.touch #feed,body.touch #squad,body.touch #lvRow,body.touch #radarTxt,body.touch #strat,body.touch #skills,body.touch #counterTip{display:none!important}
+body.touch #right{left:calc(4px + var(--sal));right:auto;top:4px;width:auto;justify-items:start;transform:scale(.5);transform-origin:top left}
+body.touch #radio{left:50%;top:58px;bottom:auto;transform:translateX(-50%);width:min(420px,48vw);padding:4px 10px;display:block;border-left-width:2px;background:rgba(5,8,18,.62);pointer-events:none}
 body.touch #radio.show{transform:translateX(-50%)}
 body.touch #radio #rFace{display:none}
-body.touch #rWho{display:inline;font-size:11px;margin-right:6px}
-body.touch #rTxt{display:inline;font-size:12px;line-height:1.4}
-body.touch #banner{font-size:clamp(18px,3.6vw,28px);top:30%}
-body.touch #wv{top:6px;font-size:12px;padding:4px 12px}
-body.touch #bottom{bottom:6px;gap:4px}
-body.touch #hpWrap{width:30vw}
-body.touch #ammoBox{right:130px;bottom:6px;top:auto;min-width:0;padding:4px 8px;transform:scale(.7);transform-origin:bottom right}
-body.touch #boss{transform:scale(.8);transform-origin:top center}
+body.touch #rWho{display:inline;font-size:10.5px;margin-right:6px}
+body.touch #rTxt{display:inline;font-size:11.5px;line-height:1.35}
+body.touch #banner{font-size:clamp(18px,3.6vw,28px);top:40%}
+body.touch #wv{top:6px;font-size:12px;padding:3px 12px}
+body.touch #boss{top:56px;transform:translateX(-50%) scale(.8);transform-origin:top center}
+body.touch #capW{bottom:128px;font-size:12px}
+body.touch #bottom{bottom:5px;gap:3px}
+body.touch #hpWrap{width:26vw}
+body.touch #ammoBox{left:auto;right:calc(50% + 13vw + 6px);bottom:4px;top:auto;min-width:0;padding:3px 8px;transform:scale(.6);transform-origin:bottom right;text-align:center}
+body.touch #ammoBox .pips{justify-content:center}
 body.touch #ov{padding:8px;place-items:start center}
 body.touch .panel h1{font-size:clamp(24px,5.4vw,38px)}
 body.touch .panel .logo{font-size:clamp(20px,4.4vw,32px)}
@@ -3397,52 +3416,121 @@ function drawRadarArena(X, Y, k) {
   for (const f of D.fronts || []) { const [fx, fz] = rotP(0, -30, FRONT_ANG[f]); rx.fillStyle = 'rgba(255,70,50,.55)'; rx.beginPath(); rx.arc(X(fx), Y(fz), 5, 0, TAU); rx.fill(); }
 }
 
-// ================= 모바일(터치): 왼쪽 이동 스틱 · 오른쪽 조준/사격 스틱(조준 보조) · 스킬 버튼 · 지원 요청 목록
+// ================= 모바일(터치): 콜오브듀티 모바일식 배치
+// 왼쪽 아래 이동 스틱 · 오른쪽 아래 큰 사격 버튼(누르면 사격, 끌면 그 방향 조준) · 왼쪽 보조 사격 버튼
+// 오른쪽 화면을 끌면 조준만 · 사격 버튼 둘레에 구르기·수류탄·카운터·재장전·집중 · 위쪽 오른쪽에 지원 요청 줄
 const TOUCH = (() => { try { return matchMedia('(pointer: coarse)').matches || (navigator.maxTouchPoints > 0 && matchMedia('(hover: none)').matches); } catch (e) { return false; } })();
-const TC = { on: TOUCH, mv: [0, 0], sticks: { L: null, R: null }, dir: null, tapFire: 0, ui: '' };
-const TC_BTNS = [
-  { a: 'dodge', n: '구르기', cd: 'dodge', ic: SKILLS[0].icon }, { a: 'q', n: '수류탄', cd: 'q', ic: SKILLS[1].icon }, { a: 'e', n: '카운터', cd: 'e', ic: SKILLS[2].icon },
-  { a: 'r', n: '재장전', ic: '<path d="M5 12a7 7 0 1 0 2-5" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M3 4v5h5" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
-  { a: 'c', n: '집중', cd: 'r', ic: SKILLS[3].icon }, { a: 'f', n: '포병', ic: SKILLS[4].icon }, { a: 'g', n: '기관총', ic: '<rect x="3" y="10" width="15" height="4" rx="1" fill="currentColor"/><rect x="17" y="11" width="5" height="2" fill="currentColor"/><path d="M8 14l-3 6M12 14l3 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' }
+const TC = { on: TOUCH, mv: [0, 0], L: null, look: null, fire: null, aim: [0, -1], manT: 0, tapT: 0, tgt: null, ind: null, st: '', home: [0, 0] };
+const TC_FIRE_IC = '<circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/>';
+const TC_ACTS = [
+  { id: 'tFire', a: 'fire', ic: TC_FIRE_IC },
+  { id: 'tFireL', a: 'fire', ic: TC_FIRE_IC },
+  { id: 'tDodge', a: 'dodge', n: '구르기', cd: 'dodge', ic: SKILLS[0].icon },
+  { id: 'tNade', a: 'q', n: '수류탄', cd: 'q', ic: SKILLS[1].icon },
+  { id: 'tCounter', a: 'e', n: '카운터', cd: 'e', ic: SKILLS[2].icon },
+  { id: 'tReload', a: 'r', n: '재장전', ic: '<path d="M5 12a7 7 0 1 0 2-5" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M3 4v5h5" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
+  { id: 'tFocus', a: 'c', n: '집중', cd: 'r', ic: SKILLS[3].icon },
+  { id: 'tMG', a: 'g', n: '거치', ic: '<rect x="3" y="10" width="15" height="4" rx="1" fill="currentColor"/><rect x="17" y="11" width="5" height="2" fill="currentColor"/><path d="M8 14l-3 6M12 14l3 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
+  { id: 'tArty', a: 'f', n: '포병', ic: SKILLS[4].icon }
 ];
+const TC_SHORT = { orb: '포격', air: '폭격', sen: '포탑', sup: '보급', rein: '투입' };
+function tcBuzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+// 적 고르기: 조준 방향 부채꼴 안에서 먼저, 없으면 가장 가까운 적 (조준 보조)
+function tcPick(a, dir, range, coneOnly) {
+  let tgt = null, best = 1e9;
+  for (const e of G.actors) {
+    if (!e.alive || e.team !== FOE || e.removed || isDown(e)) continue;
+    const dx = e.x - a.x, dz = e.z - a.z, d = Math.hypot(dx, dz) || 1; if (d > range) continue;
+    const c = (dx * dir[0] + dz * dir[1]) / d; if (c < 0.86) continue;
+    const sc = d * (1.9 - c); if (sc < best) { best = sc; tgt = e; }
+  }
+  if (tgt || coneOnly) return tgt;
+  for (const e of G.actors) {
+    if (!e.alive || e.team !== FOE || e.removed || isDown(e)) continue;
+    const d = Math.hypot(e.x - a.x, e.z - a.z); if (d < Math.min(range, 20) && d < best) { best = d; tgt = e; }
+  }
+  return tgt;
+}
+// 적이 가장 많이 몰린 곳 (수류탄·포병·폭격 자동 목표)
+function tcCluster(a, minD, maxD) {
+  let best = null, bn = 0;
+  for (const e of G.actors) {
+    if (!e.alive || e.team !== FOE || e.static || e.removed) continue; const dp = Math.hypot(e.x - a.x, e.z - a.z); if (dp < minD || dp > maxD) continue;
+    let n = 0; for (const o of G.actors) if (o.alive && o.team === FOE && (o.x - e.x) ** 2 + (o.z - e.z) ** 2 < 16) n++;
+    if (n > bn) { bn = n; best = e; }
+  }
+  return best;
+}
 function tcAct(a) {
   if (G.state !== 'play') return;
-  ac();
-  if (a === 'dodge') doDodge(); else if (a === 'q') skillQ(); else if (a === 'e') skillE(); else if (a === 'r') { if (D.on) reload(true); }
-  else if (a === 'c') skillR(); else if (a === 'f') skillF(); else if (a === 'g') toggleMG();
+  ac(); tcBuzz(12);
+  const p = P.a;
+  if (a === 'dodge') doDodge(); else if (a === 'e') skillE(); else if (a === 'r') { if (D.on) reload(true); }
+  else if (a === 'c') skillR(); else if (a === 'g') toggleMG();
+  else if ((a === 'q' || a === 'f') && p) {
+    const t = a === 'q' ? (tcPick(p, TC.aim, 13, false) || tcCluster(p, 3, 13)) : (tcCluster(p, 6, 18) || tcPick(p, TC.aim, 18, false));
+    const tx = t ? t.x : p.x + TC.aim[0] * 9, tz = t ? t.z : p.z + TC.aim[1] * 9; gndPt.set(tx, 0, tz); aimPt.set(tx, 1.2, tz);
+    if (a === 'q') skillQ(); else skillF();
+  }
 }
-// 지원 요청: 목록에서 누르면 바로 던짐 (공격형은 적이 몰린 곳, 보급·포탑·재투입은 내 앞)
+// 지원 요청: 누르면 바로 던짐 (공격형은 적이 몰린 곳, 보급·포탑·재투입은 내 앞)
 function tcStrat(k) {
   const p = P.a; if (!p || p.downT > 0 || HD.cd[k] > 0) return;
-  const d = TC.dir || [0, -1];
+  tcBuzz(18);
+  const d = TC.aim;
   let tx = p.x + d[0] * 3, tz = p.z + d[1] * 3;
-  if (k === 'orb' || k === 'air') {
-    let best = null, bn = 0;
-    for (const e of G.actors) {
-      if (!e.alive || e.team !== FOE || e.static) continue; const dp = Math.hypot(e.x - p.x, e.z - p.z); if (dp < 8 || dp > 18) continue;
-      let n = 0; for (const o of G.actors) if (o.alive && o.team === FOE && (o.x - e.x) ** 2 + (o.z - e.z) ** 2 < 16) n++;
-      if (n > bn) { bn = n; best = e; }
-    }
-    if (best) { tx = best.x; tz = best.z; } else { tx = p.x + d[0] * 12; tz = p.z + d[1] * 12; }
-  }
-  P.beacon = k; throwBeacon(tx, tz); $('tcStrat').hidden = true;
+  if (k === 'orb' || k === 'air') { const best = tcCluster(p, 8, 18); if (best) { tx = best.x; tz = best.z; } else { tx = p.x + d[0] * 12; tz = p.z + d[1] * 12; } }
+  P.beacon = k; throwBeacon(tx, tz);
 }
 function tcBuild() {
   if (!TOUCH) return;
   document.body.classList.add('touch');
   const el = document.createElement('div'); el.id = 'tc'; el.hidden = true;
-  el.innerHTML = '<div class="zone" id="tcL"></div><div class="zone" id="tcR"></div><div class="stick" id="stL"><i></i></div><div class="stick fire" id="stR"><i></i></div>' +
-    '<div id="tcBtns">' + TC_BTNS.map((b) => '<button class="tb" data-a="' + b.a + '"><svg viewBox="0 0 24 24">' + b.ic + '</svg><span>' + b.n + '</span><em></em></button>').join('') + '<button class="tb sup" id="tcStratBtn"><b>지원</b><span>요청</span></button></div>' +
-    '<div id="tcStrat" hidden></div><button id="tcGo" hidden></button><button id="tcPause" aria-label="일시정지">Ⅱ</button>';
+  el.innerHTML = '<div class="zone" id="tcL"></div><div class="zone" id="tcR"></div><div class="stick" id="stL"><i></i></div><div class="stick look" id="stR"><i></i></div>' +
+    TC_ACTS.map((b) => '<button class="act' + (b.a === 'fire' ? ' fire' : '') + '" id="' + b.id + '" data-a="' + b.a + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + b.ic + '</svg>' + (b.n ? '<span>' + b.n + '</span>' : '') + '<em></em></button>').join('') +
+    '<div id="tcSt"></div><div id="tcGate"><span>청와대 방어선 <b>100%</b></span><i><u></u></i></div><button id="tcGo" hidden></button><button id="tcPause" aria-label="일시정지">Ⅱ</button>';
   $('hud').appendChild(el);
   const rot = document.createElement('div'); rot.id = 'tcRot'; rot.innerHTML = '<div>📱↻</div><b>가로 화면으로 돌려 주세요</b><span>UNFINISHED WAR는 가로 화면에서 플레이해요</span>'; document.body.appendChild(rot);
-  stickBind($('tcL'), $('stL'), 'L'); stickBind($('tcR'), $('stR'), 'R');
-  el.addEventListener('pointerdown', (e) => {
-    const b = e.target.closest('.tb'); if (!b) return; e.preventDefault(); e.stopPropagation();
-    if (b.id === 'tcStratBtn') { const s = $('tcStrat'); s.hidden = !s.hidden; return; }
-    tcAct(b.dataset.a);
+  // 이동 스틱: 평소엔 왼쪽 아래 제자리에 보이고, 다른 곳을 누르면 그 자리로 따라옴
+  const stL = $('stL'), stR = $('stR');
+  const homeL = () => { TC.home = [104 + (parseFloat(getComputedStyle(document.body).getPropertyValue('--sal')) || 0), window.innerHeight - 104]; stL.style.left = TC.home[0] + 'px'; stL.style.top = TC.home[1] + 'px'; };
+  homeL(); addEventListener('resize', homeL);
+  const zL = $('tcL');
+  zL.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); try { zL.setPointerCapture(e.pointerId); } catch (x) {}
+    const nearHome = Math.hypot(e.clientX - TC.home[0], e.clientY - TC.home[1]) < 80, cx = nearHome ? TC.home[0] : e.clientX, cy = nearHome ? TC.home[1] : e.clientY;
+    TC.L = { id: e.pointerId, x0: cx, y0: cy, dx: 0, dy: 0 }; stL.style.left = cx + 'px'; stL.style.top = cy + 'px'; stL.classList.add('on'); ac(); tcStick(TC.L, stL, e);
   });
-  $('tcStrat').addEventListener('pointerdown', (e) => { const r = e.target.closest('[data-k]'); if (!r) return; e.preventDefault(); e.stopPropagation(); tcStrat(r.dataset.k); });
+  zL.addEventListener('pointermove', (e) => { if (TC.L && TC.L.id === e.pointerId) tcStick(TC.L, stL, e); });
+  const upL = (e) => { if (!TC.L || TC.L.id !== e.pointerId) return; TC.L = null; stL.classList.remove('on'); stL.firstChild.style.transform = 'translate(-50%,-50%)'; stL.style.left = TC.home[0] + 'px'; stL.style.top = TC.home[1] + 'px'; };
+  zL.addEventListener('pointerup', upL); zL.addEventListener('pointercancel', upL);
+  // 오른쪽 화면 끌기: 조준만 (사격은 버튼)
+  const zR = $('tcR');
+  zR.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); try { zR.setPointerCapture(e.pointerId); } catch (x) {}
+    TC.look = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, dy: 0, l: 0 }; stR.style.left = e.clientX + 'px'; stR.style.top = e.clientY + 'px'; stR.classList.add('on'); ac();
+  });
+  zR.addEventListener('pointermove', (e) => { if (TC.look && TC.look.id === e.pointerId) tcStick(TC.look, stR, e); });
+  const upR = (e) => { if (!TC.look || TC.look.id !== e.pointerId) return; TC.look = null; stR.classList.remove('on'); TC.manT = 1.6; };
+  zR.addEventListener('pointerup', upR); zR.addEventListener('pointercancel', upR);
+  // 사격 버튼: 누르고 있으면 사격, 누른 채 끌면 그 방향으로 조준
+  for (const b of el.querySelectorAll('.act')) {
+    b.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      if (b.dataset.a !== 'fire') { tcAct(b.dataset.a); b.classList.add('on'); setTimeout(() => b.classList.remove('on'), 140); return; }
+      try { b.setPointerCapture(e.pointerId); } catch (x) {}
+      ac(); tcBuzz(8); TC.fire = { id: e.pointerId, b, x0: e.clientX, y0: e.clientY, dx: 0, dy: 0, l: 0, drag: false }; b.classList.add('on');
+    });
+    if (b.dataset.a !== 'fire') continue;
+    b.addEventListener('pointermove', (e) => {
+      const F = TC.fire; if (!F || F.id !== e.pointerId) return;
+      const dx = e.clientX - F.x0, dy = e.clientY - F.y0, l = Math.hypot(dx, dy);
+      if (l > 14) { F.drag = true; F.ux = dx / l; F.uz = dy / l; }
+    });
+    const up = (e) => { const F = TC.fire; if (!F || F.id !== e.pointerId) return; if (F.drag) TC.manT = 1.6; TC.fire = null; TC.tapT = 0.14; b.classList.remove('on'); };
+    b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up);
+  }
+  $('tcSt').addEventListener('pointerdown', (e) => { const r = e.target.closest('[data-k]'); if (!r) return; e.preventDefault(); e.stopPropagation(); tcStrat(r.dataset.k); });
   $('tcGo').addEventListener('pointerdown', (e) => { e.preventDefault(); if (D.st === 'prep') startWave(); else if (D.st === 'place') tryPlace(true); });
   $('tcPause').addEventListener('pointerdown', (e) => { e.preventDefault(); if (G.state === 'play') pause(true); });
   // 배치 단계: 화면을 톡 누르면 그 자리에 배치
@@ -3458,73 +3546,72 @@ function tcBuild() {
     try { const r = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen({ navigationUI: 'hide' }); if (r && r.then) r.then(() => { try { screen.orientation.lock('landscape').catch(() => {}); } catch (x) {} }).catch(() => {}); } catch (x) {}
   }, true);
 }
+function tcStick(s, el, e) {
+  let dx = e.clientX - s.x0, dy = e.clientY - s.y0; const R = 54, l = Math.hypot(dx, dy); if (l > R) { dx *= R / l; dy *= R / l; }
+  s.dx = dx / R; s.dy = dy / R; s.l = Math.min(1, l / R); if (l > 1) { s.ux = (e.clientX - s.x0) / l; s.uz = (e.clientY - s.y0) / l; }
+  el.firstChild.style.transform = 'translate(calc(-50% + ' + dx + 'px),calc(-50% + ' + dy + 'px))';
+}
 function tcMouse(e) { const r = canvas.getBoundingClientRect(); mouse.nx = (e.clientX - r.left) / r.width * 2 - 1; mouse.ny = -((e.clientY - r.top) / r.height * 2 - 1); }
-function stickBind(zone, el, side) {
-  zone.addEventListener('pointerdown', (e) => {
-    e.preventDefault(); try { zone.setPointerCapture(e.pointerId); } catch (x) {}
-    TC.sticks[side] = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, dy: 0, t0: performance.now() };
-    el.style.left = e.clientX + 'px'; el.style.top = e.clientY + 'px'; el.classList.add('on'); el.firstChild.style.transform = 'translate(-50%,-50%)';
-    $('tcStrat').hidden = true; ac();
-  });
-  zone.addEventListener('pointermove', (e) => {
-    const s = TC.sticks[side]; if (!s || s.id !== e.pointerId) return;
-    let dx = e.clientX - s.x0, dy = e.clientY - s.y0; const R = 52, l = Math.hypot(dx, dy); if (l > R) { dx *= R / l; dy *= R / l; }
-    s.dx = dx / R; s.dy = dy / R; el.firstChild.style.transform = 'translate(calc(-50% + ' + dx + 'px),calc(-50% + ' + dy + 'px))';
-  });
-  const up = (e) => {
-    const s = TC.sticks[side]; if (!s || s.id !== e.pointerId) return;
-    if (side === 'R' && performance.now() - s.t0 < 240 && Math.hypot(s.dx, s.dy) < 0.3) TC.tapFire = 0.35;
-    TC.sticks[side] = null; el.classList.remove('on');
-  };
-  zone.addEventListener('pointerup', up); zone.addEventListener('pointercancel', up);
+// 조준 표시: 발밑에서 뻗는 조준선 + 조준 보조로 잡은 적 표시
+function tcIndicator(a, show) {
+  if (!TC.ind) {
+    const g = new THREE.Group(), mk = (geo, op, col) => new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: col || '#ffffff', transparent: true, opacity: op, depthWrite: false }));
+    const line = mk(new THREE.PlaneGeometry(0.07, 3.0), 0.32); line.rotation.x = -Math.PI / 2; line.position.set(0, 0.06, 2.3); g.add(line);
+    const tip = mk(new THREE.CircleGeometry(0.26, 3), 0.55); tip.rotation.x = -Math.PI / 2; tip.rotation.z = -Math.PI / 2; tip.position.set(0, 0.06, 3.95); g.add(tip);
+    const lock = mk(new THREE.RingGeometry(0.62, 0.8, 28), 0.8, '#ff4a3a'); lock.rotation.x = -Math.PI / 2;
+    scene.add(g); scene.add(lock); TC.ind = { g, lock };
+  }
+  const I = TC.ind; I.g.visible = show; I.lock.visible = show && !!TC.tgt;
+  if (!show) return;
+  I.g.position.set(a.x, 0, a.z); I.g.rotation.y = Math.atan2(TC.aim[0], TC.aim[1]);
+  if (TC.tgt) { I.lock.position.set(TC.tgt.x, 0.07, TC.tgt.z); const k = 1 + Math.sin(G.t * 12) * 0.08; I.lock.scale.set(k, k, k); }
 }
 // 매 프레임 (updatePlayer 안에서): 이동·조준·사격
 function touchAim(a, dt) {
-  const L = TC.sticks.L, R = TC.sticks.R;
-  TC.mv = L && Math.hypot(L.dx, L.dy) > 0.14 ? [L.dx, L.dy] : [0, 0];
-  TC.tapFire = Math.max(0, TC.tapFire - dt);
-  let dir = null, fire = false;
-  if (R && Math.hypot(R.dx, R.dy) > 0.26) { const l = Math.hypot(R.dx, R.dy); dir = [R.dx / l, R.dy / l]; fire = true; TC.dir = dir; }
-  let tgt = null, best = 1e9;
-  for (const e of G.actors) {
-    if (!e.alive || e.team !== FOE || e.removed) continue;
-    const dx = e.x - a.x, dz = e.z - a.z, d = Math.hypot(dx, dz) || 1; if (d > 24) continue;
-    let sc = d;
-    if (dir) { const c = (dx * dir[0] + dz * dir[1]) / d; if (c < 0.9) continue; sc = d * (1.8 - c); }
-    if (sc < best) { best = sc; tgt = e; }
-  }
-  if (TC.tapFire > 0 && tgt) fire = true;
-  let tx, tz;
-  if (tgt && (dir || TC.tapFire > 0)) { tx = tgt.x; tz = tgt.z; }
-  else if (dir) { tx = a.x + dir[0] * 10; tz = a.z + dir[1] * 10; }
-  else if (TC.dir) { tx = a.x + TC.dir[0] * 10; tz = a.z + TC.dir[1] * 10; }
-  else { tx = a.x; tz = a.z - 10; }
+  const L = TC.L; TC.mv = L && Math.hypot(L.dx, L.dy) > 0.12 ? [L.dx, L.dy] : [0, 0];
+  TC.tapT = Math.max(0, TC.tapT - dt);
+  const F = TC.fire, firing = !!F || TC.tapT > 0;
+  TC.manT = Math.max(0, TC.manT - dt);
+  let manual = null;
+  if (TC.look && TC.look.l > 0.2) manual = [TC.look.ux, TC.look.uz];
+  if (F && F.drag) manual = [F.ux, F.uz];
+  if (manual) { TC.aim = manual; TC.manT = 1.6; }
+  else if (!firing && TC.manT <= 0 && (TC.mv[0] || TC.mv[1])) { const l = Math.hypot(TC.mv[0], TC.mv[1]); TC.aim = [TC.mv[0] / l, TC.mv[1] / l]; }
+  let tgt = null;
+  if (firing || TC.look) tgt = tcPick(a, TC.aim, 24, !!manual || TC.manT > 0 || !firing);
+  if (tgt && firing) { const dx = tgt.x - a.x, dz = tgt.z - a.z, d = Math.hypot(dx, dz) || 1; TC.aim = [dx / d, dz / d]; }
+  TC.tgt = tgt;
+  const tx = tgt ? tgt.x : a.x + TC.aim[0] * 10, tz = tgt ? tgt.z : a.z + TC.aim[1] * 10;
   aimPt.set(tx, 1.2, tz); gndPt.set(tx, 0, tz);
-  mouse.down = fire && !(D.on && D.st === 'place');
+  mouse.down = firing;
+  tcIndicator(a, a.alive && !(a.downT > 0));
 }
 function tcUI() {
   const tc = $('tc'); if (!tc) return;
   const show = G.state === 'play'; if (tc.hidden === show) tc.hidden = !show;
-  if (!show) return;
-  tc.classList.toggle('place', D.on && D.st === 'place'); tc.classList.toggle('menu', !$('pick').hidden);
-  const go = $('tcGo'), gt = D.on && D.st === 'prep' ? '▶ 전투 시작' : D.on && D.st === 'place' ? '자동 배치' : '';
+  if (!show) { if (TC.ind) { TC.ind.g.visible = false; TC.ind.lock.visible = false; } return; }
+  const place = D.on && D.st === 'place'; tc.classList.toggle('place', place); tc.classList.toggle('menu', !$('pick').hidden);
+  if (place && TC.ind) { TC.ind.g.visible = false; TC.ind.lock.visible = false; }
+  const go = $('tcGo'), gt = D.on && D.st === 'prep' ? '▶ 전투 시작' : place ? '자동 배치' : '';
   go.hidden = !gt; if (gt && go.textContent !== gt) go.textContent = gt;
-  for (const b of tc.querySelectorAll('.tb[data-a]')) {
-    const d = TC_BTNS.find((q) => q.a === b.dataset.a); let t = 0;
+  for (const b of tc.querySelectorAll('.act')) {
+    const d = TC_ACTS.find((q) => q.id === b.id); let t = 0, hide = false;
     if (d.cd) t = P.cd[d.cd] || 0;
-    if (d.a === 'f') { b.classList.toggle('rdy', P.gauge >= 100); }
-    if (d.a === 'r') t = D.on ? A.rT : 0;
+    if (d.a === 'r') { hide = !D.on; t = D.on ? A.rT : 0; }
+    if (d.a === 'f') { const g = Math.min(100, P.gauge || 0); b.style.setProperty('--g', g + '%'); b.classList.toggle('rdy', g >= 100); }
+    if (d.a === 'g') { const p = P.a; hide = !(P.mg || (p && MGS.some((m) => Math.hypot(m.x - p.x, m.z - p.z) < 2.6))); b.classList.toggle('mount', !!P.mg); }
+    if (b.hidden !== hide) b.hidden = hide;
     const em = b.querySelector('em'), txt = t > 0.05 ? Math.ceil(t) + '' : '';
     if (em.textContent !== txt) em.textContent = txt; b.classList.toggle('cd', t > 0.05);
   }
-  $('tcStratBtn').hidden = !D.on;
-  const s = $('tcStrat');
-  if (!s.hidden) {
-    const h = STRAT.map((q) => { const c = HD.cd[q.k] > 0; return '<button data-k="' + q.k + '"' + (c ? ' class="cd"' : '') + '><i style="background:' + q.col + '"></i><b>' + q.n + '</b><span>' + (c ? Math.ceil(HD.cd[q.k]) + '초' : '준비') + '</span></button>'; }).join('');
-    if (h !== TC.ui) { TC.ui = h; s.innerHTML = h; }
-  }
+  const st = $('tcSt');
+  if (D.on) {
+    const h = STRAT.map((q) => { const c = HD.cd[q.k] > 0; return '<button data-k="' + q.k + '" style="--c:' + q.col + '"' + (c ? ' class="cd"' : '') + '>' + (TC_SHORT[q.k] || q.n.slice(0, 2)) + '<em>' + (c ? Math.ceil(HD.cd[q.k]) : '') + '</em></button>'; }).join('');
+    if (h !== TC.st) { TC.st = h; st.innerHTML = h; }
+  } else if (TC.st) { TC.st = ''; st.innerHTML = ''; }
+  const gv = Math.max(0, Math.round(G.gate)), gb = $('tcGate');
+  gb.querySelector('b').textContent = gv + '%'; gb.querySelector('u').style.width = gv + '%'; gb.classList.toggle('low', gv < 35);
 }
-
 // ---- 드럼통: 길목마다 놓인 기름통. 쏘거나 폭발에 휘말리면 터지면서 주변 적을 날림 (연쇄 폭발)
 const BARREL_AT = [[-3.1, -21], [2.9, -27.5], [3.7, 22], [-3.6, 29], [-22, 3.0], [-28.5, -2.9], [21.5, -2.7], [27.5, 2.7]];
 const BRL = { list: [], geo: null, mats: null };
@@ -4185,7 +4272,7 @@ function drawEdge() {
     const run = a.type === 'runner';
     arrow(sx, sy, a.boss ? 'rgba(255,60,40,.95)' : obj || run ? 'rgba(255,154,58,.95)' : a.grunt ? 'rgba(255,80,64,.5)' : 'rgba(255,80,64,.8)', a.boss || a.type === 'truck' ? 18 : run ? 10 : a.grunt ? 8 : 11, a.boss ? '지휘관' : a.type === 'mortar' ? '박격포' : a.type === 'truck' ? '트럭' : a.type === 'sniper' ? '저격수' : '');
   }
-  if (P.a && !P.mg) for (const g of MGS) { if (Math.hypot(g.x - P.a.x, g.z - P.a.z) > 7) continue; const [sx, sy] = toScreen(g.x, 1.9, g.z); ex.font = '700 14px "Noto Sans KR", sans-serif'; ex.textAlign = 'center'; ex.strokeStyle = 'rgba(0,0,0,.8)'; ex.lineWidth = 4; ex.fillStyle = '#ffd24a'; ex.strokeText(TOUCH ? '기관총 버튼으로 거치' : '[G] 거치 기관총', sx, sy); ex.fillText(TOUCH ? '기관총 버튼으로 거치' : '[G] 거치 기관총', sx, sy); }
+  if (P.a && !P.mg) for (const g of MGS) { if (Math.hypot(g.x - P.a.x, g.z - P.a.z) > (TC.on ? 2.6 : 7)) continue; const [sx, sy] = toScreen(g.x, 1.9, g.z); ex.font = '700 14px "Noto Sans KR", sans-serif'; ex.textAlign = 'center'; ex.strokeStyle = 'rgba(0,0,0,.8)'; ex.lineWidth = 4; ex.fillStyle = '#ffd24a'; ex.strokeText(TOUCH ? '[거치] 버튼' : '[G] 거치 기관총', sx, sy); ex.fillText(TOUCH ? '[거치] 버튼' : '[G] 거치 기관총', sx, sy); }
   if (P.hm > 0 || P.hmK > 0) { const hx = (mouse.nx + 1) / 2 * W, hy = (1 - mouse.ny) / 2 * H, k = P.hmK > 0, r = k ? 11 : 8; ex.strokeStyle = k ? '#ff4b3a' : '#ffffff'; ex.lineWidth = k ? 3 : 2; ex.beginPath(); for (const [ax, ay] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { ex.moveTo(hx + ax * 4, hy + ay * 4); ex.lineTo(hx + ax * r, hy + ay * r); } ex.stroke(); }
   if (D.on && D.st === 'place' && D.placing) { const hx = (mouse.nx + 1) / 2 * W, hy = (1 - mouse.ny) / 2 * H; ex.font = '700 14px "Noto Sans KR", sans-serif'; ex.textAlign = 'left'; ex.strokeStyle = 'rgba(0,0,0,.85)'; ex.lineWidth = 4; ex.fillStyle = '#5fe08a'; const t = (TOUCH ? '톡: ' : '좌클릭: ') + CARDS[D.placing].n + ' 배치' + (TOUCH ? '' : ' · Enter 자동'); ex.strokeText(t, hx + 18, hy + 26); ex.fillText(t, hx + 18, hy + 26); }
   if (M.mk && P.a) {
@@ -4272,7 +4359,7 @@ function titleHTML(loading) {
   const nu = nextUnlock();
   return '<div class="panel"><div class="logo">UNFINISHED <i>WAR</i><small>언피니시드 워 · 끝나지 않은 전쟁</small></div><div class="kick">1막 · 작전명 북악</div><h1>1·21 <span>청와대 방어전</span></h1>' +
     '<p>' + STORY_DEF + '</p>' + charBox() +
-    '<div class="btns"><button class="btn pri" id="go"' + (loading ? ' disabled' : '') + '>' + (loading ? '모델 불러오는 중…' : '출동 · 청와대 방어전') + '</button><button class="btn" id="camp"' + (loading ? ' disabled' : '') + '>캠페인 1막 (이전 버전)</button><span id="load"></span></div>' + (TOUCH ? '<p class="tonly">📱 <b>왼손</b>으로 끌어 이동 · <b>오른손</b>으로 끌면 그 방향 자동 조준 사격(톡 치면 가까운 적) · 오른쪽 버튼으로 구르기·수류탄·지원 요청</p>' : '') +
+    '<div class="btns"><button class="btn pri" id="go"' + (loading ? ' disabled' : '') + '>' + (loading ? '모델 불러오는 중…' : '출동 · 청와대 방어전') + '</button><button class="btn" id="camp"' + (loading ? ' disabled' : '') + '>캠페인 1막 (이전 버전)</button><span id="load"></span></div>' + (TOUCH ? '<p class="tonly">📱 <b>왼쪽 스틱</b> 이동 · <b>오른쪽 큰 버튼</b> 사격(누른 채 끌면 그 방향 조준, 가까운 적 자동 조준) · 오른쪽 화면을 끌면 조준만 · 사격 버튼 둘레에 구르기·수류탄·재장전 · 위 오른쪽 <b>지원 요청</b></p>' : '') +
     '<div class="brief"><div class="box"><h3>진행 방식</h3><ol>' +
     '<li><b>12단계</b>를 버티면 승리. 마지막에 침투조 지휘관이 나옵니다</li>' +
     '<li>웨이브 사이 <b>무전 보급</b> 카드 3장 중 1장 · 분대원·진지·화력 지원·강화</li>' +
