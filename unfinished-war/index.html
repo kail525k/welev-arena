@@ -566,10 +566,11 @@ function vehicleFaces(v, ext, sub, rear) {
   };
 }
 const TRUCK_PARTS = [[0, 0.215, 0.70], [0.215, 0.46, 0.95], [0.46, 1, 1]];
-function makeTruckBody() {
+const M35_PARTS = [[0, 0.25, 0.72], [0.25, 0.41, 0.99], [0.41, 1, 1]], ZIL3_PARTS = [[0, 0.27, 0.74], [0.27, 0.42, 0.96], [0.42, 1, 1]];
+function makeTruckBody(v, parts) {
   const root = new THREE.Group(), L = 6.6, W = 2.45, H = 2.75, mats = [];
-  TRUCK_PARTS.forEach(([u0, u1, vt], i) => {
-    const b = texBox(W, vt * H, (u1 - u0) * L, vehicleFaces('truck', 'webp', [u0, u1, vt], i === 2), true);
+  (parts || TRUCK_PARTS).forEach(([u0, u1, vt], i) => {
+    const b = texBox(W, vt * H, (u1 - u0) * L, vehicleFaces(v || 'truck', 'webp', [u0, u1, vt], i === 2), true);
     b.position.set(0, vt * H / 2, L / 2 - (u0 + u1) / 2 * L); root.add(b);
     for (const m of b.material) mats.push(m);
   });
@@ -1892,7 +1893,7 @@ function updateMortar(m, dt) {
 
 // ================= hijacked truck ramming the gate
 function spawnTruck() {
-  const body = makeTruckBody(), root = body.root; scene.add(root);
+  const body = ACT && ACT.id === 3 ? makeTruckBody('zil3', ZIL3_PARTS) : makeTruckBody(), root = body.root; scene.add(root);
   const a = newActor({ type: 'truck', name: '탈취 트럭', x: 0, z: -48, team: FOE, hp: 820 * DIFF[R.diff].hp, maxhp: 820 * DIFF[R.diff].hp, r: 2.0, static: true, st: 'wait', stT: 2.6, v: 0, hitSet: new Set(), yaw: 0 });
   a.ch = { root, mats: body.mats, model: null, mixer: null, holder: null, lockT: 0, actions: {} };
   if (D.on) { const st = rotP(0, -40, frontAng()); a.x = st[0]; a.z = st[1]; const dl = Math.hypot(a.x, a.z) || 1; a.dx = -a.x / dl; a.dz = -a.z / dl; root.rotation.y = Math.atan2(a.dx, a.dz); }
@@ -3829,6 +3830,14 @@ function buildPoplar(x, z, h) {
   }).catch(() => {});
   ARENA.trees.push({ x, z, r: 0.7 });
 }
+function photoBox(w, h, d, front, side, roofM, x, y, z, block, o) {
+  o = o || {};
+  const F = { pz: { n: front, tint: o.tint }, nz: { n: o.back || front, tint: o.tint }, px: { n: side, tint: o.tint, wrap: 'repeat', rep: o.sideRep || [1, 1] }, nx: { n: side, tint: o.tint, wrap: 'repeat', rep: o.sideRep || [1, 1] } };
+  const g = texBox(w, h, d, F); g.material[2] = roofM; g.position.set(x, y, z); if (o.ry) g.rotation.y = o.ry; ARENA.g.add(g);
+  for (const m of g.material) if (m.color && m !== roofM) m.roughness = 0.92;
+  if (block) { const c = Math.abs(Math.cos(o.ry || 0)), sn = Math.abs(Math.sin(o.ry || 0)), ex = c * w / 2 + sn * d / 2, ez = sn * w / 2 + c * d / 2; ARENA.obst.push({ x0: x - ex, x1: x + ex, z0: z - ez, z1: z + ez, kind: block }); }
+  return g;
+}
 function buildArena3() {
   ARENA.g = new THREE.Group(); scene.add(ARENA.g); ARENA.built = true; ARENA.act = 3; ARENA.poplar = null; ARENA.poplarM = null; ARENA.fallStart = 0;
   // 땅: 한여름 풀밭
@@ -3853,7 +3862,7 @@ function buildArena3() {
   ring.rotation.x = -Math.PI / 2; ring.position.y = 0.04; ARENA.g.add(ring);
   // 가운데: 미루나무와 작업 트럭, 사다리, 노무자
   buildPoplar(0, -0.6, 15);
-  const truck = texBox(2.4, 2.6, 6.2, vehicleFaces('truck', 'webp'), true); truck.position.set(7, 1.3, 5.2); ARENA.g.add(truck);
+  const truck = makeTruckBody('m35', M35_PARTS).root; truck.position.set(7, 0, 5.2); truck.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); ARENA.g.add(truck);
   ARENA.obst.push({ x0: 5.8, x1: 8.2, z0: 2.1, z1: 8.3, kind: 'truck' });
   const lad = mat('#c8b06a'); for (const s of [-0.3, 0.3]) { const r = new THREE.Mesh(new THREE.BoxGeometry(0.08, 5.2, 0.08), lad); r.position.set(-1.2 + s, 2.4, -0.4); r.rotation.z = 0.28; ARENA.g.add(r); }
   for (let i = 0; i < 8; i++) { const r = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.06, 0.06), lad); r.position.set(-1.25 - i * 0.16 + 0.55, 0.6 + i * 0.58, -0.4); r.rotation.z = 0.28; ARENA.g.add(r); }
@@ -3867,24 +3876,26 @@ function buildArena3() {
   // 북쪽: 군사분계선과 파란 회의실, 북측 건물·초소
   const mdl = new THREE.Mesh(new THREE.BoxGeometry(64, 0.14, 0.5), mat('#c9c6bd', { emissive: '#2a2a26' })); mdl.position.set(0, 0.07, -20); ARENA.g.add(mdl);
   const ml = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.42), new THREE.MeshBasicMaterial({ map: signTex('군사분계선', '#3a2a1a', '#ffffff') })); ml.position.set(-6, 0.9, -19.7); ARENA.g.add(ml); abox(0.1, 0.8, 0.1, mat('#555'), -6, 0.4, -19.8);
-  const hutM = a2Glow(a2Mat(hutTex()), 0.18), roofW = mat('#e9edf0', { roughness: 0.7 });
-  for (const hx of [15, 19.6, 24.2]) { const b = new THREE.Mesh(new THREE.BoxGeometry(3.4, 2.6, 7), [hutM, hutM, roofW, roofW, hutM, hutM]); b.position.set(hx, 1.3, -20); b.castShadow = true; ARENA.g.add(b); ARENA.obst.push({ x0: hx - 1.7, x1: hx + 1.7, z0: -23.5, z1: -16.5, kind: 'hut' }); }
-  const nkM = a2Glow(a2Mat(concreteTex('#8f9089', true)), 0.14);
-  const nk = new THREE.Mesh(new THREE.BoxGeometry(24, 9, 7), [nkM, nkM, mat('#6f706a'), mat('#6f706a'), nkM, nkM]); nk.position.set(0, 4.5, -47.5); nk.castShadow = true; ARENA.g.add(nk);
-  for (let i = 0; i < 6; i++) abox(0.7, 7.6, 0.7, mat('#a3a49c'), -9 + i * 3.6, 3.8, -43.7);
-  for (const [x, z] of [[-14, -27], [13, -30]]) { abox(2.2, 2.4, 2.2, a2Mat(concreteTex('#7c7d74', false)), x, 1.2, z, 'booth'); gableRoof(2.7, 2.7, 0.6, mat('#3e4a3a'), x, 2.4, z); }
-  // 서쪽 제3초소 (역습 목표), 남쪽 유엔사 건물
-  abox(2.6, 2.5, 2.4, mat('#d9dccf'), -23.2, 1.25, -5.2, 'booth'); gableRoof(3.1, 2.9, 0.6, a2Mat(slateTex([1, 1])), -23.2, 2.5, -5.2);
-  const cp = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 0.42), new THREE.MeshBasicMaterial({ map: signTex('유엔군 제3초소', '#1f3b6a', '#ffffff') })); cp.position.set(-23.2, 1.95, -3.98); ARENA.g.add(cp);
+  const roofW = mat('#b9c0c6', { roughness: 0.8, metalness: 0.15 }), baseM = mat('#7f8286', { roughness: 1 });
+  for (const hx of [15, 19.6, 24.2]) {
+    photoBox(3.4, 2.6, 7, 'tex3_hut_end.jpg', 'tex3_hut_side.jpg', roofW, hx, 1.3, -20, 'hut');
+    gableRoof(7.5, 3.9, 0.55, roofW, hx, 2.6, -20, Math.PI / 2); abox(3.6, 0.12, 7.2, baseM, hx, 0.06, -20);
+  }
+  const stoneM = mat('#8d8e88', { roughness: 0.95 });
+  photoBox(24, 8, 7, 'tex3_nk.jpg', 'tex3_nk_side.jpg', mat('#6f706a', { roughness: 1 }), 0, 4, -47.5, null, { sideRep: [1, 1] });
+  abox(25, 0.45, 8, stoneM, 0, 8.2, -47.5); abox(26, 0.35, 9.2, stoneM, 0, 0.17, -47.2); abox(6, 0.2, 1.4, stoneM, 0, 0.44, -43.3);
+  for (const [x, z] of [[-14, -27], [13, -30]]) { photoBox(2.2, 2.4, 2.2, 'tex3_booth_n.jpg', 'tex3_booth_n.jpg', mat('#5d6458'), x, 1.2, z, 'booth'); gableRoof(2.7, 2.7, 0.6, mat('#3e4a3a', { roughness: 0.9 }), x, 2.4, z); }
+  // 서쪽 제3초소 (역습 목표), 동쪽 유엔군 측 건물
+  photoBox(2.6, 2.5, 2.4, 'tex3_cp.jpg', 'tex3_cp.jpg', mat('#c9ccc2'), -23.2, 1.25, -5.2, 'booth'); gableRoof(3.1, 2.9, 0.6, a2Mat(slateTex([1, 1])), -23.2, 2.5, -5.2);
+  const cp = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 0.34), new THREE.MeshBasicMaterial({ map: signTex('유엔군 제3초소', '#1f3b6a', '#ffffff') })); cp.position.set(-23.2, 2.28, -3.98); ARENA.g.add(cp);
   for (const [x, z] of [[-25.4, -3.6], [-21, -3.6]]) bagAt(x, z, 1.8, 0);
-  const unM = a2Glow(a2Mat(concreteTex('#dcdcd2', true)), 0.2);
-  const un = new THREE.Mesh(new THREE.BoxGeometry(18, 6, 6), [unM, unM, mat('#bfc4c8'), mat('#bfc4c8'), unM, unM]); un.position.set(-19, 3, 39); ARENA.g.add(un);
+  photoBox(12, 5, 4.4, 'tex3_un.jpg', 'tex3_un_side.jpg', mat('#b9bcbf', { roughness: 1 }), 21.5, 2.5, -9.2, 'hall'); abox(12.5, 0.28, 4.9, mat('#9b9e9f', { roughness: 1 }), 21.5, 5.14, -9.2); abox(3, 0.16, 1.4, mat('#8e8a80'), 21.5, 0.08, -6.3);
   // 동쪽 경계 초소와 철책
   for (const z of [-30, -23.5, -17, -10.5, 10.5, 17, 23.5, 30]) abox(0.12, 2.2, 0.12, mat('#5b5f55'), 33, 1.1, z);
   const fenceT = canvasTex(128, 128, (x, w, h) => { x.clearRect(0, 0, w, h); x.strokeStyle = 'rgba(60,62,58,.9)'; x.lineWidth = 1.3; for (let i = -w; i < w * 2; i += 9) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i + h, h); x.stroke(); x.beginPath(); x.moveTo(i, h); x.lineTo(i + h, 0); x.stroke(); } }, [5, 1]);
   for (const s of [-1, 1]) { const fence = new THREE.Mesh(new THREE.PlaneGeometry(19.5, 2), new THREE.MeshBasicMaterial({ map: fenceT, transparent: true, side: THREE.DoubleSide, depthWrite: false })); fence.position.set(33, 1.1, s * 20.25); fence.rotation.y = Math.PI / 2; ARENA.g.add(fence); }
   // 서쪽 구조 지점: 고장 난 작업 트럭
-  const mb = ARENA.bus; const t2 = texBox(2.4, 2.6, 6.2, vehicleFaces('truck', 'webp'), true); t2.position.set(mb.x, 1.3, mb.z); ARENA.g.add(t2);
+  const mb = ARENA.bus; const t2 = makeTruckBody('m35', M35_PARTS).root; t2.position.set(mb.x, 0, mb.z); t2.rotation.y = Math.PI; ARENA.g.add(t2);
   ARENA.obst.push({ x0: mb.x - 1.6, x1: mb.x + 1.6, z0: mb.z - 5.1, z1: mb.z + 5.1, kind: 'bus' });
   // 가로등
   const poleM = mat('#55595e'), lampM = new THREE.MeshBasicMaterial({ color: '#ffe6b0' });
@@ -3899,7 +3910,7 @@ function buildArena3() {
   const spots = []; let guard = 0;
   while (spots.length < 130 && guard++ < 4500) {
     const x = rand(-33, 46), z = rand(-48, 46);
-    if (Math.abs(z + 20) < 3 || (z < -30 && Math.abs(x) < 15) || (x > 12 && x < 27 && Math.abs(z + 20) < 6) || (z > 32 && x < -2 && x > -26)) continue;
+    if (Math.abs(z + 20) < 3 || (z < -30 && Math.abs(x) < 15) || (x > 12 && x < 27 && Math.abs(z + 20) < 6) || (z > 32 && x < -2 && x > -26) || (x > 13 && x < 30 && z > -14 && z < -4)) continue;
     if (x > -31 && arenaClear(x, z) && !(x < -18 && Math.abs(z - 7.5) < 7)) spots.push({ x, z, v: 1 + Math.floor(Math.random() * 3), h: rand(6.5, 10) });
   }
   for (let z = -40; z <= 40; z += 7) if (Math.abs(z) > 5) spots.push({ x: -33 + rand(-0.8, 0.8), z: z + rand(-1.5, 1.5), v: 0, h: rand(12, 15) });
@@ -3930,10 +3941,11 @@ function ensureArena() {
   ARENA.act = ACT.id;
   if (ACT.id === 3) buildArena3(); else if (ACT.id === 2) buildArena2(); else buildArena();
 }
+const SUNO = [-10, -14];
 const SKY_NIGHT = { bg: '#0b1020', fn: 44, hs: '#7d90c4', hg: '#1c2030', hi: 1.1, sc: '#cbd7ff', si: 1.6, ex: 1.15, day: false };
 function applySky(k) {
   k = k || SKY_NIGHT; scene.background.set(k.bg); scene.fog.color.set(k.bg); scene.fog.near = k.fn;
-  hemi.color.set(k.hs); hemi.groundColor.set(k.hg); hemi.intensity = k.hi; moon.color.set(k.sc); moon.intensity = k.si; renderer.toneMappingExposure = k.ex;
+  hemi.color.set(k.hs); hemi.groundColor.set(k.hg); hemi.intensity = k.hi; moon.color.set(k.sc); moon.intensity = k.si; renderer.toneMappingExposure = k.ex; SUNO[0] = k.day ? 9 : -10; SUNO[1] = k.day ? 15 : -14;
   if (ARENA.beams) for (const b of ARENA.beams) { if (b.cone) b.cone.visible = !k.day; if (b.disc) b.disc.visible = !k.day; }
 }
 function setMapMode(mode) {
@@ -5370,7 +5382,7 @@ function frame() {
   const sh = G.shake * 0.6;
   camera.position.set(camX + rand(-sh, sh), 19.5 * zoom + rand(-sh, sh) * 0.5, camZ - 5 + 21.5 * zoom);
   camera.lookAt(camX, 0, camZ - 5);
-  moon.position.set(camX - 10, 30, camZ - 14); moon.target.position.set(camX, 0, camZ - 5); moon.target.updateMatrixWorld();
+  moon.position.set(camX + SUNO[0], 30, camZ + SUNO[1]); moon.target.position.set(camX, 0, camZ - 5); moon.target.updateMatrixWorld();
   if (fireLight) fireLight.intensity = 24 + Math.sin(clock.elapsedTime * 23) * 6 + Math.random() * 6;
   markerGrp.children[0].scale.setScalar(1 + 0.12 * Math.sin(clock.elapsedTime * 4));
   const sp = snowGeo.attributes.position.array;
